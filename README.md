@@ -1,0 +1,2 @@
+# frontend
+Kocha frontend repo
