@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - dev
-      - auth-login
+      - authentication
       - auth-signup
 
 jobs:
