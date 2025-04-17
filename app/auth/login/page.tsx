@@ -1,14 +1,15 @@
 import { Switch } from "@/components/ui/switch";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Login() {
   return (
     <div className="flex min-h-screen flex-1">
       <div className="relative hidden w-0 flex-1 lg:block">
         <Image
-          alt=""
-          src="https://images.unsplash.com/photo-1496917756835-20cb06e75b4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1908&q=80"
-          className="absolute inset-0 size-full object-cover"
+          alt="app image"
+          src="/asset/login_image.png"
+          className="object-fill"
           fill
         />
       </div>
@@ -19,7 +20,7 @@ export default function Login() {
               <Image
                 alt="kocha_logo"
                 src="/asset/kocha_logo.png"
-                className="h-10 w-auto object-cover"
+                className="h-10 w-auto"
                 fill
               />
             </div>
@@ -31,7 +32,7 @@ export default function Login() {
           <div className="mt-10">
             <div>
               <form>
-                <div className="mb-6">
+                <div className="mb-4">
                   <label
                     htmlFor="email"
                     className="block text-sm/6 font-medium text-[#344054]"
@@ -71,7 +72,7 @@ export default function Login() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex gap-3">
                     <label
                       htmlFor="remember-me"
@@ -83,12 +84,12 @@ export default function Login() {
                   </div>
 
                   <div className="text-sm/6">
-                    <a
+                    <Link
                       href="#"
                       className="font-semibold text-[#2032E2] hover:text-indigo-500 text-[16px]"
                     >
                       Forgot password?
-                    </a>
+                    </Link>
                   </div>
                 </div>
 
@@ -101,6 +102,15 @@ export default function Login() {
                   </button>
                 </div>
               </form>
+              <div className="flex items-center gap-2 text-[16px] mt-2">
+                <p>Don’t have an account?</p>
+                <Link
+                  href="/auth/signup"
+                  className="text-[#2032E2] hover:text-indigo-500 text-[16px] font-semibold"
+                >
+                  Register
+                </Link>
+              </div>
             </div>
 
             <div className="mt-10">
@@ -113,7 +123,7 @@ export default function Login() {
                 </div>
                 <div className="relative flex justify-center text-sm/6 font-medium">
                   <span className="bg-white px-6 text-gray-900">
-                    Or continue with
+                    Or log in with
                   </span>
                 </div>
               </div>
@@ -145,7 +155,9 @@ export default function Login() {
                       fill="#34A853"
                     />
                   </svg>
-                  <span className="text-sm/6 font-semibold">Google</span>
+                  <span className="text-sm/6 font-semibold">
+                    Sign in with Google
+                  </span>
                 </a>
               </div>
             </div>
