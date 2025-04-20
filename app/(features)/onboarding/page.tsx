@@ -1,29 +1,33 @@
-"use client"
+"use client";
 import OnBoardingNavbar from "@/app/components/common/OnBoardingNavbar";
 import React, { useState } from "react";
 import ValueSelection from "./components/ValueSelection";
 import JobSearchStatus from "./components/JobSearchStatus";
 import RoleSelection from "./components/RoleSelection";
+import IndustrySelection from "./components/IndustrySelection";
+import SkillsSelection from "./components/SkillsSelection";
+import CareerGoals from "./components/CareerGoals";
 
 const Onboarding = () => {
   const [step, setStep] = useState(1);
-  const [progress, setProgress] = useState(10); // Start at 10%
+  const totalSteps = 6;
+
+  // Calculate progress based on current step (no decimals)
+  const progress = Math.round((step / totalSteps) * 100);
 
   const handleNext = () => {
-    setStep((prev) => Math.min(prev + 1, 4));
-    setProgress((prev) => Math.min(prev + 15, 100));
+    setStep((prev) => Math.min(prev + 1, totalSteps));
   };
 
   const handlePrevious = () => {
     setStep((prev) => Math.max(prev - 1, 1));
-    setProgress((prev) => Math.max(prev - 15, 0));
   };
 
   return (
     <div>
       <OnBoardingNavbar />
 
-      <main className="pt-[4rem] max-w-[723px] mx-auto mb-[3rem]">
+      <main className="pt-[4rem] max-w-[723px] mx-auto mb-[3rem] px-8">
         <header className="w-full flex items-center justify-between h-[20px] mb-[3rem]">
           <div className="w-full h-[8px] rounded-full bg-[#EAECF0]">
             <div
@@ -50,6 +54,27 @@ const Onboarding = () => {
 
         {step == 3 && (
           <RoleSelection
+            handleNext={handleNext}
+            handlePrevious={handlePrevious}
+          />
+        )}
+
+        {step == 4 && (
+          <IndustrySelection
+            handleNext={handleNext}
+            handlePrevious={handlePrevious}
+          />
+        )}
+
+        {step == 5 && (
+          <SkillsSelection
+            handleNext={handleNext}
+            handlePrevious={handlePrevious}
+          />
+        )}
+
+        {step == 6 && (
+          <CareerGoals
             handleNext={handleNext}
             handlePrevious={handlePrevious}
           />

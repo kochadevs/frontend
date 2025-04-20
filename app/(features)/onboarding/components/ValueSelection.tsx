@@ -40,7 +40,7 @@ const ValueSelection: React.FC<StepProps> = ({
   };
 
   return (
-    <div className="w-full text-center flex flex-col items-center justify-between h-full">
+    <div className="max-w-[600px] mx-auto px-4 text-center flex flex-col items-center justify-between h-full">
       <div>
         <h1 className="text-[36px] font-bold text-[#2E3646] mb-2">
           What do you value in your new role?

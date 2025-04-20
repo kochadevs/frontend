@@ -62,7 +62,7 @@ const JobSearchStatus: React.FC<StepProps> = ({
       <div className="flex items-center justify-end w-full gap-6 mt-64">
         <Button
           variant="ghost"
-          className="px-4 py-2 border border-[#D0D5DD] text-[#6B7280] hover:text-[#374151]"
+          className="cursor-pointer px-4 py-2 border border-[#D0D5DD] text-[#6B7280] hover:text-[#374151]"
           onClick={handlePrevious}
         >
           Previous

@@ -104,7 +104,7 @@ const RoleSelection: React.FC<StepProps> = ({
   return (
     <div className="w-full mx-auto px-4">
       <div className="text-center">
-        <h1 className="text-[36px] font-bold text-[#2E3646] mb-2">
+        <h1 className="text-[32px] font-bold text-[#2E3646] mb-2">
           What kind of roles are you interested in?
         </h1>
         <p className="text-[#344054] mb-8 text-[16px] font-semibold">
@@ -124,7 +124,7 @@ const RoleSelection: React.FC<StepProps> = ({
                   key={role.id}
                   onClick={() => toggleRole(role.id)}
                   className={clsx(
-                    "px-4 py-2 rounded-md border text-sm transition-colors duration-200",
+                    "px-4 py-2 rounded-md border text-sm transition-colors duration-200 cursor-pointer",
                     selectedRoles.includes(role.id)
                       ? "bg-[#EEF4FF] border-[#251F99] text-[#251F99]"
                       : "border-[#E5E7EB] text-[#374151] hover:border-[#D1D5DB]"
@@ -141,7 +141,7 @@ const RoleSelection: React.FC<StepProps> = ({
       <div className="flex items-center justify-end w-full gap-6 mt-64">
         <Button
           variant="ghost"
-          className="px-4 py-2 border border-[#D0D5DD] text-[#6B7280] hover:text-[#374151]"
+          className="cursor-pointer px-4 py-2 border border-[#D0D5DD] text-[#6B7280] hover:text-[#374151]"
           onClick={handlePrevious}
         >
           Previous
