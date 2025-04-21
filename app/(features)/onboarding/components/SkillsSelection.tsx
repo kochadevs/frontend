@@ -64,11 +64,14 @@ const SkillsSelection: React.FC<StepProps> = ({
 
   return (
     <div className="max-w-[600px] mx-auto px-4">
-      <h1 className="text-[32px] font-semibold text-[#111827] text-center mb-2">
-        What skills do you have or enjoy working with? sam
-      </h1>
-      <p className="text-[#6B7280] text-center mb-8">Select all that applies</p>
-
+      <div className="text-center">
+        <h1 className="text-[32px] font-bold text-[#2E3646] mb-2">
+          What skills do you have or enjoy working with?
+        </h1>
+        <p className="text-[#344054] mb-8 text-[16px] font-semibold">
+          Select all that applies
+        </p>
+      </div>
       <div className="relative mb-8">
         <Button
           variant="ghost"

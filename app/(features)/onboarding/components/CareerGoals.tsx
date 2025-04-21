@@ -28,10 +28,7 @@ const categories: Category[] = [
   },
 ];
 
-const CareerGoals : React.FC<StepProps> = ({
-  handleNext,
-  handlePrevious,
-}) => {
+const CareerGoals: React.FC<StepProps> = ({ handleNext, handlePrevious }) => {
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
 
   const toggleSkill = (skill: string) => {
@@ -45,11 +42,14 @@ const CareerGoals : React.FC<StepProps> = ({
 
   return (
     <div className="max-w-[600px] mx-auto px-4">
-      <h1 className="text-[32px] font-semibold text-[#111827] text-center mb-2">
-        What are your career goals?
-      </h1>
-      <p className="text-[#6B7280] text-center mb-8">Select all that applies</p>
-
+      <div className="text-center">
+        <h1 className="text-[32px] font-bold text-[#2E3646] mb-2">
+          What are your career goals?
+        </h1>
+        <p className="text-[#344054] mb-8 text-[16px] font-semibold">
+          Select all that applies
+        </p>
+      </div>
       {categories.map((category) => (
         <div key={category.title} className="mb-8">
           <h2 className="text-sm font-medium text-[#111827] mb-3">
