@@ -1,5 +1,5 @@
-import OnBoardingNavbar from "../components/common/OnBoardingNavbar";
-import SideNavigation from "../components/common/SideNavigation/SideNavigation";
+import OnBoardingNavbar from "../../components/common/OnBoardingNavbar";
+import SideNavigation from "../../components/common/SideNavigation/SideNavigation";
 
 export default function PagesLayout({
   children,

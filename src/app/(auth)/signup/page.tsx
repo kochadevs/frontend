@@ -1,14 +1,13 @@
-import { Switch } from "@/components/ui/switch";
 import Image from "next/image";
 import Link from "next/link";
 
-export default function Login() {
+export default function Signup() {
   return (
     <div className="flex min-h-screen flex-1">
       <div className="relative hidden w-0 flex-1 lg:block">
         <Image
           alt="app image"
-          src="/asset/login_image.png"
+          src="/asset/signup_image.png"
           className="object-fill"
           fill
         />
@@ -25,13 +24,53 @@ export default function Login() {
               />
             </div>
             <h2 className=" text-[30px] font-[700] tracking-tight text-[#2E3646]">
-              Log in to your account
+              Sign up for an account
             </h2>
           </div>
 
           <div className="mt-10">
             <div>
               <form>
+                <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2 mb-4">
+                  <div>
+                    <label
+                      htmlFor="first-name"
+                      className="block text-sm/6 font-semibold text-gray-900"
+                    >
+                      First name
+                    </label>
+                    <div className="mt-2.5">
+                      <input
+                        id="first-name"
+                        name="first-name"
+                        type="text"
+                        autoComplete="given-name"
+                        className="block w-full rounded-md bg-white px-3.5 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600"
+                        placeholder="Enter first name"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="last-name"
+                      className="block text-sm/6 font-semibold text-gray-900"
+                    >
+                      Last name
+                    </label>
+                    <div className="mt-2.5">
+                      <input
+                        id="last-name"
+                        name="last-name"
+                        type="text"
+                        autoComplete="family-name"
+                        className="block w-full rounded-md bg-white px-3.5 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600"
+                        placeholder="Enter last name"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 <div className="mb-4">
                   <label
                     htmlFor="email"
@@ -52,7 +91,7 @@ export default function Login() {
                   </div>
                 </div>
 
-                <div className="mb-2">
+                <div className="mb-4">
                   <label
                     htmlFor="password"
                     className="block text-sm/6 font-medium text-[#344054]"
@@ -72,24 +111,23 @@ export default function Login() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex gap-3">
-                    <label
-                      htmlFor="remember-me"
-                      className=" text-sm/6 text-gray-900 flex items-center gap-2 text-[16px]"
-                    >
-                      <Switch />
-                      Remember me
-                    </label>
-                  </div>
-
-                  <div className="text-sm/6">
-                    <Link
-                      href="#"
-                      className="font-semibold text-[#2032E2] hover:text-indigo-500 text-[16px]"
-                    >
-                      Forgot password?
-                    </Link>
+                <div className="mb-4">
+                  <label
+                    htmlFor="password"
+                    className="block text-sm/6 font-medium text-[#344054]"
+                  >
+                    Confirm password
+                  </label>
+                  <div className="mt-2">
+                    <input
+                      id="password"
+                      name="password"
+                      type="password"
+                      required
+                      autoComplete="current-password"
+                      className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                      placeholder="Re-enter password"
+                    />
                   </div>
                 </div>
 
@@ -98,17 +136,17 @@ export default function Login() {
                     type="submit"
                     className="flex w-full justify-center rounded-md bg-linear-to-r from-[#334AFF] to-[#251F99] px-3 py-1.5 text-[16px] font-semibold text-white shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px]"
                   >
-                    Log in
+                    Register
                   </button>
                 </div>
               </form>
               <div className="flex items-center gap-2 text-[16px] mt-2">
-                <p>Don’t have an account?</p>
+                <p>Already have an account?</p>
                 <Link
-                  href="/auth/signup"
+                  href="/login"
                   className="text-[#2032E2] hover:text-indigo-500 text-[16px] font-semibold"
                 >
-                  Register
+                  Log in
                 </Link>
               </div>
             </div>
@@ -123,7 +161,7 @@ export default function Login() {
                 </div>
                 <div className="relative flex justify-center text-sm/6 font-medium">
                   <span className="bg-white px-6 text-gray-900">
-                    Or log in with
+                    Or register with
                   </span>
                 </div>
               </div>
@@ -156,7 +194,7 @@ export default function Login() {
                     />
                   </svg>
                   <span className="text-sm/6 font-semibold">
-                    Sign in with Google
+                    Sign up with Google
                   </span>
                 </a>
               </div>

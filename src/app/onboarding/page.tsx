@@ -1,5 +1,5 @@
 "use client";
-import OnBoardingNavbar from "@/app/components/common/OnBoardingNavbar";
+import OnBoardingNavbar from "@/components/common/OnBoardingNavbar";
 import React, { useState } from "react";
 import ValueSelection from "./components/ValueSelection";
 import JobSearchStatus from "./components/JobSearchStatus";
