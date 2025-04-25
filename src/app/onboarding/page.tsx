@@ -1,5 +1,4 @@
 "use client";
-import OnBoardingNavbar from "@/components/common/OnBoardingNavbar";
 import React, { useState } from "react";
 import ValueSelection from "./components/ValueSelection";
 import JobSearchStatus from "./components/JobSearchStatus";
@@ -7,6 +6,7 @@ import RoleSelection from "./components/RoleSelection";
 import IndustrySelection from "./components/IndustrySelection";
 import SkillsSelection from "./components/SkillsSelection";
 import CareerGoals from "./components/CareerGoals";
+import NavigationBar from "@/components/common/NavigationBar";
 
 const Onboarding = () => {
   const [step, setStep] = useState(1);
@@ -25,7 +25,7 @@ const Onboarding = () => {
 
   return (
     <div>
-      <OnBoardingNavbar />
+      <NavigationBar />
 
       <main className="pt-[4rem] max-w-[723px] mx-auto mb-[3rem] px-8">
         <header className="w-full flex items-center justify-between h-[20px] mb-[3rem]">

@@ -14,7 +14,7 @@ const SideNavigationBar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const navItems = [
-    { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+    { icon: LayoutDashboard, label: "Home", href: "/home" },
     { icon: FileText, label: "Documents", href: "/documents" },
     { icon: Briefcase, label: "Jobs", href: "/jobs" },
     { icon: Users, label: "Mentor match", href: "/mentor-match" },
@@ -76,7 +76,7 @@ const SideNavigationBar = () => {
           >
             <item.icon className="h-5 w-5 shrink-0" />
             {!isCollapsed && (
-              <span className="text-sm font-medium">{item.label}</span>
+              <span className="text-[16px] font-medium">{item.label}</span>
             )}
           </Link>
         ))}
