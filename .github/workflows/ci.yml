@@ -1,0 +1,62 @@
+name: CI Workflow for Next.js
+
+on:
+  push:
+    branches:
+      - dev
+      - authentication
+      - auth-signup
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the code
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18 # Use the recommended Node.js version for Next.js
+          cache: 'npm'
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Step 4: Run linting
+      - name: Lint code
+        run: npm run lint
+
+      # Step 5: (Optional) Remove this step if you don't have tests
+      # - name: Run tests
+      #   run: npm test
+
+      # Step 6: Build the application
+      - name: Build application
+        run: npm run build
+
+  # create-pull-request:
+  #   needs: build-and-test
+  #   if: success()
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     # Step 1: Checkout the repository
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v3
+
+  #     # Step 2: Create a pull request
+  #     - name: Create Pull Request
+  #       uses: peter-evans/create-pull-request@v5
+  #       with:
+  #         token: ${{ secrets.GITHUB_TOKEN }}
+  #         branch: feature-branch
+  #         base: main
+  #         title: "Feature: Merge feature-branch to main"
+  #         body: |
+  #           This pull request was created automatically by a CI/CD workflow.
+  #           - All tests and build processes passed successfully.
