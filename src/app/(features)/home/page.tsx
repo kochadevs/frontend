@@ -20,16 +20,16 @@ const Home = () => {
       </header>
 
       {/* Centered Main Content */}
-      <main className="container mx-auto px-4 flex flex-col gap-y-10 pb-[5rem]">
-        <Header/>
+      <main className="container mx-auto px-6 flex flex-col gap-y-10 pb-[5rem]">
+        <Header />
 
         {/* Quick Menu */}
-        <QuickMenu/>
+        <QuickMenu />
 
         {/* How Kocha AI Works Section */}
-        <VideoAndSessions/>
+        <VideoAndSessions />
 
-        <Mentors/>
+        <Mentors />
       </main>
     </div>
   );

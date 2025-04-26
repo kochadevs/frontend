@@ -71,7 +71,7 @@ const SideNavigationBar = () => {
         {navItems.map((item) => (
           <Link
             key={item.href}
-            href="#"
+            href={item.href}
             className="flex items-center gap-3 text-white/90 hover:bg-linear-to-r from-[#334AFF] to-[#251F99] border-l-2 border-transparent hover:border-white  p-3 transition-colors"
           >
             <item.icon className="h-5 w-5 shrink-0" />
