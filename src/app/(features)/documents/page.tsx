@@ -80,7 +80,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen pb-[4rem]">
-      <div className="max-w-6xl mx-auto p-6">
+      <div className="container mx-auto p-6">
         <h1 className="text-[30px] font-bold text-[#2E3646] mb-1">Documents</h1>
         <p className="text-[18px] text-[#344054] mb-8">
           Manage and tailor all of your job search documents here
