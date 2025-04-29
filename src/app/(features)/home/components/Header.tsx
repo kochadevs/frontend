@@ -5,9 +5,9 @@ import React from "react";
 const Header = () => {
   return (
     <div className="relative -mt-[5rem] z-50 flex justify-center">
-      <div className="w-full max-w-[1800px] px-4 sm:px-6 lg:px-8">
-        <header className="md:h-[234px] min-h-[234px] flex flex-col sm:flex-row items-center gap-4 sm:gap-x-8">
-          <div className="relative md:h-full md:w-[150px] h-[180px] w-[180px] sm:h-[234px] sm:w-[234px] min-w-[150px] sm:min-w-[234px] border-[4px] border-white overflow-hidden shadow rounded-sm">
+      <div className="w-full ">
+        <header className="lg:h-[234px] min-h-[234px] flex flex-col lg:flex-row items-center gap-4 sm:gap-x-8">
+          <div className="relative lg:h-full md:w-[150px] h-[180px] w-[180px] sm:h-[234px] sm:w-[234px] min-w-[150px] sm:min-w-[234px] border-[4px] border-white overflow-hidden shadow rounded-sm">
             <Image
               src="https://images.unsplash.com/photo-1685374947616-754a07599f16?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
               fill
@@ -49,7 +49,7 @@ const Header = () => {
                 </div>
                 <Button
                   variant="ghost"
-                  className="bg-linear-to-r from-[#334AFF] to-[#1F2C99] text-white px-3 sm:px-[14px] py-2 sm:py-[10px] rounded-lg transition flex items-center h-[36px] sm:h-[44px] cursor-pointer hover:text-[#fff]/80 text-xs sm:text-base"
+                  className="bg-[#334AFF] hover:bg-[#251F99] text-white px-3 sm:px-[14px] py-2 sm:py-[10px] rounded-lg transition flex items-center h-[36px] sm:h-[44px] cursor-pointer hover:text-[#fff] text-xs sm:text-base"
                 >
                   <Image
                     src="/asset/home/share icon.svg"

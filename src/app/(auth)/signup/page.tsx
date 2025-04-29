@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -132,12 +133,13 @@ export default function Signup() {
                 </div>
 
                 <div>
-                  <button
+                  <Button
+                    variant="ghost"
                     type="submit"
-                    className="flex w-full justify-center rounded-md bg-linear-to-r from-[#334AFF] to-[#251F99] px-3 py-1.5 text-[16px] font-semibold text-white shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px]"
+                    className="flex w-full justify-center rounded-md bg-[#334AFF] hover:text-white px-3 py-1.5 text-[16px] font-semibold text-white shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px]"
                   >
                     Register
-                  </button>
+                  </Button>
                 </div>
               </form>
               <div className="flex items-center gap-2 text-[16px] mt-2">

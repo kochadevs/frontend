@@ -9,9 +9,11 @@ import {
 } from "lucide-react";
 import { clsx } from "clsx";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const SideNavigationBar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const pathname = usePathname();
 
   const navItems = [
     { icon: LayoutDashboard, label: "Home", href: "/home" },
@@ -20,6 +22,10 @@ const SideNavigationBar = () => {
     { icon: Users, label: "Mentor match", href: "/mentor-match" },
     { icon: MessagesSquare, label: "Community", href: "/community" },
   ];
+
+   const isActive = (path: string) => {
+     return pathname.startsWith(path);
+   };
 
   return (
     <nav
@@ -72,7 +78,11 @@ const SideNavigationBar = () => {
           <Link
             key={item.href}
             href={item.href}
-            className="flex items-center gap-3 text-white/90 hover:bg-linear-to-r from-[#334AFF] to-[#251F99] border-l-2 border-transparent hover:border-white  p-3 transition-colors"
+            className={`flex items-center gap-3 text-white/90  border-l-2 border-transparent   p-3 transition-colors ${
+              isActive(item.href)
+                ? "bg-linear-to-r from-[#334AFF] to-[#251F99] border-white"
+                : "hover:bg-linear-to-r from-[#334AFF] to-[#251F99] hover:border-white"
+            }`}
           >
             <item.icon className="h-5 w-5 shrink-0" />
             {!isCollapsed && (

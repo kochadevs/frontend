@@ -225,7 +225,7 @@ export default function Home() {
             </div>
           </div>
           {/* Documents table */}
-          <div className="border">
+          <div >
             {activeTab === "resume" ? (
               <Table>
                 <TableHeader className="bg-[#F9FAFB] px-[24px] py-[12px]">
@@ -239,7 +239,7 @@ export default function Home() {
                 <TableBody>
                   {filteredDocuments.map((doc) => (
                     <TableRow key={doc.id} className="hover:bg-transparent">
-                      <TableCell className="font-medium">{doc.name}</TableCell>
+                      <TableCell className="font-medium pl-3">{doc.name}</TableCell>
                       <TableCell>{doc.created}</TableCell>
                       <TableCell>{doc.lastEdited}</TableCell>
                       <TableCell className="text-right">

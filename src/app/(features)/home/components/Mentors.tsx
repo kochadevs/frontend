@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Star } from "lucide-react";
 import Image from "next/image";
 
 export default function Mentors() {
@@ -8,177 +9,120 @@ export default function Mentors() {
       name: "Cameron Williamson",
       role: "Leadership Coach",
       image: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg",
+      about:
+        "A seasoned UI/UX Design Mentor with over [X] years of experience in designing user-centered digital experiences. Specializing in both user in...",
       isVirtual: false,
     },
     {
       id: 2,
-      name: "Virtual Mentor",
+      name: "Cameron Williamson",
       role: "Leadership Coach",
-      image:
-        "https://images.pexels.com/photos/8566472/pexels-photo-8566472.jpeg",
+      image: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg",
+      about:
+        "A seasoned UI/UX Design Mentor with over [X] years of experience in designing user-centered digital experiences. Specializing in both user in...",
       isVirtual: true,
     },
     {
       id: 3,
       name: "Cameron Williamson",
       role: "Leadership Coach",
-      image:
-        "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg",
+      image: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg",
+      about:
+        "A seasoned UI/UX Design Mentor with over [X] years of experience in designing user-centered digital experiences. Specializing in both user in...",
       isVirtual: false,
-    },
-    {
-      id: 4,
-      name: "Virtual Mentor",
-      role: "Leadership Coach",
-      image:
-        "https://images.pexels.com/photos/8566472/pexels-photo-8566472.jpeg",
-      isVirtual: true,
     },
   ];
 
   return (
-    <div className=" bg-white rounded-md p-6 border">
+    <div className="bg-white rounded-lg p-4 border">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold text-[#344054]">
           Recommended mentors
         </h2>
-        <Button variant="ghost" className="text-sm text-[#344054] font-medium">
+        <Button variant="link" className="text-[#344054]">
           View all
         </Button>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+      <div className="space-y-4">
         {mentors.map((mentor) => (
           <div
             key={mentor.id}
-            className="p-4 border border-gray-200 rounded-lg"
+            className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors"
           >
-            <div className="relative w-full aspect-[4/3] mb-4 rounded-lg overflow-hidden">
-              <Image
-                src={mentor.image}
-                alt={mentor.name}
-                fill
-                className="object-cover"
-              />
-            </div>
-            <div className="flex items-center gap-2 mb-1">
-              <svg
-                width="16"
-                height="17"
-                viewBox="0 0 16 17"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M8 8.50016C9.84095 8.50016 11.3333 7.00778 11.3333 5.16683C11.3333 3.32588 9.84095 1.8335 8 1.8335C6.15906 1.8335 4.66667 3.32588 4.66667 5.16683C4.66667 7.00778 6.15906 8.50016 8 8.50016Z"
-                  stroke="#8D8983"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M13.7267 15.1667C13.7267 12.5867 11.16 10.5 8 10.5C4.84 10.5 2.27333 12.5867 2.27333 15.1667"
-                  stroke="#8D8983"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-
-              <span className="text-sm font-medium text-[#344054]">
-                {mentor.name}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 mb-2">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M7.16667 14.9999H8.84666C9.48666 14.9999 9.9 14.5466 9.78 13.9932L9.50667 12.7866H6.50667L6.23333 13.9932C6.11333 14.5132 6.56667 14.9999 7.16667 14.9999Z"
-                  stroke="#8D8983"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M9.50667 12.7801L10.66 11.7534C11.3067 11.1801 11.3333 10.7801 10.82 10.1334L8.78667 7.55344C8.36 7.01344 7.66 7.01344 7.23334 7.55344L5.20001 10.1334C4.68667 10.7801 4.68667 11.2001 5.36001 11.7534L6.51334 12.7801"
-                  stroke="#8D8983"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M8.00667 7.41357V9.10026"
-                  stroke="#8D8983"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M7.43333 3.4601L6.91333 2.94008C6.6 2.62674 6.6 2.12011 6.91333 1.80678L7.43333 1.28676C7.74666 0.973424 8.25333 0.973424 8.56666 1.28676L9.08666 1.80678C9.39999 2.12011 9.39999 2.62674 9.08666 2.94008L8.56666 3.4601C8.25333 3.77343 7.74666 3.77343 7.43333 3.4601Z"
-                  stroke="#8D8983"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M12.9667 6.54004H13.7C14.14 6.54004 14.5 6.90005 14.5 7.34005V8.07336C14.5 8.51336 14.14 8.87341 13.7 8.87341H12.9667C12.5267 8.87341 12.1667 8.51336 12.1667 8.07336V7.34005C12.1667 6.90005 12.5267 6.54004 12.9667 6.54004Z"
-                  stroke="#8D8983"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M3.03334 6.54004H2.3C1.86 6.54004 1.5 6.90005 1.5 7.34005V8.07336C1.5 8.51336 1.86 8.87341 2.3 8.87341H3.03334C3.47334 8.87341 3.83333 8.51336 3.83333 8.07336V7.34005C3.83333 6.90005 3.47334 6.54004 3.03334 6.54004Z"
-                  stroke="#8D8983"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M12.36 6.73352L8.82666 3.2002"
-                  stroke="#8D8983"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M3.64 6.73352L7.17333 3.2002"
-                  stroke="#8D8983"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-
-              <span className="text-sm text-[#667085]">{mentor.role}</span>
-            </div>
-            <div className="flex items-center gap-1 mb-4">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M5.9175 8.73037L3.13415 5.25118C2.96089 5.0346 2.87426 4.92631 2.81265 4.80572C2.75799 4.69874 2.71805 4.58486 2.6939 4.46718C2.66667 4.33453 2.66667 4.19585 2.66667 3.9185V3.46683C2.66667 2.72009 2.66667 2.34672 2.812 2.06151C2.93983 1.81063 3.1438 1.60665 3.39468 1.47882C3.6799 1.3335 4.05327 1.3335 4.8 1.3335H11.2C11.9467 1.3335 12.3201 1.3335 12.6053 1.47882C12.8562 1.60665 13.0602 1.81063 13.188 2.06151C13.3333 2.34672 13.3333 2.72009 13.3333 3.46683V3.9185C13.3333 4.19585 13.3333 4.33453 13.3061 4.46718C13.282 4.58486 13.242 4.69874 13.1874 4.80572C13.1258 4.92631 13.0391 5.0346 12.8659 5.25118L10.0825 8.73037M3.33337 2.00016L8.00004 8.00016L12.6666 2.00016M10.357 8.97647C11.6588 10.2782 11.6588 12.3888 10.357 13.6905C9.05529 14.9923 6.94473 14.9923 5.64298 13.6905C4.34124 12.3888 4.34124 10.2782 5.64298 8.97647C6.94472 7.67473 9.05528 7.67473 10.357 8.97647Z"
-                  stroke="#8D8983"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-
-              {[1, 2, 3].map((star) => (
+            <div className=" flex items-start gap-2 min-w-[240px] h-[65px]">
+              <div className="w-[65px] aspect-square h-[65px] relative rounded-md overflow-hidden">
                 <Image
-                  key={star}
-                  src="/asset/home/Star icon.svg"
-                  alt="Star"
-                  width={16}
-                  height={16}
+                  src={mentor.image}
+                  alt={mentor.name}
+                  className="object-cover"
+                  fill
                 />
-              ))}
+              </div>
+
+              <div className="flex items-start flex-col">
+                <h3 className="font-medium text-[17px] text-[#344054]">
+                  {mentor.name}
+                </h3>
+                <p className="text-[15px] text-[#475467] font-semibold mb-1">
+                  {mentor.role}
+                </p>
+                <div className="flex items-center">
+                  <svg
+                    width="12"
+                    height="15"
+                    viewBox="0 0 12 15"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="mr-2"
+                  >
+                    <path
+                      d="M3.91752 8.23037L1.13417 4.75118C0.960903 4.5346 0.874271 4.42631 0.812666 4.30572C0.75801 4.19874 0.718063 4.08486 0.69391 3.96718C0.666687 3.83453 0.666687 3.69585 0.666687 3.4185V2.96683C0.666687 2.22009 0.666687 1.84672 0.812012 1.56151C0.939843 1.31063 1.14382 1.10665 1.3947 0.978821C1.67992 0.833496 2.05328 0.833496 2.80002 0.833496H9.20002C9.94676 0.833496 10.3201 0.833496 10.6053 0.978821C10.8562 1.10665 11.0602 1.31063 11.188 1.56151C11.3334 1.84672 11.3334 2.22009 11.3334 2.96683V3.4185C11.3334 3.69585 11.3334 3.83453 11.3061 3.96718C11.282 4.08486 11.242 4.19874 11.1874 4.30572C11.1258 4.42631 11.0391 4.5346 10.8659 4.75118L8.08252 8.23037M1.33339 1.50016L6.00006 7.50016L10.6667 1.50016M8.35705 8.47647C9.65879 9.77822 9.65879 11.8888 8.35705 13.1905C7.0553 14.4923 4.94475 14.4923 3.643 13.1905C2.34125 11.8888 2.34125 9.77822 3.643 8.47647C4.94474 7.17473 7.05529 7.17473 8.35705 8.47647Z"
+                      stroke="#8D8983"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+
+                  {/* First 3 yellow stars (filled) */}
+                  {[...Array(3)].map((_) => (
+                    <Star
+                      key={`yellow-${_}`}
+                      size={16}
+                      className="text-yellow-400 fill-yellow-400"
+                    />
+                  ))}
+
+                  {[...Array(2)].map((_) => (
+                    <Star
+                      key={`gray-${_}`}
+                      size={16}
+                      className="text-gray-200 fill-gray-200"
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <Button variant="ghost" className="flex-1 bg-linear-to-r from-[#334AFF] to-[#1F2C99] text-white py-2 px-4 rounded-lg text-sm font-medium">
+
+            <div>
+              <h6 className="text-[#344054] text-[16px] font-semibold">
+                About
+              </h6>
+              <p className="text-[16px] text-[#344054] line-clamp-2">
+                {mentor.about}
+              </p>
+            </div>
+
+            <div className="flex gap-2 shrink-0">
+              <Button
+                variant="ghost"
+                className="bg-[#334AFF] hover:bg-[#251F99] text-white hover:text-white"
+              >
                 View profile
               </Button>
-              <button className="flex-1 border border-gray-300 text-[#344054] py-2 px-4 rounded-lg text-sm font-medium">
+              <Button variant="outline" className="border-gray-300">
                 Send message
-              </button>
+              </Button>
             </div>
           </div>
         ))}

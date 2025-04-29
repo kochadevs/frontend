@@ -30,7 +30,7 @@ const JobSearchStatus: React.FC<StepProps> = ({
   return (
     <div className="max-w-[600px] mx-auto px-4">
       <div className="text-center">
-         <h1 className="text-[32px] font-bold text-[#2E3646] mb-2">
+        <h1 className="text-[32px] font-bold text-[#2E3646] mb-2">
           What is the status of your job search?
         </h1>
         <p className="text-[#344054] mb-8 text-[16px] font-semibold">
@@ -71,7 +71,7 @@ const JobSearchStatus: React.FC<StepProps> = ({
         <Button
           variant="ghost"
           type="submit"
-          className="flex w-[153px] justify-center rounded-md bg-linear-to-r from-[#334AFF] to-[#251F99] px-3 py-1.5 text-[16px] font-semibold text-white hover:text-[#fff]/70 shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px]"
+          className="flex w-[153px] justify-center rounded-md bg-[#334AFF]  px-3 py-1.5 text-[16px] font-semibold text-white hover:text-[#fff]/70 shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px]"
           onClick={handleNext}
         >
           Save & continue
