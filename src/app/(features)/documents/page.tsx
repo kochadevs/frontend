@@ -86,7 +86,7 @@ export default function Home() {
           Manage and tailor all of your job search documents here
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
           {/* Generate resume card */}
           <Link href="/documents">
             <div className="bg-white p-4 rounded-md shadow-lg hover:shadow-xl transition cursor-pointer h-[132px] border">
