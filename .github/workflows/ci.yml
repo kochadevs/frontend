@@ -6,6 +6,7 @@ on:
       - dev
       - authentication
       - auth-signup
+      - ui-screens
 
 jobs:
   build-and-test:
