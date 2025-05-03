@@ -88,7 +88,7 @@ export default function Home() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
           {/* Generate resume card */}
-          <Link href="/documents">
+          <Link href="/documents/create-resume">
             <div className="bg-white p-4 rounded-md shadow-lg hover:shadow-xl transition cursor-pointer h-[132px] border">
               <div className="flex items-center gap-4">
                 <div className="bg-[#B9E6FE] h-[100px] w-[97px] p-3 rounded-md flex items-center justify-center">
