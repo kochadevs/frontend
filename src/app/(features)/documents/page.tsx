@@ -225,23 +225,33 @@ export default function Home() {
             </div>
           </div>
           {/* Documents table */}
-          <div >
+          <div>
             {activeTab === "resume" ? (
               <Table>
                 <TableHeader className="bg-[#F9FAFB] px-[24px] py-[12px]">
-                  <TableRow>
-                    <TableHead>Resume name</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Last edited</TableHead>
+                  <TableRow className=" text-[16px]">
+                    <TableHead className="text-[#667085]">
+                      Resume name
+                    </TableHead>
+                    <TableHead className="text-[#667085]">Created</TableHead>
+                    <TableHead className="text-[#667085]">
+                      Last edited
+                    </TableHead>
                     <TableHead className="w-[200px]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredDocuments.map((doc) => (
                     <TableRow key={doc.id} className="hover:bg-transparent">
-                      <TableCell className="font-medium pl-3">{doc.name}</TableCell>
-                      <TableCell>{doc.created}</TableCell>
-                      <TableCell>{doc.lastEdited}</TableCell>
+                      <TableCell className="font-medium pl-3 text-[16px]">
+                        {doc.name}
+                      </TableCell>
+                      <TableCell className="text-[#667085] text-[16px]">
+                        {doc.created}
+                      </TableCell>
+                      <TableCell className="text-[#667085] text-[16px]">
+                        {doc.lastEdited}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button className="hover:bg-gray-100 rounded-sm cursor-pointer">
@@ -337,19 +347,29 @@ export default function Home() {
             ) : (
               <Table>
                 <TableHeader className="bg-[#F9FAFB] px-[24px] py-[12px]">
-                  <TableRow>
-                    <TableHead>Cover letter name</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Last edited</TableHead>
+                  <TableRow className=" text-[16px]">
+                    <TableHead className="text-[#667085]">
+                      Cover letter name
+                    </TableHead>
+                    <TableHead className="text-[#667085]">Created</TableHead>
+                    <TableHead className="text-[#667085]">
+                      Last edited
+                    </TableHead>
                     <TableHead className="w-[200px]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredDocuments.map((doc) => (
                     <TableRow key={doc.id} className="hover:bg-transparent">
-                      <TableCell className="font-medium">{doc.name}</TableCell>
-                      <TableCell>{doc.created}</TableCell>
-                      <TableCell>{doc.lastEdited}</TableCell>
+                      <TableCell className="font-medium pl-3 text-[16px]">
+                        {doc.name}
+                      </TableCell>
+                      <TableCell className="text-[#667085] text-[16px]">
+                        {doc.created}
+                      </TableCell>
+                      <TableCell className="text-[#667085] text-[16px]">
+                        {doc.lastEdited}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button className="hover:bg-gray-100 rounded-sm cursor-pointer">

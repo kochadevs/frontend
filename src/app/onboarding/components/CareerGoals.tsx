@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+"use client";
+import React from "react";
 import { clsx } from "clsx";
 import { Button } from "@/components/ui/button";
 import { StepProps } from "@/interface/onboarding";
+import { useOnboardingStore } from "@/store/onboardingStore";
 
 interface Category {
   title: string;
@@ -29,15 +31,12 @@ const categories: Category[] = [
 ];
 
 const CareerGoals: React.FC<StepProps> = ({ handleNext, handlePrevious }) => {
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const { careerGoals, toggleCareerGoal, saveOnboardingData } =
+    useOnboardingStore();
 
-  const toggleSkill = (skill: string) => {
-    setSelectedSkills((prev) => {
-      if (prev.includes(skill)) {
-        return prev.filter((s) => s !== skill);
-      }
-      return [...prev, skill];
-    });
+  const handleSaveAndContinue = async () => {
+    await saveOnboardingData();
+    handleNext();
   };
 
   return (
@@ -50,6 +49,7 @@ const CareerGoals: React.FC<StepProps> = ({ handleNext, handlePrevious }) => {
           Select all that applies
         </p>
       </div>
+
       {categories.map((category) => (
         <div key={category.title} className="mb-8">
           <h2 className="text-sm font-medium text-[#111827] mb-3">
@@ -59,10 +59,10 @@ const CareerGoals: React.FC<StepProps> = ({ handleNext, handlePrevious }) => {
             {category.skills.map((skill) => (
               <button
                 key={skill}
-                onClick={() => toggleSkill(skill)}
+                onClick={() => toggleCareerGoal(skill)}
                 className={clsx(
                   "px-4 py-2 rounded-md border cursor-pointer text-sm transition-colors duration-200",
-                  selectedSkills.includes(skill)
+                  careerGoals.includes(skill)
                     ? "bg-[#EEF4FF] border-[#251F99] text-[#251F99] font-semibold"
                     : "border-[#E5E7EB] text-[#374151] hover:border-[#D1D5DB]"
                 )}
@@ -87,7 +87,8 @@ const CareerGoals: React.FC<StepProps> = ({ handleNext, handlePrevious }) => {
           variant="ghost"
           type="submit"
           className="flex w-[153px] justify-center rounded-md bg-[#334AFF] px-3 py-1.5 text-[16px] font-semibold text-white hover:text-[#fff]/70 shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px]"
-          onClick={handleNext}
+          onClick={handleSaveAndContinue}
+          disabled={careerGoals.length === 0}
         >
           Save & continue
         </Button>

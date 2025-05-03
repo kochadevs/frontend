@@ -1,7 +1,10 @@
-import React, { useState } from "react";
+"use client";
+import React from "react";
 import { clsx } from "clsx";
 import { StepProps } from "@/interface/onboarding";
 import { Button } from "@/components/ui/button";
+import { useOnboardingStore } from "@/store/onboardingStore";
+
 
 interface Role {
   id: string;
@@ -83,19 +86,14 @@ const categories: Category[] = [
   },
 ];
 
-const RoleSelection: React.FC<StepProps> = ({ handleNext, handlePrevious }) => {
-  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
 
-  const toggleRole = (id: string) => {
-    setSelectedRoles((prev) => {
-      if (prev.includes(id)) {
-        return prev.filter((v) => v !== id);
-      }
-      if (prev.length >= 5) {
-        return prev;
-      }
-      return [...prev, id];
-    });
+const RoleSelection: React.FC<StepProps> = ({ handleNext, handlePrevious }) => {
+  const { selectedRoles, toggleRole, saveOnboardingData } =
+    useOnboardingStore();
+
+  const handleSaveAndContinue = async () => {
+    await saveOnboardingData();
+    handleNext();
   };
 
   return (
@@ -135,7 +133,7 @@ const RoleSelection: React.FC<StepProps> = ({ handleNext, handlePrevious }) => {
         ))}
       </div>
 
-      <div className="flex items-center justify-end w-full gap-6 mt-64">
+      <div className="flex items-center justify-end w-full gap-6 mt-40">
         <Button
           variant="ghost"
           className="cursor-pointer px-4 py-2 border border-[#D0D5DD] text-[#6B7280] hover:text-[#374151]"
@@ -147,8 +145,9 @@ const RoleSelection: React.FC<StepProps> = ({ handleNext, handlePrevious }) => {
         <Button
           variant="ghost"
           type="submit"
-          className="flex w-[153px] justify-center rounded-md bg-[#334AFF]  px-3 py-1.5 text-[16px] font-semibold text-white hover:text-[#fff]/70 shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px]"
-          onClick={handleNext}
+          className="flex w-[153px] justify-center rounded-md bg-[#334AFF] px-3 py-1.5 text-[16px] font-semibold text-white hover:text-[#fff]/70 shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px]"
+          onClick={handleSaveAndContinue}
+          disabled={selectedRoles.length === 0}
         >
           Save & continue
         </Button>

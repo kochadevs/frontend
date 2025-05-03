@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+"use client";
+import React from "react";
 import { clsx } from "clsx";
 import { Button } from "@/components/ui/button";
 import { StepProps } from "@/interface/onboarding";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useOnboardingStore } from "@/store/onboardingStore";
 
 interface Option {
   id: string;
@@ -19,12 +21,12 @@ const JobSearchStatus: React.FC<StepProps> = ({
   handleNext,
   handlePrevious,
 }) => {
-  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
+  const { jobSearchStatus, toggleJobSearchStatus, saveOnboardingData } =
+    useOnboardingStore();
 
-  const toggleOption = (id: string) => {
-    setSelectedOptions((prev) =>
-      prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]
-    );
+  const handleSaveAndContinue = async () => {
+    await saveOnboardingData();
+    handleNext();
   };
 
   return (
@@ -44,14 +46,14 @@ const JobSearchStatus: React.FC<StepProps> = ({
             key={option.id}
             className={clsx(
               "w-full text-left text-[14px] px-4 py-3 rounded-lg border transition-colors duration-200 flex items-center cursor-pointer",
-              selectedOptions.includes(option.id)
+              jobSearchStatus.includes(option.id)
                 ? "bg-[#EEF4FF] border-[#251F99] text-[#251F99] font-semibold"
                 : "border-[#E5E7EB] hover:border-[#D1D5DB]"
             )}
           >
             <Checkbox
-              checked={selectedOptions.includes(option.id)}
-              onCheckedChange={() => toggleOption(option.id)}
+              checked={jobSearchStatus.includes(option.id)}
+              onCheckedChange={() => toggleJobSearchStatus(option.id)}
               className="mr-3 data-[state=checked]:bg-[#251F99] data-[state=checked]:border-[#251F99]"
             />
             {option.label}
@@ -71,8 +73,9 @@ const JobSearchStatus: React.FC<StepProps> = ({
         <Button
           variant="ghost"
           type="submit"
-          className="flex w-[153px] justify-center rounded-md bg-[#334AFF]  px-3 py-1.5 text-[16px] font-semibold text-white hover:text-[#fff]/70 shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px]"
-          onClick={handleNext}
+          className="flex w-[153px] justify-center rounded-md bg-[#334AFF] px-3 py-1.5 text-[16px] font-semibold text-white hover:text-[#fff]/70 shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px]"
+          onClick={handleSaveAndContinue}
+          disabled={jobSearchStatus.length === 0}
         >
           Save & continue
         </Button>

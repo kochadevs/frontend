@@ -1,8 +1,9 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import { clsx } from "clsx";
 import { Button } from "@/components/ui/button";
 import { StepProps } from "@/interface/onboarding";
+import { useOnboardingStore } from "@/store/onboardingStore";
 
 interface Value {
   id: string;
@@ -22,21 +23,13 @@ const values: Value[] = [
   { id: "impact", label: "Impactful work" },
 ];
 
-const ValueSelection: React.FC<StepProps> = ({
-  handleNext,
-}) => {
-  const [selectedValues, setSelectedValues] = useState<string[]>([]);
+const ValueSelection: React.FC<StepProps> = ({ handleNext }) => {
+  const { selectedValues, toggleValue, saveOnboardingData } =
+    useOnboardingStore();
 
-  const toggleValue = (id: string) => {
-    setSelectedValues((prev) => {
-      if (prev.includes(id)) {
-        return prev.filter((v) => v !== id);
-      }
-      if (prev.length >= 3) {
-        return prev;
-      }
-      return [...prev, id];
-    });
+  const handleSaveAndContinue = async () => {
+    await saveOnboardingData();
+    handleNext();
   };
 
   return (
@@ -72,7 +65,8 @@ const ValueSelection: React.FC<StepProps> = ({
           variant="ghost"
           type="submit"
           className="flex w-[153px] justify-center rounded-md bg-[#334AFF] px-3 py-1.5 text-[16px] font-semibold text-white hover:text-[#fff]/70 shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px]"
-          onClick={handleNext}
+          onClick={handleSaveAndContinue}
+          disabled={selectedValues.length === 0} // Disable if no values selected
         >
           Save & continue
         </Button>

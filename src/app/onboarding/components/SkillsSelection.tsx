@@ -1,8 +1,10 @@
-import React, { useState, useMemo } from "react";
+"use client";
+import React, { useMemo, useState } from "react";
 import { clsx } from "clsx";
 import { ChevronDown, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StepProps } from "@/interface/onboarding";
+import { useOnboardingStore } from "@/store/onboardingStore";
 
 interface Category {
   title: string;
@@ -35,17 +37,15 @@ const SkillsSelection: React.FC<StepProps> = ({
   handleNext,
   handlePrevious,
 }) => {
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const { selectedSkills, toggleSkill, saveOnboardingData } =
+    useOnboardingStore();
+
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const toggleSkill = (skill: string) => {
-    setSelectedSkills((prev) => {
-      if (prev.includes(skill)) {
-        return prev.filter((s) => s !== skill);
-      }
-      return [...prev, skill];
-    });
+  const handleSaveAndContinue = async () => {
+    await saveOnboardingData();
+    handleNext();
   };
 
   // Filter skills based on search term
@@ -72,6 +72,7 @@ const SkillsSelection: React.FC<StepProps> = ({
           Select all that applies
         </p>
       </div>
+
       <div className="relative mb-8">
         <Button
           variant="ghost"
@@ -174,7 +175,8 @@ const SkillsSelection: React.FC<StepProps> = ({
           variant="ghost"
           type="submit"
           className="flex w-[153px] justify-center rounded-md bg-[#334AFF] px-3 py-1.5 text-[16px] font-semibold text-white hover:text-[#fff]/70 shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px]"
-          onClick={handleNext}
+          onClick={handleSaveAndContinue}
+          disabled={selectedSkills.length === 0}
         >
           Save & continue
         </Button>
