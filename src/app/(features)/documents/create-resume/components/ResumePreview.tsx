@@ -57,7 +57,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
             </h1>
           </div>
 
-          <div className="grid md:grid-cols-3 grid-cols-1 gap-6">
+          <div className="grid 2xl:grid-cols-3 grid-cols-1 gap-6">
             <div className="col-span-2">
               <div className="mb-4">
                 <h2 className="text-[14px] font-[600] border-b-2 border-b-black pb-1 mb-2 text-[#08283B]">

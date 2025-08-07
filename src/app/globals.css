@@ -137,3 +137,139 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+
+/* Add these styles to ensure lists, links, and images display properly in the preview */
+.preview-content ul {
+  list-style-type: disc !important;
+  padding-left: 1.5rem !important;
+  margin: 1rem 0 !important;
+}
+
+.preview-content ol {
+  list-style-type: decimal !important;
+  padding-left: 1.5rem !important;
+  margin: 1rem 0 !important;
+}
+
+.preview-content a {
+  color: #2563eb !important;
+  text-decoration: underline !important;
+}
+
+.preview-content img {
+  max-width: 100% !important;
+  height: auto !important;
+  margin: 1rem 0 !important;
+}
+
+.preview-content h1 {
+  font-size: 2rem !important;
+  font-weight: bold !important;
+  margin: 1rem 0 !important;
+}
+
+.preview-content h2 {
+  font-size: 1.5rem !important;
+  font-weight: bold !important;
+  margin: 1rem 0 !important;
+}
+
+.preview-content h3 {
+  font-size: 1.25rem !important;
+  font-weight: bold !important;
+  margin: 1rem 0 !important;
+}
+
+.preview-content h4 {
+  font-size: 1.125rem !important;
+  font-weight: bold !important;
+  margin: 1rem 0 !important;
+}
+
+.preview-content h5 {
+  font-size: 1rem !important;
+  font-weight: bold !important;
+  margin: 1rem 0 !important;
+}
+
+.preview-content h6 {
+  font-size: 0.875rem !important;
+  font-weight: bold !important;
+  margin: 1rem 0 !important;
+}
+
+.preview-content strong {
+  font-weight: bold !important;
+}
+
+.preview-content em {
+  font-style: italic !important;
+}
+
+.preview-content u {
+  text-decoration: underline !important;
+}
+
+.preview-content li {
+  margin: 0.5rem 0 !important;
+}
+
+/* Ensure links are visible */
+.ProseMirror a {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+/* Style for blockquotes */
+.preview-content blockquote {
+  border-left: 4px solid #e2e8f0 !important;
+  padding-left: 1rem !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  font-style: italic !important;
+}
+
+.ProseMirror blockquote {
+  border-left: 4px solid #e2e8f0;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+}
+
+/* Heading styles for the editor */
+.ProseMirror h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 1rem 0;
+}
+
+.ProseMirror h2 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 1rem 0;
+}
+
+.ProseMirror h3 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin: 1rem 0;
+}
+
+.ProseMirror h4 {
+  font-size: 1.125rem;
+  font-weight: bold;
+  margin: 1rem 0;
+}
+
+.ProseMirror h5 {
+  font-size: 1rem;
+  font-weight: bold;
+  margin: 1rem 0;
+}
+
+.ProseMirror h6 {
+  font-size: 0.875rem;
+  font-weight: bold;
+  margin: 1rem 0;
+}

@@ -108,7 +108,7 @@ const CreateResume = () => {
 
   return (
     <main className="min-h-screen pb-[4rem]">
-      <div className="py-[10px] md:px-20 px-5 h-[40px] bg-white border-b fixed w-full z-50">
+      <div className="py-[10px] 2xl:px-20 px-10 h-[40px] bg-white border-b fixed w-full z-50">
         <Breadcrumb
           start={{
             name: "Documents",
@@ -124,7 +124,7 @@ const CreateResume = () => {
           ]}
         />
       </div>
-      <div className="container mx-auto pt-20 pb-6 md:px-0 px-5">
+      <div className="container mx-auto pt-20 pb-6  px-10">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <ResumeForm
             resumeData={resumeData}

@@ -123,7 +123,7 @@ export default function Home() {
           </Link>
 
           {/* Create New Cover letter card */}
-          <Link href="/documents">
+          <Link href="/documents/cover-letter">
             <div className="bg-white p-4 rounded-md shadow-lg hover:shadow-xl transition cursor-pointer h-[132px] border">
               <div className="flex items-center gap-4">
                 <div className="bg-[#F9DBAF] h-[100px] w-[97px] p-3 rounded-md flex items-center justify-center">
