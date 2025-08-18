@@ -8,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import Link from "next/link";
 
 export default function Groups() {
   const [activeTab, setActiveTab] = useState("all");
@@ -56,9 +57,12 @@ export default function Groups() {
                   <AvatarFallback>ProfileIcon</AvatarFallback>
                 </Avatar>
                 <div className="cursor-pointer">
-                  <h2 className="font-semibold text-[#344054] text-[16px] group-hover:text-[#334AFF] group-hover:underline">
-                    Figma Product Community
-                  </h2>
+                  <Link href="/home/group/1">
+                    <h2 className="font-semibold text-[#344054] text-[16px] group-hover:text-[#334AFF] group-hover:underline">
+                      Figma Product Community
+                    </h2>
+                  </Link>
+
                   <p className="text-gray-500 text-[15px]">192,736 members</p>
                 </div>
               </div>
