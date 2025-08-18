@@ -1,3 +1,5 @@
+import Image from "next/image";
+import Breadcrumb from "@/components/common/Breadcrumbs/Breadcrumb";
 import About from "@/components/common/(components)/About";
 import Certification from "@/components/common/(components)/Certification";
 import Education from "@/components/common/(components)/Education";
@@ -6,12 +8,26 @@ import Header from "@/components/common/(components)/Header";
 import Language from "@/components/common/(components)/Language";
 import Posts from "@/components/common/(components)/Posts";
 import Skill from "@/components/common/(components)/Skill";
-import Image from "next/image";
 
-
-export default function GroupMemberProfile() {
+export default function MentorView() {
   return (
-    <div>
+    <div className="relative">
+      <header className="bg-white h-[70px] z-50 sticky top-0 w-full px-[16px] py-[25px] flex items-center border-b">
+        <Breadcrumb
+          start={{
+            name: "Mentor match",
+            href: "/mentor_match",
+            current: false,
+          }}
+          steps={[
+            {
+              name: "Profile view ",
+              href: "/mentor_match/mentor/2",
+              current: true,
+            },
+          ]}
+        />
+      </header>
       {/* Centered Main Content */}
       <main className="container mx-auto pb-[5rem] relative px-[16px]">
         {/* Banner Image */}

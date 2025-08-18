@@ -4,7 +4,7 @@ import React from "react";
 
 const Header = () => {
   return (
-    <div className="relative -mt-[5rem] z-50 flex justify-center ">
+    <div className="relative -mt-[5rem] z-30 flex justify-center ">
       <div className="w-full max-w-[1800px] px-4 sm:px-6 lg:px-8 flex flex-col gap-y-[2rem]">
         <header className=" flex flex-col items-start gap-4 sm:gap-x-8">
           <div className="flex items-end justify-between w-full">

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import React from "react";
-import Mentors from "./components/Mentors";
+import Mentors from "../../../app/(features)/mentor_match/(components)/Mentors";
 import VideoAndSessions from "./components/VideoAndSessions";
 import QuickMenu from "./components/QuickMenu";
 import Header from "./components/Header";

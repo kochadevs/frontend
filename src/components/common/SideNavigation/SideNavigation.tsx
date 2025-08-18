@@ -19,7 +19,7 @@ const SideNavigationBar = () => {
     { icon: LayoutDashboard, label: "Home", href: "/home" },
     // { icon: FileText, label: "Documents", href: "/documents" },
     // { icon: Briefcase, label: "Jobs", href: "/jobs" },
-    { icon: Users, label: "Mentor match", href: "/mentor-match" },
+    { icon: Users, label: "Mentor match", href: "/mentor_match" },
     { icon: MessagesSquare, label: "Message", href: "/message" },
   ];
 

@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Mentors() {
   const mentors = [
@@ -114,14 +115,16 @@ export default function Mentors() {
             </div>
 
             <div className="flex gap-2 shrink-0">
-              <Button
-                variant="ghost"
-                className="bg-[#334AFF] hover:bg-[#251F99] text-white hover:text-white"
-              >
-                View profile
-              </Button>
+              <Link href="/mentor_match/mentor/1">
+                <Button
+                  variant="ghost"
+                  className="bg-[#334AFF] hover:bg-[#251F99] text-white hover:text-white"
+                >
+                  View profile
+                </Button>
+              </Link>
               <Button variant="outline" className="border-gray-300">
-                Send message
+                Book a session
               </Button>
             </div>
           </div>
