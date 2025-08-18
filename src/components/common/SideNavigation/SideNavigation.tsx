@@ -2,8 +2,8 @@
 import React, { useState } from "react";
 import {
   LayoutDashboard,
-  FileText,
-  Briefcase,
+  // FileText,
+  // Briefcase,
   Users,
   MessagesSquare,
 } from "lucide-react";
@@ -17,10 +17,10 @@ const SideNavigationBar = () => {
 
   const navItems = [
     { icon: LayoutDashboard, label: "Home", href: "/home" },
-    { icon: FileText, label: "Documents", href: "/documents" },
-    { icon: Briefcase, label: "Jobs", href: "/jobs" },
+    // { icon: FileText, label: "Documents", href: "/documents" },
+    // { icon: Briefcase, label: "Jobs", href: "/jobs" },
     { icon: Users, label: "Mentor match", href: "/mentor-match" },
-    { icon: MessagesSquare, label: "Community", href: "/community" },
+    { icon: MessagesSquare, label: "Message", href: "/message" },
   ];
 
    const isActive = (path: string) => {

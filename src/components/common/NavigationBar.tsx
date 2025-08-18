@@ -11,7 +11,7 @@ const NavigationBar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (
-    <nav className="w-screen bg-white h-[72px] py-[10px] px-[24px] flex items-center justify-center shadow-md shadow-[#E5E7EB]">
+    <nav className="w-screen border-b bg-white h-[72px] py-[10px] px-[24px] flex items-center justify-center shadow-md shadow-[#E5E7EB]">
       <div className="w-full h-full flex items-center justify-between">
         <div className="relative w-[144.66px] h-[38px]">
           <Image

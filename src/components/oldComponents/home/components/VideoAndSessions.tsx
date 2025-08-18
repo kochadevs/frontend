@@ -1,5 +1,4 @@
-import Image from 'next/image';
-import React from 'react'
+import React from "react";
 
 const VideoAndSessions = () => {
   return (
@@ -9,18 +8,15 @@ const VideoAndSessions = () => {
           How Kocha AI Works
         </h2>
         <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-gray-100 h-[346px]">
-          <Image
-            src="https://images.unsplash.com/photo-1629204814140-42a737865119?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-            alt="Kocha AI Demo"
-            fill
-            className="object-cover"
-          />
-          <div className="absolute bottom-4 left-4 flex items-center gap-2">
-            <button className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-              <div className="w-3 h-3 bg-white rounded-sm" />
-            </button>
-            <div className="text-sm text-white">1440 × 1024</div>
-          </div>
+          <video
+            controls
+            className="w-full h-full object-cover"
+            poster="https://images.unsplash.com/photo-1629204814140-42a737865119?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          >
+            <source src="/kocha-ai-demo.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+          
         </div>
       </div>
 
@@ -100,6 +96,6 @@ const VideoAndSessions = () => {
       </div>
     </div>
   );
-}
+};
 
-export default VideoAndSessions
+export default VideoAndSessions;
