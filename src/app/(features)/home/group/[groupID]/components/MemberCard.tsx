@@ -2,6 +2,7 @@ import { Card } from "@/components/ui/card";
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function MemberCard(){
   return (
@@ -40,9 +41,14 @@ export default function MemberCard(){
           </p>
         </div>
         <div className="flex items-center justify-end px-[16px]">
-          <Button variant="ghost" className="bg-[#334AFF] text-white hover:bg-[#334AFF]/90 hover:text-white">
-            View profile
-          </Button>
+          <Link href="/home/group_member_profile/1">
+            <Button
+              variant="ghost"
+              className="bg-[#334AFF] text-white hover:bg-[#334AFF]/90 hover:text-white"
+            >
+              View profile
+            </Button>
+          </Link>
         </div>
       </Card>
     </div>
