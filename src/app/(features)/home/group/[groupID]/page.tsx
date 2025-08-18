@@ -87,6 +87,7 @@ export default function Group() {
                   <Button
                     variant="ghost"
                     className="underline text-[#334AFF] hover:text-[#334AFF]"
+                    onClick={() => setActiveTab("members")}
                   >
                     View all
                   </Button>
@@ -95,7 +96,9 @@ export default function Group() {
               </div>
             </div>
           </div>
-        ) : <MembersView/>}
+        ) : (
+          <MembersView />
+        )}
       </div>
     </div>
   );
