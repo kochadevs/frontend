@@ -1,8 +1,17 @@
+"use client";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import React from "react";
+import { usePathname } from "next/navigation";
 
-const Header = () => {
+type HeaderProps = {
+  handleChangeView: (view: "book_session" | "mentor_view") => void;
+  currentView: "book_session" | "mentor_view";
+};
+
+const Header = ({ handleChangeView, currentView }: HeaderProps) => {
+  const pathname = usePathname();
+
   return (
     <div className="relative -mt-[5rem] z-30 flex justify-center ">
       <div className="w-full max-w-[1800px] px-4 sm:px-6 lg:px-8 flex flex-col gap-y-[2rem]">
@@ -44,27 +53,47 @@ const Header = () => {
                 </div>
               </div>
 
-              <Button
-                variant="ghost"
-                className="bg-[#334AFF] hover:bg-[#334AFF/90 text-white hover:text-gray-200 mt-2"
-              >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
+              <div className="flex items-center gap-4 mt-2">
+                <Button
+                  variant="ghost"
+                  className="bg-[#334AFF] hover:bg-[#334AFF]/90 text-white hover:text-gray-200"
                 >
-                  <path
-                    d="M8.59 13.51L15.42 17.49M15.41 6.51L8.59 10.49M21 5C21 6.65685 19.6569 8 18 8C16.3431 8 15 6.65685 15 5C15 3.34315 16.3431 2 18 2C19.6569 2 21 3.34315 21 5ZM9 12C9 13.6569 7.65685 15 6 15C4.34315 15 3 13.6569 3 12C3 10.3431 4.34315 9 6 9C7.65685 9 9 10.3431 9 12ZM21 19C21 20.6569 19.6569 22 18 22C16.3431 22 15 20.6569 15 19C15 17.3431 16.3431 16 18 16C19.6569 16 21 17.3431 21 19Z"
-                    stroke="white"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                Share profile
-              </Button>
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M8.59 13.51L15.42 17.49M15.41 6.51L8.59 10.49M21 5C21 6.65685 19.6569 8 18 8C16.3431 8 15 6.65685 15 5C15 3.34315 16.3431 2 18 2C19.6569 2 21 3.34315 21 5ZM9 12C9 13.6569 7.65685 15 6 15C4.34315 15 3 13.6569 3 12C3 10.3431 4.34315 9 6 9C7.65685 9 9 10.3431 9 12ZM21 19C21 20.6569 19.6569 22 18 22C16.3431 22 15 20.6569 15 19C15 17.3431 16.3431 16 18 16C19.6569 16 21 17.3431 21 19Z"
+                      stroke="white"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  Share profile
+                </Button>
+                {pathname.includes("/mentor_match") &&
+                  (currentView === "mentor_view" ? (
+                    <Button
+                      onClick={() => handleChangeView("book_session")}
+                      variant="outline"
+                      className="w-fit"
+                    >
+                      Book a session
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => handleChangeView("mentor_view")}
+                      variant="outline"
+                      className="w-fit"
+                    >
+                      Back Profile
+                    </Button>
+                  ))}
+              </div>
             </div>
           </div>
         </header>

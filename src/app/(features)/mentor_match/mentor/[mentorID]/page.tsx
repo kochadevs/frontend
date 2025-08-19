@@ -1,15 +1,20 @@
+"use client";
 import Image from "next/image";
 import Breadcrumb from "@/components/common/Breadcrumbs/Breadcrumb";
-import About from "@/components/common/(components)/About";
-import Certification from "@/components/common/(components)/Certification";
-import Education from "@/components/common/(components)/Education";
-import Experience from "@/components/common/(components)/Experience";
 import Header from "@/components/common/(components)/Header";
-import Language from "@/components/common/(components)/Language";
-import Posts from "@/components/common/(components)/Posts";
-import Skill from "@/components/common/(components)/Skill";
+import { useState } from "react";
+import MentorProfileView from "./(views)/MentorProfileView";
+import BookSessionView from "./(views)/BookSessionView";
 
-export default function MentorView() {
+export default function MentorProfilePage() {
+  const [currentView, setCurrentView] = useState<
+    "book_session" | "mentor_view"
+  >("mentor_view");
+
+  const handleChangeView = (view: "book_session" | "mentor_view") => {
+    setCurrentView(view);
+  };
+
   return (
     <div className="relative">
       <header className="bg-white h-[70px] z-50 sticky top-0 w-full px-[16px] py-[25px] flex items-center border-b">
@@ -42,15 +47,10 @@ export default function MentorView() {
         </header>
         <div className="flex-col flex gap-y-10">
           <div className="bg-white px-6 flex flex-col gap-y-10 pb-[2rem] rounded-bl-[8px] rounded-br-[8px] border">
-            <Header />
+            <Header handleChangeView={handleChangeView} currentView={currentView} />
           </div>
-          <About />
-          <Posts />
-          <Experience />
-          <Education />
-          <Certification />
-          <Skill />
-          <Language />
+
+          {currentView == "mentor_view" ? <MentorProfileView /> : <BookSessionView/>}
         </div>
       </main>
     </div>
