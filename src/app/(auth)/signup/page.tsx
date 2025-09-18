@@ -1,12 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { handleSignup } from "@/utilities/authHandler";
+import { handleSignup } from "../../../utilities/authHandler";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { z } from "zod";
-import { SignupFormData, signupFormSchema } from "@/zodSchema/signupSchema";
+import { SignupFormData, signupFormSchema } from "../../../zodSchema/signupSchema";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 

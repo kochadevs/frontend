@@ -1,9 +1,109 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import Image from "next/image";
 import Link from "next/link";
+import { useState, useEffect } from "react";
+import { z } from "zod";
+import { LoginFormData, loginSchema } from "../../../zodSchema/loginSchema";
+import { handleLogin } from "../../../utilities/authHandler";
+import { useAuthStore } from "../../../store/authStore";
+import { toast } from "react-hot-toast";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function Login() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/home";
+  
+  // Get state and actions from store
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const login = useAuthStore((state) => state.login);
+  
+  const [formData, setFormData] = useState<LoginFormData>({
+    username: "",
+    password: "",
+  });
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof LoginFormData, string>>
+  >({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+
+  // Handle redirect when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push(redirectTo);
+    }
+  }, [isAuthenticated, router, redirectTo]);
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Clear error when user starts typing
+    if (errors[name as keyof LoginFormData]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      // Validate form data
+      const validatedData = loginSchema.parse(formData);
+
+      // Call the login API
+      const loginResponse = await handleLogin(validatedData);
+      
+      // Update auth store with login response
+      login(loginResponse);
+      
+      console.log("Login successful:", loginResponse);
+
+      // Reset form and errors on success
+      setFormData({
+        username: "",
+        password: "",
+      });
+      setErrors({});
+
+      // Show success toast
+      toast.success("Login successful!");
+      
+      // Redirect to intended page or dashboard
+      router.push(redirectTo);
+      
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        // Handle validation errors
+        const newErrors: Partial<Record<keyof LoginFormData, string>> = {};
+        error.issues.forEach((err: z.ZodIssue) => {
+          if (err.path[0]) {
+            newErrors[err.path[0] as keyof LoginFormData] = err.message;
+          }
+        });
+        setErrors(newErrors);
+      } else {
+        // Handle API errors
+        console.error("Login error:", error);
+        toast.error(error instanceof Error ? error.message : "Login failed");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="md:w-[499px] w-full md:px-2 px-4">
@@ -16,31 +116,38 @@ export default function Login() {
               fill
             />
           </div>
-          <h2 className=" text-[30px] font-[700] tracking-tight text-[#2E3646]">
+          <h2 className="text-[30px] font-[700] tracking-tight text-[#2E3646]">
             Log in to your account
           </h2>
         </div>
 
         <div className="mt-10">
           <div>
-            <form>
+            <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <label
-                  htmlFor="email"
+                  htmlFor="username"
                   className="block text-sm/6 font-medium text-[#344054]"
                 >
                   Email
                 </label>
                 <div className="mt-2">
                   <input
-                    id="email"
-                    name="email"
+                    id="username"
+                    name="username"
                     type="email"
                     required
                     autoComplete="email"
-                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                    value={formData.username}
+                    onChange={handleInputChange}
+                    className={`block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
+                      errors.username ? "outline-red-500" : ""
+                    }`}
                     placeholder="Enter email"
                   />
+                  {errors.username && (
+                    <p className="mt-1 text-sm text-red-600">{errors.username}</p>
+                  )}
                 </div>
               </div>
 
@@ -58,9 +165,16 @@ export default function Login() {
                     type="password"
                     required
                     autoComplete="current-password"
-                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    className={`block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
+                      errors.password ? "outline-red-500" : ""
+                    }`}
                     placeholder="Enter password"
                   />
+                  {errors.password && (
+                    <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+                  )}
                 </div>
               </div>
 
@@ -68,9 +182,15 @@ export default function Login() {
                 <div className="flex gap-3">
                   <label
                     htmlFor="remember-me"
-                    className=" text-sm/6 text-gray-900 flex items-center gap-2 text-[16px]"
+                    className="text-sm/6 text-gray-900 flex items-center gap-2 text-[16px]"
                   >
-                    <Switch />
+                    <input 
+                      id="remember-me"
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                    />
                     Remember me
                   </label>
                 </div>
@@ -89,9 +209,10 @@ export default function Login() {
                 <Button
                   variant="ghost"
                   type="submit"
-                  className="flex w-full justify-center rounded-md bg-[#334AFF] hover:text-white px-3 py-1.5 text-[16px] font-semibold text-white shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px]"
+                  disabled={isLoading}
+                  className="flex w-full justify-center rounded-md bg-[#334AFF] hover:text-white px-3 py-1.5 text-[16px] font-semibold text-white shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Log in
+                  {isLoading ? "Logging in..." : "Log in"}
                 </Button>
               </div>
             </form>
