@@ -1,10 +1,110 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
+import { handleSignup } from "@/utilities/authHandler";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
+import { z } from "zod";
+import { SignupFormData, signupFormSchema } from "@/zodSchema/signupSchema";
+import { toast } from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 export default function Signup() {
+  const router = useRouter();
+  const [formData, setFormData] = useState<SignupFormData>({
+    first_name: "",
+    last_name: "",
+    email: "",
+    gender: "",
+    nationality: "",
+    location: "",
+    password: "",
+    password_confirmation: "",
+  });
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof SignupFormData, string>>
+  >({});
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Clear error when user starts typing
+    if (errors[name as keyof SignupFormData]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      // Validate form data
+      const validatedData = signupFormSchema.parse(formData);
+
+      // Prepare payload for API
+      const payload = {
+        ...validatedData,
+        is_active: true,
+        profile_pic: "",
+        about: "",
+      };
+
+      // Call the signup function
+      const result = await handleSignup(payload);
+      console.log("Signup successful:", result);
+
+      // Reset form and errors on success
+      setFormData({
+        first_name: "",
+        last_name: "",
+        email: "",
+        gender: "",
+        nationality: "",
+        location: "",
+        password: "",
+        password_confirmation: "",
+      });
+      setErrors({});
+
+      if (result) {
+        // Redirect or show success message
+        router.push("/login");
+        toast.success("Account created successfully!");
+      }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        // Handle validation errors
+        const newErrors: Partial<Record<keyof SignupFormData, string>> = {};
+        error.issues.forEach((err: z.ZodIssue) => {
+          if (err.path[0]) {
+            newErrors[err.path[0] as keyof SignupFormData] = err.message;
+          }
+        });
+        setErrors(newErrors);
+      } else {
+        // Handle API errors
+        console.error("Signup error:", error);
+        toast.error(error instanceof Error ? error.message : "Signup failed");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className="flex items-center justify-center min-h-screen overflow-y-scroll py-8">
       <div className="md:w-[499px] w-full md:px-2 px-4">
         <div className="flex flex-col items-center justify-center gap-4">
           <div className="relative h-[38px] w-[144.66px]">
@@ -15,121 +115,250 @@ export default function Signup() {
               fill
             />
           </div>
-          <h2 className=" text-[30px] font-[700] tracking-tight text-[#2E3646]">
+          <h2 className="text-[30px] font-[700] tracking-tight text-[#2E3646]">
             Sign up for an account
           </h2>
         </div>
 
         <div className="mt-10">
           <div>
-            <form>
-              <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2 mb-4">
+            <form onSubmit={handleSubmit}>
+              <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
+                {/* First Name */}
                 <div>
                   <label
-                    htmlFor="first-name"
-                    className="block text-sm/6 font-semibold text-gray-900"
+                    htmlFor="first_name"
+                    className="block text-sm/6 font-medium text-[#344054]"
                   >
                     First name
                   </label>
-                  <div className="mt-2.5">
+                  <div className="mt-2">
                     <input
-                      id="first-name"
-                      name="first-name"
+                      id="first_name"
+                      name="first_name"
                       type="text"
-                      autoComplete="given-name"
-                      className="block w-full rounded-md bg-white px-3.5 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600"
+                      value={formData.first_name}
+                      onChange={handleInputChange}
+                      className={`block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
+                        errors.first_name ? "outline-red-500" : ""
+                      }`}
                       placeholder="Enter first name"
                     />
+                    {errors.first_name && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.first_name}
+                      </p>
+                    )}
                   </div>
                 </div>
 
+                {/* Last Name */}
                 <div>
                   <label
-                    htmlFor="last-name"
-                    className="block text-sm/6 font-semibold text-gray-900"
+                    htmlFor="last_name"
+                    className="block text-sm/6 font-medium text-[#344054]"
                   >
                     Last name
                   </label>
-                  <div className="mt-2.5">
+                  <div className="mt-2">
                     <input
-                      id="last-name"
-                      name="last-name"
+                      id="last_name"
+                      name="last_name"
                       type="text"
-                      autoComplete="family-name"
-                      className="block w-full rounded-md bg-white px-3.5 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600"
+                      value={formData.last_name}
+                      onChange={handleInputChange}
+                      className={`block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
+                        errors.last_name ? "outline-red-500" : ""
+                      }`}
                       placeholder="Enter last name"
                     />
+                    {errors.last_name && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.last_name}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="block text-sm/6 font-medium text-[#344054]"
+                  >
+                    Email
+                  </label>
+                  <div className="mt-2">
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      required
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className={`block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
+                        errors.email ? "outline-red-500" : ""
+                      }`}
+                      placeholder="Enter email"
+                    />
+                    {errors.email && (
+                      <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Gender */}
+                <div>
+                  <label
+                    htmlFor="gender"
+                    className="block text-sm/6 font-medium text-[#344054]"
+                  >
+                    Gender
+                  </label>
+                  <div className="mt-2">
+                    <select
+                      id="gender"
+                      name="gender"
+                      value={formData.gender}
+                      onChange={handleInputChange}
+                      className={`block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
+                        errors.gender ? "outline-red-500" : ""
+                      }`}
+                    >
+                      <option value="">Select gender</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                    </select>
+                    {errors.gender && (
+                      <p className="mt-1 text-sm text-red-600">{errors.gender}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Nationality */}
+                <div>
+                  <label
+                    htmlFor="nationality"
+                    className="block text-sm/6 font-medium text-[#344054]"
+                  >
+                    Nationality
+                  </label>
+                  <div className="mt-2">
+                    <input
+                      id="nationality"
+                      name="nationality"
+                      type="text"
+                      value={formData.nationality}
+                      onChange={handleInputChange}
+                      className={`block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
+                        errors.nationality ? "outline-red-500" : ""
+                      }`}
+                      placeholder="Enter nationality"
+                    />
+                    {errors.nationality && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.nationality}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Location */}
+                <div>
+                  <label
+                    htmlFor="location"
+                    className="block text-sm/6 font-medium text-[#344054]"
+                  >
+                    Location
+                  </label>
+                  <div className="mt-2">
+                    <input
+                      id="location"
+                      name="location"
+                      type="text"
+                      value={formData.location}
+                      onChange={handleInputChange}
+                      className={`block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
+                        errors.location ? "outline-red-500" : ""
+                      }`}
+                      placeholder="Enter location"
+                    />
+                    {errors.location && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.location}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Password */}
+                <div>
+                  <label
+                    htmlFor="password"
+                    className="block text-sm/6 font-medium text-[#344054]"
+                  >
+                    Password
+                  </label>
+                  <div className="mt-2">
+                    <input
+                      id="password"
+                      name="password"
+                      type="password"
+                      required
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      className={`block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
+                        errors.password ? "outline-red-500" : ""
+                      }`}
+                      placeholder="Enter password"
+                    />
+                    {errors.password && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.password}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Confirm Password */}
+                <div>
+                  <label
+                    htmlFor="password_confirmation"
+                    className="block text-sm/6 font-medium text-[#344054]"
+                  >
+                    Confirm password
+                  </label>
+                  <div className="mt-2">
+                    <input
+                      id="password_confirmation"
+                      name="password_confirmation"
+                      type="password"
+                      required
+                      value={formData.password_confirmation}
+                      onChange={handleInputChange}
+                      className={`block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
+                        errors.password_confirmation ? "outline-red-500" : ""
+                      }`}
+                      placeholder="Re-enter password"
+                    />
+                    {errors.password_confirmation && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.password_confirmation}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
 
-              <div className="mb-4">
-                <label
-                  htmlFor="email"
-                  className="block text-sm/6 font-medium text-[#344054]"
-                >
-                  Email
-                </label>
-                <div className="mt-2">
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    autoComplete="email"
-                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                    placeholder="Enter email"
-                  />
-                </div>
-              </div>
-
-              <div className="mb-4">
-                <label
-                  htmlFor="password"
-                  className="block text-sm/6 font-medium text-[#344054]"
-                >
-                  Password
-                </label>
-                <div className="mt-2">
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    required
-                    autoComplete="current-password"
-                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                    placeholder="Enter password"
-                  />
-                </div>
-              </div>
-
-              <div className="mb-4">
-                <label
-                  htmlFor="password"
-                  className="block text-sm/6 font-medium text-[#344054]"
-                >
-                  Confirm password
-                </label>
-                <div className="mt-2">
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    required
-                    autoComplete="current-password"
-                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                    placeholder="Re-enter password"
-                  />
-                </div>
-              </div>
-
-              <div>
+              {/* Submit Button */}
+              <div className="mt-8">
                 <Button
                   variant="ghost"
                   type="submit"
-                  className="flex w-full justify-center rounded-md bg-[#334AFF] hover:text-white px-3 py-1.5 text-[16px] font-semibold text-white shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px]"
+                  disabled={isLoading}
+                  className="flex w-full justify-center rounded-md bg-[#334AFF] hover:text-white px-3 py-1.5 text-[16px] font-semibold text-white shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Register
+                  {isLoading ? "Creating account..." : "Register"}
                 </Button>
               </div>
             </form>
