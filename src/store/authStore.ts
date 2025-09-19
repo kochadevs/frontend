@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import { AuthState, UserProfile, LoginResponse } from "../interface/auth/login";
 import { tokenUtils } from "../utilities/cookies";
+import { handleLogout } from "../utilities/authHandler";
 
 interface AuthActions {
   // Actions
@@ -51,7 +52,19 @@ export const useAuthStore = create<AuthStore>()(
         },
 
         // Logout action
-        logout: () => {
+        logout: async () => {
+          const currentState = get();
+          
+          // Call logout API if we have an access token
+          if (currentState.accessToken) {
+            try {
+              await handleLogout(currentState.accessToken);
+            } catch (error) {
+              console.error("Logout API error:", error);
+              // Continue with local logout even if API fails
+            }
+          }
+
           // Clear cookies
           tokenUtils.clearTokens();
 

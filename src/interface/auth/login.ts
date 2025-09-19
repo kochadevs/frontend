@@ -1,7 +1,13 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface LoginPayload {
   username: string;
   password: string;
+}
+
+interface NewRoleValue {
+  id: number;
+  date_created: string;
+  last_modified:string;
+  name:string
 }
 
 export interface UserProfile {
@@ -14,7 +20,7 @@ export interface UserProfile {
   location: string;
   is_active: boolean;
   profile_pic: string;
-  new_role_values: any | null;
+  new_role_values: NewRoleValue[] | null;
 }
 
 export interface LoginResponse {

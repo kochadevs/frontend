@@ -93,3 +93,35 @@ export const handleLogin = async (payload: LoginPayload): Promise<LoginResponse>
     }
   }
 };
+
+export const handleLogout = async (accessToken: string): Promise<void> => {
+  try {
+    const baseURL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
+
+    if (!baseURL) {
+      throw new Error(
+        "API base URL is not configured in environment variables"
+      );
+    }
+
+    await axios.post(`${baseURL}/users/logout`, {}, {
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${accessToken}`,
+      },
+      timeout: 10000,
+    });
+
+    console.log("Logout successful");
+  } catch (error: any) {
+    // Even if logout API fails, we'll still clear local data
+    console.warn("Logout API call failed, but clearing local data:", error);
+    if (error.response) {
+      console.error("Server error:", error.response.status, error.response.data);
+    } else if (error.request) {
+      console.error("Network error:", error.request);
+    } else {
+      console.error("Error:", error.message);
+    }
+  }
+};
