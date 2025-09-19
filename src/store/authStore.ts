@@ -2,13 +2,14 @@ import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import { AuthState, UserProfile, LoginResponse } from "../interface/auth/login";
 import { tokenUtils } from "../utilities/cookies";
-import { handleLogout } from "../utilities/authHandler";
+import { handleLogout, fetchUserProfile } from "../utilities/authHandler";
 
 interface AuthActions {
   // Actions
   login: (loginResponse: LoginResponse) => void;
   logout: () => void;
   updateUser: (user: Partial<UserProfile>) => void;
+  refreshUserProfile: () => Promise<void>;
   initializeAuth: () => void;
   refreshAuth: (newAccessToken: string) => void;
 }
@@ -90,6 +91,33 @@ export const useAuthStore = create<AuthStore>()(
             }
 
             set({ user: newUser });
+          }
+        },
+
+        // Refresh user profile from API
+        refreshUserProfile: async () => {
+          const currentState = get();
+          
+          if (!currentState.accessToken) {
+            throw new Error("No access token available");
+          }
+
+          try {
+            const updatedUser = await fetchUserProfile(currentState.accessToken);
+            
+            // Update user data in cookies
+            if (currentState.refreshToken) {
+              tokenUtils.storeTokens(
+                currentState.accessToken,
+                currentState.refreshToken,
+                JSON.stringify(updatedUser)
+              );
+            }
+
+            set({ user: updatedUser });
+          } catch (error) {
+            console.error("Error refreshing user profile:", error);
+            throw error;
           }
         },
 
@@ -178,10 +206,11 @@ export const useAuthActions = () => {
   const login = useAuthStore((state) => state.login);
   const logout = useAuthStore((state) => state.logout);
   const updateUser = useAuthStore((state) => state.updateUser);
+  const refreshUserProfile = useAuthStore((state) => state.refreshUserProfile);
   const initializeAuth = useAuthStore((state) => state.initializeAuth);
   const refreshAuth = useAuthStore((state) => state.refreshAuth);
   
-  return { login, logout, updateUser, initializeAuth, refreshAuth };
+  return { login, logout, updateUser, refreshUserProfile, initializeAuth, refreshAuth };
 };
 
 // Individual selectors

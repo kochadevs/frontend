@@ -1,55 +1,57 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { clsx } from "clsx";
 import { Button } from "@/components/ui/button";
-import { StepProps } from "@/interface/onboarding";
+import { StepProps, OnboardingOption } from "@/interface/onboarding";
 import { useOnboardingStore } from "@/store/onboardingStore";
-
-const industries = [
-  "Aerospace",
-  "AI & Machine Learning",
-  "Automotive & Transportation",
-  "Biotechnology",
-  "Consulting",
-  "Consumer Goods",
-  "Consumer Software",
-  "Crypto & Web3",
-  "Cybersecurity",
-  "Defense",
-  "Data & Analytics",
-  "Design",
-  "Education",
-  "Energy",
-  "Enterprise Software",
-  "Entertainment",
-  "Financial Services",
-  "Fintech",
-  "Food & Agriculture",
-  "Gaming",
-  "Government & Public Sector",
-  "Hardware",
-  "Healthcare",
-  "Industrial & Manufacturing",
-  "Legal",
-  "Quantitative Finance",
-  "Real Estate",
-  "Robotics & Automation",
-  "Social Impact",
-  "Venture Capital",
-  "VR & AR",
-];
+import { fetchIndustries } from "@/utilities/onboardingHandler";
+import { toast } from "react-hot-toast";
 
 const IndustrySelection: React.FC<StepProps> = ({
   handleNext,
   handlePrevious,
 }) => {
-  const { selectedIndustries, toggleIndustry, saveOnboardingData } =
+  const { selectedIndustries, toggleIndustry, submitIndustries, isSubmitting } =
     useOnboardingStore();
+  
+  const [industries, setIndustries] = useState<OnboardingOption[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  useEffect(() => {
+    const loadIndustries = async () => {
+      try {
+        const data = await fetchIndustries();
+        setIndustries(data);
+      } catch (error) {
+        console.error('Error fetching industries:', error);
+        toast.error('Failed to load industries');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadIndustries();
+  }, []);
 
   const handleSaveAndContinue = async () => {
-    await saveOnboardingData();
-    handleNext();
+    try {
+      await submitIndustries();
+      toast.success('Industries saved successfully!');
+      handleNext();
+    } catch (error) {
+      console.error('Error submitting industries:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to save industries');
+    }
   };
+  
+  if (isLoading) {
+    return (
+      <div className="max-w-[600px] mx-auto px-4 text-center flex flex-col items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#251F99]"></div>
+        <p className="mt-4 text-[#667085]">Loading industries...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-[600px] mx-auto px-4">
@@ -65,16 +67,16 @@ const IndustrySelection: React.FC<StepProps> = ({
       <div className="flex flex-wrap gap-2 justify-center">
         {industries.map((industry) => (
           <button
-            key={industry}
-            onClick={() => toggleIndustry(industry)}
+            key={industry.id}
+            onClick={() => toggleIndustry(industry.id)}
             className={clsx(
               "px-4 py-2 rounded-md border text-sm transition-colors duration-200 cursor-pointer",
-              selectedIndustries.includes(industry)
+              selectedIndustries.includes(industry.id)
                 ? "bg-[#EEF4FF] border-[#251F99] text-[#251F99]"
                 : "border-[#E5E7EB] text-[#374151] hover:border-[#D1D5DB]"
             )}
           >
-            {industry}
+            {industry.name}
           </button>
         ))}
       </div>
@@ -91,11 +93,11 @@ const IndustrySelection: React.FC<StepProps> = ({
         <Button
           variant="ghost"
           type="submit"
-          className="flex w-[153px] justify-center rounded-md bg-[#334AFF] px-3 py-1.5 text-[16px] font-semibold text-white hover:text-[#fff]/70 shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px]"
+          className="flex w-[153px] justify-center rounded-md bg-[#334AFF] px-3 py-1.5 text-[16px] font-semibold text-white hover:text-[#fff]/70 shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px] disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleSaveAndContinue}
-          disabled={selectedIndustries.length === 0}
+          disabled={selectedIndustries.length === 0 || isSubmitting}
         >
-          Save & continue
+          {isSubmitting ? "Saving..." : "Save & continue"}
         </Button>
       </div>
     </div>

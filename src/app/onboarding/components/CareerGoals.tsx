@@ -1,43 +1,79 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { clsx } from "clsx";
 import { Button } from "@/components/ui/button";
-import { StepProps } from "@/interface/onboarding";
+import { StepProps, OnboardingOption } from "@/interface/onboarding";
 import { useOnboardingStore } from "@/store/onboardingStore";
+import { fetchCareerGoals } from "@/utilities/onboardingHandler";
+import { useAuthActions } from "@/store/authStore";
+import { toast } from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
-interface Category {
-  title: string;
-  skills: string[];
-}
-
-const categories: Category[] = [
-  {
-    title: "Engineering and technical",
-    skills: [
-      "Adobe Illustrator",
-      "Business Analytics",
-      "Excel/Numbers/Sheets",
-      "Git",
-      "HTML/CSS",
-      "Java",
-      "MailChimp",
-      "MATLAB",
-      "Operations Research",
-      "Python",
-      "SEO",
-      "Zendesk",
-    ],
-  },
-];
-
-const CareerGoals: React.FC<StepProps> = ({ handleNext, handlePrevious }) => {
-  const { careerGoals, toggleCareerGoal, saveOnboardingData } =
+const CareerGoals: React.FC<StepProps> = ({ handlePrevious }) => {
+  const router = useRouter();
+  const { refreshUserProfile } = useAuthActions();
+  const { careerGoals, toggleCareerGoal, submitCareerGoals, isSubmitting, clearAllData } =
     useOnboardingStore();
+  
+  const [goals, setGoals] = useState<OnboardingOption[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  useEffect(() => {
+    const loadCareerGoals = async () => {
+      try {
+        const data = await fetchCareerGoals();
+        setGoals(data);
+      } catch (error) {
+        console.error('Error fetching career goals:', error);
+        toast.error('Failed to load career goals');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadCareerGoals();
+  }, []);
 
   const handleSaveAndContinue = async () => {
-    await saveOnboardingData();
-    handleNext();
+    try {
+      console.log('Starting onboarding completion...');
+      
+      // Submit career goals to API
+      await submitCareerGoals();
+      console.log('Career goals submitted successfully!');
+      
+      // Refresh user profile to get updated onboarding data
+      console.log('Refreshing user profile...');
+      await refreshUserProfile();
+      console.log('User profile refreshed!');
+      
+      // Show success message
+      toast.success('Onboarding completed successfully!');
+      
+      // Clear onboarding data since we're completed
+      clearAllData();
+      console.log('Onboarding data cleared');
+      
+      // Small delay to ensure everything is processed
+      setTimeout(() => {
+        console.log('Redirecting to home page...');
+        router.push('/home');
+      }, 1500);
+      
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to complete onboarding');
+    }
   };
+  
+  if (isLoading) {
+    return (
+      <div className="max-w-[600px] mx-auto px-4 text-center flex flex-col items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#251F99]"></div>
+        <p className="mt-4 text-[#667085]">Loading career goals...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-[600px] mx-auto px-4">
@@ -50,29 +86,27 @@ const CareerGoals: React.FC<StepProps> = ({ handleNext, handlePrevious }) => {
         </p>
       </div>
 
-      {categories.map((category) => (
-        <div key={category.title} className="mb-8">
-          <h2 className="text-sm font-medium text-[#111827] mb-3">
-            {category.title}
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {category.skills.map((skill) => (
-              <button
-                key={skill}
-                onClick={() => toggleCareerGoal(skill)}
-                className={clsx(
-                  "px-4 py-2 rounded-md border cursor-pointer text-sm transition-colors duration-200",
-                  careerGoals.includes(skill)
-                    ? "bg-[#EEF4FF] border-[#251F99] text-[#251F99] font-semibold"
-                    : "border-[#E5E7EB] text-[#374151] hover:border-[#D1D5DB]"
-                )}
-              >
-                {skill}
-              </button>
-            ))}
-          </div>
+      <div className="mb-8">
+        <h2 className="text-sm font-medium text-[#111827] mb-3">
+          Available Career Goals
+        </h2>
+        <div className="flex flex-wrap gap-2">
+          {goals.map((goal) => (
+            <button
+              key={goal.id}
+              onClick={() => toggleCareerGoal(goal.id)}
+              className={clsx(
+                "px-4 py-2 rounded-md border cursor-pointer text-sm transition-colors duration-200",
+                careerGoals.includes(goal.id)
+                  ? "bg-[#EEF4FF] border-[#251F99] text-[#251F99] font-semibold"
+                  : "border-[#E5E7EB] text-[#374151] hover:border-[#D1D5DB]"
+              )}
+            >
+              {goal.name}
+            </button>
+          ))}
         </div>
-      ))}
+      </div>
 
       <div className="flex items-center justify-end w-full gap-6 mt-64">
         <Button
@@ -86,11 +120,11 @@ const CareerGoals: React.FC<StepProps> = ({ handleNext, handlePrevious }) => {
         <Button
           variant="ghost"
           type="submit"
-          className="flex w-[153px] justify-center rounded-md bg-[#334AFF] px-3 py-1.5 text-[16px] font-semibold text-white hover:text-[#fff]/70 shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px]"
+          className="flex w-[153px] justify-center rounded-md bg-[#334AFF] px-3 py-1.5 text-[16px] font-semibold text-white hover:text-[#fff]/70 shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px] disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleSaveAndContinue}
-          disabled={careerGoals.length === 0}
+          disabled={careerGoals.length === 0 || isSubmitting}
         >
-          Save & continue
+          {isSubmitting ? "Completing..." : "Complete Onboarding"}
         </Button>
       </div>
     </div>

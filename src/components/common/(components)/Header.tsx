@@ -5,8 +5,8 @@ import React from "react";
 import { usePathname } from "next/navigation";
 
 type HeaderProps = {
-  handleChangeView: (view: "book_session" | "mentor_view") => void;
-  currentView: "book_session" | "mentor_view";
+  handleChangeView?: (view: "book_session" | "mentor_view") => void;
+  currentView?: "book_session" | "mentor_view";
 };
 
 const Header = ({ handleChangeView, currentView }: HeaderProps) => {
@@ -75,7 +75,7 @@ const Header = ({ handleChangeView, currentView }: HeaderProps) => {
                   </svg>
                   Share profile
                 </Button>
-                {pathname.includes("/mentor_match") &&
+                {pathname.includes("/mentor_match") && handleChangeView && currentView &&
                   (currentView === "mentor_view" ? (
                     <Button
                       onClick={() => handleChangeView("book_session")}

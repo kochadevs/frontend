@@ -1,64 +1,87 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-// import { customStorage } from "@/lib/customStorage";
+import {
+  submitNewRoleValues,
+  submitJobSearchStatus,
+  submitRoleInterest,
+  submitIndustries,
+  submitSkills,
+  submitCareerGoals,
+} from "../utilities/onboardingHandler";
+import { useAuthStore } from "./authStore";
 
 interface OnboardingState {
-  // Value Selection
-  selectedValues: string[];
-  toggleValue: (id: string) => void;
-  setSelectedValues: (values: string[]) => void;
+  // Value Selection (Step 1)
+  selectedValues: number[];
+  toggleValue: (id: number) => void;
+  setSelectedValues: (values: number[]) => void;
   clearSelectedValues: () => void;
+  submitNewRoleValues: () => Promise<void>;
   
-  // Job Search Status
-  jobSearchStatus: string[];
-  toggleJobSearchStatus: (id: string) => void;
-  setJobSearchStatus: (status: string[]) => void;
+  // Job Search Status (Step 2)
+  jobSearchStatus: number[];
+  toggleJobSearchStatus: (id: number) => void;
+  setJobSearchStatus: (status: number[]) => void;
   clearJobSearchStatus: () => void;
+  submitJobSearchStatus: () => Promise<void>;
 
-  // Role Selection
-  selectedRoles: string[];
-  toggleRole: (id: string) => void;
-  setSelectedRoles: (roles: string[]) => void;
+  // Role Selection (Step 3)
+  selectedRoles: number[];
+  toggleRole: (id: number) => void;
+  setSelectedRoles: (roles: number[]) => void;
   clearSelectedRoles: () => void;
+  submitRoleInterest: () => Promise<void>;
 
-  // Industry Selection
-  selectedIndustries: string[];
-  toggleIndustry: (industry: string) => void;
-  setSelectedIndustries: (industries: string[]) => void;
+  // Industry Selection (Step 4)
+  selectedIndustries: number[];
+  toggleIndustry: (industry: number) => void;
+  setSelectedIndustries: (industries: number[]) => void;
   clearSelectedIndustries: () => void;
+  submitIndustries: () => Promise<void>;
 
-  // Skills Selection
-  selectedSkills: string[];
-  toggleSkill: (skill: string) => void;
-  setSelectedSkills: (skills: string[]) => void;
+  // Skills Selection (Step 5)
+  selectedSkills: number[];
+  toggleSkill: (skill: number) => void;
+  setSelectedSkills: (skills: number[]) => void;
   clearSelectedSkills: () => void;
+  submitSkills: () => Promise<void>;
 
-  // Career Goals
-  careerGoals: string[];
-  toggleCareerGoal: (goal: string) => void;
-  setCareerGoals: (goals: string[]) => void;
+  // Career Goals (Step 6)
+  careerGoals: number[];
+  toggleCareerGoal: (goal: number) => void;
+  setCareerGoals: (goals: number[]) => void;
   clearCareerGoals: () => void;
+  submitCareerGoals: () => Promise<void>;
+  
+  // Loading states
+  isSubmitting: boolean;
+  setIsSubmitting: (isSubmitting: boolean) => void;
   
   // Common
-  saveOnboardingData: () => Promise<void>;
+  clearAllData: () => void;
 }
 
 export const useOnboardingStore = create<OnboardingState>()(
   persist(
-    (set) => ({
-      // Value Selection
+    (set, get) => ({
+      // Value Selection (Step 1)
       selectedValues: [],
       
       toggleValue: (id) => {
         set((state) => {
           if (state.selectedValues.includes(id)) {
+            // Remove the value if already selected
             return {
               selectedValues: state.selectedValues.filter((v) => v !== id)
             };
           }
+          
+          // Check if we've reached the limit
           if (state.selectedValues.length >= 3) {
             return state;
           }
+          
+          // Add the new value
           return {
             selectedValues: [...state.selectedValues, id]
           };
@@ -73,7 +96,26 @@ export const useOnboardingStore = create<OnboardingState>()(
         set({ selectedValues: [] });
       },
       
-      // Job Search Status
+      submitNewRoleValues: async () => {
+        try {
+          set({ isSubmitting: true });
+          const { selectedValues } = get();
+          const authState = useAuthStore.getState();
+          const accessToken = authState.accessToken;
+          
+          if (!accessToken) {
+            throw new Error("Please log in to continue with onboarding");
+          }
+          await submitNewRoleValues(
+            { new_role_values: selectedValues },
+            accessToken
+          );
+        } finally {
+          set({ isSubmitting: false });
+        }
+      },
+      
+      // Job Search Status (Step 2)
       jobSearchStatus: [],
       
       toggleJobSearchStatus: (id) => {
@@ -91,8 +133,28 @@ export const useOnboardingStore = create<OnboardingState>()(
       clearJobSearchStatus: () => {
         set({ jobSearchStatus: [] });
       },
+      
+      submitJobSearchStatus: async () => {
+        try {
+          set({ isSubmitting: true });
+          const { jobSearchStatus } = get();
+          const authState = useAuthStore.getState();
+          const accessToken = authState.accessToken;
+          
+          if (!accessToken) {
+            throw new Error("Please log in to continue with onboarding");
+          }
+          
+          await submitJobSearchStatus(
+            { job_search_status: jobSearchStatus },
+            accessToken
+          );
+        } finally {
+          set({ isSubmitting: false });
+        }
+      },
 
-      // Role Selection
+      // Role Selection (Step 3)
       selectedRoles: [],
       
       toggleRole: (id) => {
@@ -119,7 +181,27 @@ export const useOnboardingStore = create<OnboardingState>()(
         set({ selectedRoles: [] });
       },
       
-       // Industry Selection
+      submitRoleInterest: async () => {
+        try {
+          set({ isSubmitting: true });
+          const { selectedRoles } = get();
+          const authState = useAuthStore.getState();
+          const accessToken = authState.accessToken;
+          
+          if (!accessToken) {
+            throw new Error("Please log in to continue with onboarding");
+          }
+          
+          await submitRoleInterest(
+            { roles_of_interest: selectedRoles },
+            accessToken
+          );
+        } finally {
+          set({ isSubmitting: false });
+        }
+      },
+      
+      // Industry Selection (Step 4)
       selectedIndustries: [],
       
       toggleIndustry: (industry) => {
@@ -137,8 +219,28 @@ export const useOnboardingStore = create<OnboardingState>()(
       clearSelectedIndustries: () => {
         set({ selectedIndustries: [] });
       },
+      
+      submitIndustries: async () => {
+        try {
+          set({ isSubmitting: true });
+          const { selectedIndustries } = get();
+          const authState = useAuthStore.getState();
+          const accessToken = authState.accessToken;
+          
+          if (!accessToken) {
+            throw new Error("Please log in to continue with onboarding");
+          }
+          
+          await submitIndustries(
+            { industries: selectedIndustries },
+            accessToken
+          );
+        } finally {
+          set({ isSubmitting: false });
+        }
+      },
 
-      // Skills Selection
+      // Skills Selection (Step 5)
       selectedSkills: [],
       
       toggleSkill: (skill) => {
@@ -156,8 +258,28 @@ export const useOnboardingStore = create<OnboardingState>()(
       clearSelectedSkills: () => {
         set({ selectedSkills: [] });
       },
+      
+      submitSkills: async () => {
+        try {
+          set({ isSubmitting: true });
+          const { selectedSkills } = get();
+          const authState = useAuthStore.getState();
+          const accessToken = authState.accessToken;
+          
+          if (!accessToken) {
+            throw new Error("Please log in to continue with onboarding");
+          }
+          
+          await submitSkills(
+            { skills: selectedSkills },
+            accessToken
+          );
+        } finally {
+          set({ isSubmitting: false });
+        }
+      },
 
-       // Career Goals
+      // Career Goals (Step 6)
       careerGoals: [],
       
       toggleCareerGoal: (goal) => {
@@ -176,16 +298,63 @@ export const useOnboardingStore = create<OnboardingState>()(
         set({ careerGoals: [] });
       },
       
+      submitCareerGoals: async () => {
+        try {
+          set({ isSubmitting: true });
+          const { careerGoals } = get();
+          const authState = useAuthStore.getState();
+          const accessToken = authState.accessToken;
+          
+          if (!accessToken) {
+            throw new Error("Please log in to continue with onboarding");
+          }
+          
+          await submitCareerGoals(
+            { career_goals: careerGoals },
+            accessToken
+          );
+        } finally {
+          set({ isSubmitting: false });
+        }
+      },
+      
+      // Loading states
+      isSubmitting: false,
+      setIsSubmitting: (isSubmitting) => {
+        set({ isSubmitting });
+      },
+      
       // Common
-      saveOnboardingData: async () => {
-        // The values are already saved in the store via persist middleware
-        // This is just a placeholder for any async operations you might need
-        return Promise.resolve();
-      }
+      clearAllData: () => {
+        set({
+          selectedValues: [],
+          jobSearchStatus: [],
+          selectedRoles: [],
+          selectedIndustries: [],
+          selectedSkills: [],
+          careerGoals: [],
+          isSubmitting: false,
+        });
+      },
     }),
     {
       name: "onboarding-values",
-      // storage: customStorage,
+      version: 1,
+      migrate: (persistedState: unknown, version: number) => {
+        if (version < 1) {
+          // Clear old data and start fresh
+          return {
+            selectedValues: [],
+            jobSearchStatus: [],
+            selectedRoles: [],
+            selectedIndustries: [],
+            selectedSkills: [],
+            careerGoals: [],
+            isSubmitting: false,
+          };
+        }
+        return persistedState;
+      },
     }
   )
 );
