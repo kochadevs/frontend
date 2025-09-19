@@ -125,11 +125,6 @@ export const useAuthStore = create<AuthStore>()(
         initializeAuth: () => {
           const currentState = get();
           
-          // Skip if already authenticated
-          if (currentState.isAuthenticated) {
-            return;
-          }
-
           // Only run in browser
           if (typeof window === 'undefined') {
             return;
@@ -137,6 +132,7 @@ export const useAuthStore = create<AuthStore>()(
 
           const { accessToken, refreshToken, userData } = tokenUtils.getTokens();
 
+          // If we have tokens but store is not authenticated, update the store
           if (accessToken && refreshToken && userData) {
             try {
               const user = JSON.parse(userData);
@@ -147,11 +143,16 @@ export const useAuthStore = create<AuthStore>()(
                 refreshToken,
                 tokenType: "Bearer",
               });
+              console.log('Auth initialized from cookies');
             } catch (error) {
               console.error("Failed to parse user data from cookies:", error);
               tokenUtils.clearTokens();
               set({ ...initialState });
             }
+          } else if (currentState.isAuthenticated && !accessToken) {
+            // If store thinks we're authenticated but no tokens in cookies, clear store
+            console.log('Clearing auth state - no tokens found in cookies');
+            set({ ...initialState });
           }
         },
 

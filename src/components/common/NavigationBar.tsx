@@ -96,6 +96,9 @@ const NavigationBar = () => {
                           {getUserDisplayName(user)}
                         </p>
                         <p className="text-xs text-gray-500 truncate">
+                          {user.user_type}
+                        </p>
+                        <p className="text-xs text-gray-500 truncate">
                           {user.email}
                         </p>
                       </div>
