@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SignupPayload } from "../interface/auth/signup";
 import { LoginPayload, LoginResponse } from "../interface/auth/login";
+import { 
+  ForgotPasswordPayload, 
+  ForgotPasswordResponse, 
+  ResetPasswordPayload, 
+  ResetPasswordResponse 
+} from "../interface/auth/passwordReset";
 import axios from "axios";
 
 export const handleSignup = async (payload: SignupPayload): Promise<any> => {
@@ -122,6 +128,92 @@ export const handleLogout = async (accessToken: string): Promise<void> => {
       console.error("Network error:", error.request);
     } else {
       console.error("Error:", error.message);
+    }
+  }
+};
+
+export const handleForgotPassword = async (payload: ForgotPasswordPayload): Promise<ForgotPasswordResponse> => {
+  try {
+    const baseURL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
+
+    if (!baseURL) {
+      throw new Error(
+        "API base URL is not configured in environment variables"
+      );
+    }
+
+    const response = await axios.post(`${baseURL}/users/forgot-password`, payload, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      timeout: 10000,
+    });
+
+    const { data } = response;
+
+    return data as ForgotPasswordResponse;
+  } catch (error: any) {
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      const errorMessage =
+        error.response.data?.message ||
+        error.response.data?.error ||
+        error.response.data?.detail ||
+        "Failed to send reset email";
+      console.error("Server error:", error.response.status, errorMessage);
+      throw new Error(errorMessage);
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error("Network error:", error.request);
+      throw new Error("Network error - please check your connection");
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      console.error("Error:", error.message);
+      throw new Error(error.message || "An unexpected error occurred");
+    }
+  }
+};
+
+export const handleResetPassword = async (payload: ResetPasswordPayload): Promise<ResetPasswordResponse> => {
+  try {
+    const baseURL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
+
+    if (!baseURL) {
+      throw new Error(
+        "API base URL is not configured in environment variables"
+      );
+    }
+
+    const response = await axios.post(`${baseURL}/users/reset-password`, payload, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      timeout: 10000,
+    });
+
+    const { data } = response;
+
+    return data as ResetPasswordResponse;
+  } catch (error: any) {
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      const errorMessage =
+        error.response.data?.message ||
+        error.response.data?.error ||
+        error.response.data?.detail ||
+        "Failed to reset password";
+      console.error("Server error:", error.response.status, errorMessage);
+      throw new Error(errorMessage);
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error("Network error:", error.request);
+      throw new Error("Network error - please check your connection");
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      console.error("Error:", error.message);
+      throw new Error(error.message || "An unexpected error occurred");
     }
   }
 };
