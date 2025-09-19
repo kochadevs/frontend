@@ -10,6 +10,7 @@ import { handleLogin } from "../../../utilities/authHandler";
 import { useAuthStore } from "../../../store/authStore";
 import { toast } from "react-hot-toast";
 import { useRouter, useSearchParams } from "next/navigation";
+import { getRedirectPath } from "../../../utilities/redirectUtils";
 
 export default function Login() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function Login() {
   
   // Get state and actions from store
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const user = useAuthStore((state) => state.user);
   const login = useAuthStore((state) => state.login);
   
   const [formData, setFormData] = useState<LoginFormData>({
@@ -32,10 +34,11 @@ export default function Login() {
 
   // Handle redirect when authenticated
   useEffect(() => {
-    if (isAuthenticated) {
-      router.push(redirectTo);
+    if (isAuthenticated && user) {
+      const redirectDestination = getRedirectPath(user, redirectTo);
+      router.push(redirectDestination);
     }
-  }, [isAuthenticated, router, redirectTo]);
+  }, [isAuthenticated, user, router, redirectTo]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>
@@ -81,8 +84,12 @@ export default function Login() {
       // Show success toast
       toast.success("Login successful!");
       
-      // Redirect to intended page or dashboard
-      router.push(redirectTo);
+      // Determine redirect destination based on user's role values
+      const userProfile = loginResponse.user_profile;
+      const redirectDestination = getRedirectPath(userProfile, redirectTo);
+      
+      // Redirect to determined destination
+      router.push(redirectDestination);
       
     } catch (error) {
       if (error instanceof z.ZodError) {
