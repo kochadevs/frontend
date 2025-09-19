@@ -8,11 +8,9 @@ export const useAuthHydration = () => {
     // Check if we're in the browser and store is hydrated
     if (typeof window !== 'undefined') {
       const unsubscribe = useAuthStore.persist.onHydrate(() => {
-        console.log('Auth store hydration started');
       });
 
       const unsubscribeFinish = useAuthStore.persist.onFinishHydration(() => {
-        console.log('Auth store hydration finished');
         setIsHydrated(true);
       });
 

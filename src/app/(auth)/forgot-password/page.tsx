@@ -47,17 +47,15 @@ const ForgotPassword = () => {
 
       // Call the forgot password API
       const response = await handleForgotPassword(validatedData);
-      
-      console.log("Forgot password request successful:", response);
 
+      if(response){
       // Show success state
       setIsSuccess(true);
       toast.success("Reset email sent successfully!");
-      
       // Clear form and errors
       setFormData({ email: "" });
       setErrors({});
-      
+      }
     } catch (error) {
       if (error instanceof z.ZodError) {
         // Handle validation errors

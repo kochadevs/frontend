@@ -36,27 +36,19 @@ const CareerGoals: React.FC<StepProps> = ({ handlePrevious }) => {
 
   const handleSaveAndContinue = async () => {
     try {
-      console.log('Starting onboarding completion...');
-      
       // Submit career goals to API
       await submitCareerGoals();
-      console.log('Career goals submitted successfully!');
       
       // Refresh user profile to get updated onboarding data
-      console.log('Refreshing user profile...');
       await refreshUserProfile();
-      console.log('User profile refreshed!');
       
       // Show success message
       toast.success('Onboarding completed successfully!');
       
       // Clear onboarding data since we're completed
       clearAllData();
-      console.log('Onboarding data cleared');
-      
       // Small delay to ensure everything is processed
       setTimeout(() => {
-        console.log('Redirecting to home page...');
         router.push('/home');
       }, 1500);
       
@@ -120,7 +112,7 @@ const CareerGoals: React.FC<StepProps> = ({ handlePrevious }) => {
         <Button
           variant="ghost"
           type="submit"
-          className="flex w-[153px] justify-center rounded-md bg-[#334AFF] px-3 py-1.5 text-[16px] font-semibold text-white hover:text-[#fff]/70 shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px] disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex min-w-[153px] justify-center rounded-md bg-[#334AFF] px-3 py-1.5 text-[16px] font-semibold text-white hover:text-[#fff]/70 shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px] disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleSaveAndContinue}
           disabled={careerGoals.length === 0 || isSubmitting}
         >

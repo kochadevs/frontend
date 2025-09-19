@@ -71,8 +71,6 @@ function LoginContent() {
       
       // Update auth store with login response
       login(loginResponse);
-      
-      console.log("Login successful:", loginResponse);
 
       // Reset form and errors on success
       setFormData({

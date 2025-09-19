@@ -6,15 +6,18 @@ import Link from "next/link";
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { z } from "zod";
-import { ResetPasswordFormData, resetPasswordSchema } from "../../../zodSchema/passwordResetSchema";
+import {
+  ResetPasswordFormData,
+  resetPasswordSchema,
+} from "../../../zodSchema/passwordResetSchema";
 import { handleResetPassword } from "../../../utilities/authHandler";
 import { toast } from "react-hot-toast";
 
 const ResetPasswordContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get('token');
-  
+  const token = searchParams.get("token");
+
   const [formData, setFormData] = useState<ResetPasswordFormData>({
     token: "",
     new_password: "",
@@ -30,15 +33,13 @@ const ResetPasswordContent = () => {
   // Extract token from URL on component mount
   useEffect(() => {
     if (token) {
-      setFormData(prev => ({ ...prev, token }));
+      setFormData((prev) => ({ ...prev, token }));
     } else {
       setTokenError(true);
     }
   }, [token]);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -67,26 +68,24 @@ const ResetPasswordContent = () => {
         token: validatedData.token,
         new_password: validatedData.new_password,
       });
-      
-      console.log("Reset password successful:", response);
 
-      // Show success state
-      setIsSuccess(true);
-      toast.success("Password reset successfully!");
-      
-      // Clear form and errors
-      setFormData({ token: "", new_password: "", confirm_password: "" });
-      setErrors({});
-      
-      // Redirect to login after a short delay
-      setTimeout(() => {
-        router.push('/login');
-      }, 2000);
-      
+      if (response) {
+        // Show success state
+        setIsSuccess(true);
+        toast.success("Password reset successfully!");
+        // Clear form and errors
+        setFormData({ token: "", new_password: "", confirm_password: "" });
+        setErrors({});
+        // Redirect to login after a short delay
+        setTimeout(() => {
+          router.push("/login");
+        }, 2000);
+      }
     } catch (error) {
       if (error instanceof z.ZodError) {
         // Handle validation errors
-        const newErrors: Partial<Record<keyof ResetPasswordFormData, string>> = {};
+        const newErrors: Partial<Record<keyof ResetPasswordFormData, string>> =
+          {};
         error.issues.forEach((err: z.ZodIssue) => {
           if (err.path[0]) {
             newErrors[err.path[0] as keyof ResetPasswordFormData] = err.message;
@@ -96,7 +95,9 @@ const ResetPasswordContent = () => {
       } else {
         // Handle API errors
         console.error("Reset password error:", error);
-        toast.error(error instanceof Error ? error.message : "Failed to reset password");
+        toast.error(
+          error instanceof Error ? error.message : "Failed to reset password"
+        );
       }
     } finally {
       setIsLoading(false);
@@ -118,15 +119,26 @@ const ResetPasswordContent = () => {
               />
             </div>
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-              <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-8 h-8 text-red-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </div>
             <h2 className="text-[30px] font-[700] tracking-tight text-[#2E3646]">
               Invalid Reset Link
             </h2>
             <p className="text-[#667085] text-[14px] text-center">
-              The password reset link is invalid or has expired. Please request a new password reset.
+              The password reset link is invalid or has expired. Please request
+              a new password reset.
             </p>
           </div>
 
@@ -140,7 +152,7 @@ const ResetPasswordContent = () => {
                   Request New Reset
                 </Button>
               </Link>
-              
+
               <Link href="/login">
                 <Button
                   variant="ghost"
@@ -171,15 +183,26 @@ const ResetPasswordContent = () => {
               />
             </div>
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-              <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <svg
+                className="w-8 h-8 text-green-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             </div>
             <h2 className="text-[30px] font-[700] tracking-tight text-[#2E3646]">
               Password Reset Successful
             </h2>
             <p className="text-[#667085] text-[14px] text-center">
-              Your password has been successfully reset. You will be redirected to the login page shortly.
+              Your password has been successfully reset. You will be redirected
+              to the login page shortly.
             </p>
           </div>
 
@@ -245,7 +268,9 @@ const ResetPasswordContent = () => {
                     placeholder="Enter new password"
                   />
                   {errors.new_password && (
-                    <p className="mt-1 text-sm text-red-600">{errors.new_password}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.new_password}
+                    </p>
                   )}
                 </div>
               </div>
@@ -272,7 +297,9 @@ const ResetPasswordContent = () => {
                     placeholder="Re-enter password"
                   />
                   {errors.confirm_password && (
-                    <p className="mt-1 text-sm text-red-600">{errors.confirm_password}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.confirm_password}
+                    </p>
                   )}
                 </div>
               </div>
@@ -307,11 +334,13 @@ const ResetPasswordContent = () => {
 
 const ResetPassword = () => {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#334AFF]"></div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#334AFF]"></div>
+        </div>
+      }
+    >
       <ResetPasswordContent />
     </Suspense>
   );

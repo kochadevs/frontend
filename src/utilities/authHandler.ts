@@ -117,8 +117,6 @@ export const handleLogout = async (accessToken: string): Promise<void> => {
       },
       timeout: 10000,
     });
-
-    console.log("Logout successful");
   } catch (error: any) {
     // Even if logout API fails, we'll still clear local data
     console.warn("Logout API call failed, but clearing local data:", error);

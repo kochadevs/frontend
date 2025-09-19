@@ -10,6 +10,42 @@ interface NewRoleValue {
   name:string
 }
 
+interface Industry {
+  id: number;
+  date_created: string;
+  last_modified: string;
+  name: string;
+}
+
+interface JobSearchStatus {
+  id: number;
+  date_created: string;
+  last_modified: string;
+  name: string;
+}
+
+interface RoleOfInterest {
+  id: number;
+  date_created: string;
+  last_modified: string;
+  name: string;
+  category: string;
+}
+
+interface Skill {
+  id: number;
+  date_created: string;
+  last_modified: string;
+  name: string;
+}
+
+interface CareerGoal {
+  id: number;
+  date_created: string;
+  last_modified: string;
+  name: string;
+}
+
 export interface UserProfile {
   id: number;
   first_name: string;
@@ -20,7 +56,13 @@ export interface UserProfile {
   location: string;
   is_active: boolean;
   profile_pic: string;
+  user_type: string;
   new_role_values: NewRoleValue[] | null;
+  industry: Industry[] | null;
+  job_search_status: JobSearchStatus[] | null;
+  role_of_interest: RoleOfInterest[] | null;
+  skills: Skill[] | null;
+  career_goals: CareerGoal[] | null;
 }
 
 export interface LoginResponse {

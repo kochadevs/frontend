@@ -63,7 +63,6 @@ export default function Signup() {
 
       // Call the signup function
       const result = await handleSignup(payload);
-      console.log("Signup successful:", result);
 
       // Reset form and errors on success
       setFormData({

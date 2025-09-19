@@ -402,8 +402,6 @@ export default function RichEditor() {
     if (editor) {
       const content = editor.getHTML();
       setPreviewContent(content);
-      // Here you would typically send the content to your backend
-      console.log("Uploading content:", content);
     }
   };
 
