@@ -1,13 +1,15 @@
 import axios from "axios";
-import { CreateGroupPayload, CreateGroupResponse, Group } from "../interface/groups";
-import { GroupMember } from "../interface/groupMembers";
+import { CreatePostPayload, FeedResponse, FeedParams, Post, CreateCommentPayload, ApiComment, CommentsResponse, CommentParams } from "../interface/posts";
 
-export const createGroup = async (
-  payload: CreateGroupPayload,
+export const createPost = async (
+  payload: CreatePostPayload,
   accessToken: string
-): Promise<CreateGroupResponse> => {
+): Promise<Post> => {
   try {
     const baseURL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
+    console.log('API Base URL:', baseURL);
+    console.log('Payload:', payload);
+    console.log('Access Token:', accessToken ? 'Present' : 'Missing');
 
     if (!baseURL) {
       throw new Error(
@@ -15,45 +17,52 @@ export const createGroup = async (
       );
     }
 
-    const response = await axios.post(`${baseURL}/groups/`, payload, {
+    console.log('Making request to:', `${baseURL}/feed/posts`);
+    
+    const response = await axios.post(`${baseURL}/feed/posts`, payload, {
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${accessToken}`,
       },
       timeout: 10000,
     });
+    
+    console.log('Response status:', response.status);
+    console.log('Response data:', response.data);
 
     const { data } = response;
 
-    return data as CreateGroupResponse;
+    return data as Post;
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
       if (error.response) {
         const errorMessage =
           error.response.data?.message ||
           error.response.data?.error ||
           error.response.data?.detail ||
-          "Failed to create group";
+          "Failed to create post";
         console.error("Server error:", error.response.status, errorMessage);
         throw new Error(errorMessage);
       } else if (error.request) {
-        // The request was made but no response was received
         console.error("Network error:", error.request);
         throw new Error("Network error - please check your connection");
       }
     }
     
-    // Something happened in setting up the request that triggered an Error
     console.error("Error:", error);
     throw new Error(error instanceof Error ? error.message : "An unexpected error occurred");
   }
 };
 
-export const fetchAllGroups = async (accessToken: string): Promise<Group[]> => {
+export const fetchFeed = async (
+  params: FeedParams,
+  accessToken: string
+): Promise<FeedResponse> => {
   try {
     const baseURL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
+    console.log('Fetching feed with params:', params);
+    console.log('API Base URL:', baseURL);
+    console.log('Access Token:', accessToken ? 'Present' : 'Missing');
 
     if (!baseURL) {
       throw new Error(
@@ -61,17 +70,139 @@ export const fetchAllGroups = async (accessToken: string): Promise<Group[]> => {
       );
     }
 
-    const response = await axios.get(`${baseURL}/groups/`, {
+    // Build query parameters
+    const queryParams = new URLSearchParams();
+    if (params.limit) {
+      queryParams.append('limit', params.limit.toString());
+    }
+    if (params.group_id) {
+      queryParams.append('group_id', params.group_id.toString());
+    }
+    if (params.cursor) {
+      queryParams.append('cursor', params.cursor);
+    }
+
+    const url = `${baseURL}/feed/posts?${queryParams.toString()}`;
+    console.log('Making request to:', url);
+    
+    const response = await axios.get(url, {
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+      },
+      timeout: 10000,
+    });
+    
+    console.log('Feed response status:', response.status);
+    console.log('Feed response data:', response.data);
+
+    const { data } = response;
+    return data as FeedResponse;
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        const errorMessage =
+          error.response.data?.message ||
+          error.response.data?.error ||
+          error.response.data?.detail ||
+          "Failed to fetch feed";
+        console.error("Server error:", error.response.status, errorMessage);
+        throw new Error(errorMessage);
+      } else if (error.request) {
+        console.error("Network error:", error.request);
+        throw new Error("Network error - please check your connection");
+      }
+    }
+    
+    console.error("Error:", error);
+    throw new Error(error instanceof Error ? error.message : "An unexpected error occurred");
+  }
+};
+
+export const deletePost = async (
+  postId: string,
+  accessToken: string
+): Promise<void> => {
+  try {
+    const baseURL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
+    console.log('Deleting post with ID:', postId);
+    console.log('API Base URL:', baseURL);
+    console.log('Access Token:', accessToken ? 'Present' : 'Missing');
+
+    if (!baseURL) {
+      throw new Error(
+        "API base URL is not configured in environment variables"
+      );
+    }
+
+    const url = `${baseURL}/feed/posts/${postId}`;
+    console.log('Making DELETE request to:', url);
+    
+    const response = await axios.delete(url, {
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+      },
+      timeout: 10000,
+    });
+    
+    console.log('Delete response status:', response.status);
+    console.log('Post deleted successfully');
+
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        const errorMessage =
+          error.response.data?.message ||
+          error.response.data?.error ||
+          error.response.data?.detail ||
+          "Failed to delete post";
+        console.error("Server error:", error.response.status, errorMessage);
+        throw new Error(errorMessage);
+      } else if (error.request) {
+        console.error("Network error:", error.request);
+        throw new Error("Network error - please check your connection");
+      }
+    }
+    
+    console.error("Error:", error);
+    throw new Error(error instanceof Error ? error.message : "An unexpected error occurred");
+  }
+};
+
+// Comment API functions
+export const addComment = async (
+  postId: string,
+  payload: CreateCommentPayload,
+  accessToken: string
+): Promise<ApiComment> => {
+  try {
+    const baseURL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
+    console.log('Adding comment to post:', postId);
+    console.log('Comment payload:', payload);
+    console.log('API Base URL:', baseURL);
+    console.log('Access Token:', accessToken ? 'Present' : 'Missing');
+
+    if (!baseURL) {
+      throw new Error(
+        "API base URL is not configured in environment variables"
+      );
+    }
+
+    const url = `${baseURL}/feed/posts/${postId}/comments`;
+    console.log('Making POST request to:', url);
+    
+    const response = await axios.post(url, payload, {
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${accessToken}`,
       },
       timeout: 10000,
     });
+    
+    console.log('Add comment response status:', response.status);
+    console.log('Add comment response data:', response.data);
 
     const { data } = response;
-
-    return data as Group[];
+    return data as ApiComment;
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       if (error.response) {
@@ -79,7 +210,7 @@ export const fetchAllGroups = async (accessToken: string): Promise<Group[]> => {
           error.response.data?.message ||
           error.response.data?.error ||
           error.response.data?.detail ||
-          "Failed to fetch groups";
+          "Failed to add comment";
         console.error("Server error:", error.response.status, errorMessage);
         throw new Error(errorMessage);
       } else if (error.request) {
@@ -93,12 +224,17 @@ export const fetchAllGroups = async (accessToken: string): Promise<Group[]> => {
   }
 };
 
-export const joinGroup = async (
-  groupId: number,
+export const fetchComments = async (
+  postId: string,
+  params: CommentParams,
   accessToken: string
-): Promise<{ message: string }> => {
+): Promise<CommentsResponse> => {
   try {
     const baseURL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
+    console.log('Fetching comments for post:', postId);
+    console.log('Comment params:', params);
+    console.log('API Base URL:', baseURL);
+    console.log('Access Token:', accessToken ? 'Present' : 'Missing');
 
     if (!baseURL) {
       throw new Error(
@@ -106,63 +242,30 @@ export const joinGroup = async (
       );
     }
 
-    const response = await axios.post(
-      `${baseURL}/groups/${groupId}/join`,
-      {},
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${accessToken}`,
-        },
-        timeout: 10000,
-      }
-    );
-
-    const { data } = response;
-
-    return data as { message: string };
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      if (error.response) {
-        const errorMessage =
-          error.response.data?.message ||
-          error.response.data?.error ||
-          error.response.data?.detail ||
-          "Failed to join group";
-        console.error("Server error:", error.response.status, errorMessage);
-        throw new Error(errorMessage);
-      } else if (error.request) {
-        console.error("Network error:", error.request);
-        throw new Error("Network error - please check your connection");
-      }
+    // Build query parameters
+    const queryParams = new URLSearchParams();
+    if (params.limit) {
+      queryParams.append('limit', params.limit.toString());
     }
+    if (params.cursor) {
+      queryParams.append('cursor', params.cursor);
+    }
+
+    const url = `${baseURL}/feed/posts/${postId}/comments?${queryParams.toString()}`;
+    console.log('Making GET request to:', url);
     
-    console.error("Error:", error);
-    throw new Error(error instanceof Error ? error.message : "An unexpected error occurred");
-  }
-};
-
-export const fetchMyGroups = async (accessToken: string): Promise<Group[]> => {
-  try {
-    const baseURL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
-
-    if (!baseURL) {
-      throw new Error(
-        "API base URL is not configured in environment variables"
-      );
-    }
-
-    const response = await axios.get(`${baseURL}/groups/my-groups`, {
+    const response = await axios.get(url, {
       headers: {
-        "Content-Type": "application/json",
         "Authorization": `Bearer ${accessToken}`,
       },
       timeout: 10000,
     });
+    
+    console.log('Fetch comments response status:', response.status);
+    console.log('Fetch comments response data:', response.data);
 
     const { data } = response;
-
-    return data as Group[];
+    return data as CommentsResponse;
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       if (error.response) {
@@ -170,7 +273,7 @@ export const fetchMyGroups = async (accessToken: string): Promise<Group[]> => {
           error.response.data?.message ||
           error.response.data?.error ||
           error.response.data?.detail ||
-          "Failed to fetch your groups";
+          "Failed to fetch comments";
         console.error("Server error:", error.response.status, errorMessage);
         throw new Error(errorMessage);
       } else if (error.request) {
@@ -184,12 +287,15 @@ export const fetchMyGroups = async (accessToken: string): Promise<Group[]> => {
   }
 };
 
-export const leaveGroup = async (
-  groupId: number,
+export const deleteComment = async (
+  commentId: string,
   accessToken: string
-): Promise<{ message: string }> => {
+): Promise<void> => {
   try {
     const baseURL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
+    console.log('Deleting comment with ID:', commentId);
+    console.log('API Base URL:', baseURL);
+    console.log('Access Token:', accessToken ? 'Present' : 'Missing');
 
     if (!baseURL) {
       throw new Error(
@@ -197,111 +303,19 @@ export const leaveGroup = async (
       );
     }
 
-    const response = await axios.post(
-      `${baseURL}/groups/${groupId}/leave`,
-      {},
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${accessToken}`,
-        },
-        timeout: 10000,
-      }
-    );
-
-    const { data } = response;
-
-    return data as { message: string };
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      if (error.response) {
-        const errorMessage =
-          error.response.data?.message ||
-          error.response.data?.error ||
-          error.response.data?.detail ||
-          "Failed to leave group";
-        console.error("Server error:", error.response.status, errorMessage);
-        throw new Error(errorMessage);
-      } else if (error.request) {
-        console.error("Network error:", error.request);
-        throw new Error("Network error - please check your connection");
-      }
-    }
+    const url = `${baseURL}/feed/comments/${commentId}`;
+    console.log('Making DELETE request to:', url);
     
-    console.error("Error:", error);
-    throw new Error(error instanceof Error ? error.message : "An unexpected error occurred");
-  }
-};
-
-export const fetchGroupDetails = async (
-  groupId: number,
-  accessToken: string
-): Promise<Group> => {
-  try {
-    const baseURL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
-
-    if (!baseURL) {
-      throw new Error(
-        "API base URL is not configured in environment variables"
-      );
-    }
-
-    const response = await axios.get(`${baseURL}/groups/${groupId}`, {
+    const response = await axios.delete(url, {
       headers: {
-        "Content-Type": "application/json",
         "Authorization": `Bearer ${accessToken}`,
       },
       timeout: 10000,
     });
-
-    const { data } = response;
-
-    return data as Group;
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      if (error.response) {
-        const errorMessage =
-          error.response.data?.message ||
-          error.response.data?.error ||
-          error.response.data?.detail ||
-          "Failed to fetch group details";
-        console.error("Server error:", error.response.status, errorMessage);
-        throw new Error(errorMessage);
-      } else if (error.request) {
-        console.error("Network error:", error.request);
-        throw new Error("Network error - please check your connection");
-      }
-    }
     
-    console.error("Error:", error);
-    throw new Error(error instanceof Error ? error.message : "An unexpected error occurred");
-  }
-};
+    console.log('Delete comment response status:', response.status);
+    console.log('Comment deleted successfully');
 
-export const fetchGroupMembers = async (
-  groupId: number,
-  accessToken: string
-): Promise<GroupMember[]> => {
-  try {
-    const baseURL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
-
-    if (!baseURL) {
-      throw new Error(
-        "API base URL is not configured in environment variables"
-      );
-    }
-
-    const response = await axios.get(`${baseURL}/groups/${groupId}/members`, {
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${accessToken}`,
-      },
-      timeout: 10000,
-    });
-
-    const { data } = response;
-
-    return data as GroupMember[];
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       if (error.response) {
@@ -309,7 +323,7 @@ export const fetchGroupMembers = async (
           error.response.data?.message ||
           error.response.data?.error ||
           error.response.data?.detail ||
-          "Failed to fetch group members";
+          "Failed to delete comment";
         console.error("Server error:", error.response.status, errorMessage);
         throw new Error(errorMessage);
       } else if (error.request) {

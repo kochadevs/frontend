@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
-import { RefObject } from "react";
+import { RefObject, useState } from "react";
 import dynamic from "next/dynamic";
+import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
 
 // Dynamically import EmojiPicker to avoid SSR issues
 const EmojiPicker = dynamic(() => import("emoji-picker-react"), { ssr: false });
@@ -72,6 +73,10 @@ type PostCardProps = {
   onSetShowEmojiPicker: (value: boolean) => void;
   onHandleAddComment: (postId: string) => void;
   onHandleMediaUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onDeletePost: (postId: string) => void;
+  isLoadingComments?: boolean;
+  isAddingComment?: boolean;
+  onDeleteComment?: (commentId: string, postId: string) => void;
 };
 
 export default function PostCard({
@@ -93,7 +98,24 @@ export default function PostCard({
   onSetShowEmojiPicker,
   onHandleAddComment,
   onHandleMediaUpload,
+  onDeletePost,
+  isLoadingComments = false,
+  isAddingComment = false,
+  onDeleteComment,
 }: Readonly<PostCardProps>) {
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteConfirm = async () => {
+    setIsDeleting(true);
+    try {
+      await onDeletePost(post.id);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const renderMedia = (media: MediaItem[], maxDisplay = 4) => {
     if (media.length === 0) return null;
 
@@ -234,6 +256,19 @@ export default function PostCard({
               </button>
             )}
             <p className="text-xs text-gray-500">{comment.timestamp}</p>
+            {/* Delete button for comment owner */}
+            {currentUser.id === comment.user.id && onDeleteComment && (
+              <button
+                onClick={() => {
+                  if (window.confirm('Are you sure you want to delete this comment?')) {
+                    onDeleteComment(comment.id, post.id);
+                  }
+                }}
+                className="text-sm text-red-500 hover:text-red-700"
+              >
+                Delete
+              </button>
+            )}
           </div>
 
           {/* Replies */}
@@ -312,167 +347,292 @@ export default function PostCard({
   };
 
   return (
-    <Card className="p-0 gap-1 overflow-hidden">
+    <Card className="p-0 gap-1 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 border-gray-200 bg-white">
       <header className="p-[16px] flex items-start justify-between">
-        <div className="flex items-start gap-[16px]">
-          <Avatar className="w-[40px] h-[40px] object-center">
+        <div className="flex items-start gap-[12px]">
+          <Avatar className="w-[48px] h-[48px] object-center ring-2 ring-gray-100">
             <AvatarImage
               src={post.user.avatar}
               className="w-full h-full object-cover"
             />
-            <AvatarFallback>ProfileIcon</AvatarFallback>
+            <AvatarFallback className="bg-[#334AFF] text-white font-semibold">
+              {post.user.name?.charAt(0) || "U"}
+            </AvatarFallback>
           </Avatar>
-          <div>
-            <h2 className="font-bold text-[#344054] text-[17px]">
-              {post.user.name}
-            </h2>
-            {post.user.role && (
-              <p className="text-black-shade-900 text-[15px]">
-                {post.user.role}
-              </p>
-            )}
-            <span className="text-black-shade-900 text-[13px]">
-              {post.timestamp}
-            </span>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="font-semibold text-[#1a1a1a] text-[16px] hover:text-[#334AFF] cursor-pointer transition-colors">
+                {post.user.name}
+              </h2>
+              {post.user.role && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#334AFF]/10 text-[#334AFF] border border-[#334AFF]/20">
+                  {post.user.role}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1 mt-1">
+              <span className="text-gray-600 text-[13px]">
+                {post.timestamp}
+              </span>
+              <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
+              <svg
+                className="w-3 h-3 text-gray-400"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span className="text-gray-500 text-[12px]">Global</span>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-[16px]">
-          <Button variant="ghost" className="bg-white border">
+        <div className="relative">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="p-2 h-8 w-8 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
+            onClick={() => setShowDropdown(!showDropdown)}
+          >
             <svg
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
+              className="w-4 h-4"
               fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <g clipPath="url(#clip0_1210_3835)">
-                <path
-                  d="M8.33252 10.8333C8.6904 11.3118 9.14699 11.7077 9.67131 11.9941C10.1956 12.2806 10.7754 12.4509 11.3714 12.4936C11.9674 12.5363 12.5655 12.4503 13.1253 12.2415C13.6851 12.0327 14.1935 11.7059 14.6159 11.2833L17.1159 8.78334C17.8748 7.9975 18.2948 6.94499 18.2853 5.85251C18.2758 4.76002 17.8376 3.71497 17.0651 2.94243C16.2926 2.1699 15.2475 1.7317 14.155 1.7222C13.0625 1.71271 12.01 2.13269 11.2242 2.89168L9.79086 4.31668M11.6659 9.16668C11.308 8.68824 10.8514 8.29236 10.3271 8.00589C9.80274 7.71943 9.22293 7.54908 8.62698 7.5064C8.03103 7.46372 7.43287 7.54971 6.87307 7.75853C6.31327 7.96735 5.80493 8.29412 5.38252 8.71668L2.88252 11.2167C2.12353 12.0025 1.70355 13.055 1.71305 14.1475C1.72254 15.24 2.16075 16.2851 2.93328 17.0576C3.70581 17.8301 4.75086 18.2683 5.84335 18.2778C6.93584 18.2873 7.98835 17.8673 8.77419 17.1083L10.1992 15.6833"
-                  stroke="#344054"
-                  strokeWidth="1.67"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </g>
-              <defs>
-                <clipPath id="clip0_1210_3835">
-                  <rect width="20" height="20" fill="white" />
-                </clipPath>
-              </defs>
-            </svg>
-          </Button>
-
-          <Button variant="ghost" className="bg-white border">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
               <path
-                d="M15 5L5 15M5 5L15 15"
-                stroke="#344054"
-                strokeWidth="1.67"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 12h.01M12 12h.01M19 12h.01"
               />
             </svg>
           </Button>
+
+          {/* Dropdown Menu */}
+          {showDropdown && (
+            <>
+              {/* Backdrop */}
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setShowDropdown(false)}
+              ></div>
+
+              {/* Dropdown Content */}
+              <div className="absolute right-0 top-8 z-20 bg-white border border-gray-200 rounded-lg shadow-lg min-w-[160px] py-1">
+                {/* Only show delete option if current user is the post author */}
+                {currentUser.id === post.user.id && (
+                  <button
+                    onClick={() => {
+                      setShowDeleteModal(true);
+                      setShowDropdown(false);
+                    }}
+                    className="w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 flex items-center gap-2 text-sm transition-colors"
+                    disabled={isDeleting}
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                    Delete Post
+                  </button>
+                )}
+
+                <button
+                  onClick={() => {
+                    setShowDropdown(false);
+                  }}
+                  className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2 text-sm transition-colors"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.996-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                    />
+                  </svg>
+                  Report Post
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </header>
 
       {/* Post content */}
-      <div className="p-[16px]">
-        <p>{post.content}</p>
+      <div className="px-[16px]">
+        <p className="text-[#1a1a1a] text-[15px] leading-relaxed whitespace-pre-wrap">
+          {post.content}
+        </p>
       </div>
 
       {/* Media */}
       {renderMedia(post.media)}
 
       {/* Likes/comments summary */}
-      <div className="p-[16px] flex items-center justify-between border-b mx-1.5">
-        <div className="flex items-center gap-[16px]">
-          <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
-            <div className="flex items-center gap-[16px]">
-              <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
-                <Avatar>
-                  <AvatarImage
-                    src="https://github.com/shadcn.png"
-                    alt="@shadcn"
-                  />
-                  <AvatarFallback>CN</AvatarFallback>
-                </Avatar>
-                <Avatar>
-                  <AvatarImage
-                    src="https://github.com/leerob.png"
-                    alt="@leerob"
-                  />
-                  <AvatarFallback>LR</AvatarFallback>
-                </Avatar>
-                <Avatar>
-                  <AvatarImage
-                    src="https://github.com/evilrabbit.png"
-                    alt="@evilrabbit"
-                  />
-                  <AvatarFallback>ER</AvatarFallback>
-                </Avatar>
+      <div className="px-[16px] py-[12px] flex items-center justify-between border-b border-gray-100">
+        <div className="flex items-center gap-2">
+          {post.likes > 0 && (
+            <>
+              <div className="flex items-center">
+                <div className="w-5 h-5 bg-[#334AFF] rounded-full flex items-center justify-center">
+                  <svg
+                    className="w-3 h-3 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
+                  </svg>
+                </div>
               </div>
-              <div>
-                <p className="text-black-shade-900 text-[15px]">
-                  Jane Cooper and {post.likes - 3} others
-                </p>
-              </div>
-            </div>
-          </div>
+              <span className="text-gray-700 text-[14px] hover:underline cursor-pointer">
+                {post.likes} {post.likes === 1 ? "like" : "likes"}
+              </span>
+            </>
+          )}
         </div>
 
-        <div className="flex items-center gap-[16px]">
-          <p className="text-black-shade-900 text-[15px]">
-            {post.comments.reduce(
-              (acc, comment) => acc + 1 + comment.replies.length,
-              0
-            )}{" "}
-            comments
-          </p>
-          <span className="w-[3px] h-[3px] rounded-full bg-black-shade-900"></span>
-          <p className="text-black-shade-900 text-[15px]">
-            {post.reposts} repost
-          </p>
+        <div className="flex items-center gap-4 text-gray-600 text-[14px]">
+          {post.comments.reduce(
+            (acc, comment) => acc + 1 + comment.replies.length,
+            0
+          ) > 0 && (
+            <span className="hover:underline cursor-pointer">
+              {post.comments.reduce(
+                (acc, comment) => acc + 1 + comment.replies.length,
+                0
+              )}{" "}
+              {post.comments.reduce(
+                (acc, comment) => acc + 1 + comment.replies.length,
+                0
+              ) === 1
+                ? "comment"
+                : "comments"}
+            </span>
+          )}
+          {post.reposts > 0 && (
+            <>
+              <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
+              <span className="hover:underline cursor-pointer">
+                {post.reposts} {post.reposts === 1 ? "repost" : "reposts"}
+              </span>
+            </>
+          )}
         </div>
       </div>
 
       {/* Action buttons */}
-      <div className="p-[16px] flex items-center gap-[24px]">
+      <div className="px-[16px] py-[8px] flex items-center justify-around border-b border-gray-100">
         <Button
           variant="ghost"
-          className="cursor-pointer"
+          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-gray-50 transition-colors ${
+            post.likedByUser
+              ? "text-[#334AFF] hover:bg-blue-50"
+              : "text-gray-600"
+          }`}
           onClick={() => onToggleLikePost(post.id)}
         >
-          <span className={post.likedByUser ? "text-blue-500" : ""}>Like</span>
+          <svg
+            className="w-5 h-5"
+            fill={post.likedByUser ? "currentColor" : "none"}
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
+            />
+          </svg>
+          <span className="font-medium">Like</span>
         </Button>
 
         <Button
           variant="ghost"
-          className="cursor-pointer"
+          className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-gray-50 transition-colors text-gray-600"
           onClick={() =>
             onSetActivePost(activePost === post.id ? null : post.id)
           }
         >
-          Comment
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+            />
+          </svg>
+          <span className="font-medium">Comment</span>
         </Button>
 
-        <Button variant="ghost" className="cursor-pointer">
-          Repost
+        <Button
+          variant="ghost"
+          className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-gray-50 transition-colors text-gray-600"
+        >
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"
+            />
+          </svg>
+          <span className="font-medium">Share</span>
         </Button>
       </div>
 
       {/* Comments section */}
       {activePost === post.id && (
         <div className="p-4 border-t">
+          {/* Loading comments */}
+          {isLoadingComments && (
+            <div className="flex items-center justify-center py-4">
+              <div className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#334AFF]"></div>
+                <span className="text-gray-600 text-sm">Loading comments...</span>
+              </div>
+            </div>
+          )}
+          
           {/* Existing comments */}
-          {post.comments.map((comment) => renderComment(comment))}
+          {!isLoadingComments && post.comments.map((comment) => renderComment(comment))}
+          
+          {/* No comments message */}
+          {!isLoadingComments && post.comments.length === 0 && (
+            <div className="text-center py-4">
+              <p className="text-gray-500 text-sm">No comments yet. Be the first to comment!</p>
+            </div>
+          )}
 
           {/* New comment input */}
           {!replyingTo && (
@@ -539,15 +699,30 @@ export default function PostCard({
                 <Button
                   className="mt-2"
                   onClick={() => onHandleAddComment(post.id)}
-                  disabled={!newComment.trim() && !commentMedia}
+                  disabled={(!newComment.trim() && !commentMedia) || isAddingComment}
                 >
-                  Post
+                  {isAddingComment ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Posting...
+                    </div>
+                  ) : (
+                    "Post"
+                  )}
                 </Button>
               </div>
             </div>
           )}
         </div>
       )}
+      
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteConfirm}
+        isLoading={isDeleting}
+      />
     </Card>
   );
 }

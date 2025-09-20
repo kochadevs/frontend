@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,11 +14,68 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { toast } from "react-hot-toast";
+import { createPost } from "@/utilities/postHandler";
+import { CreatePostPayload } from "@/interface/posts";
+import { useUser, useAccessToken } from "@/store/authStore";
 
-export default function StartAPost() {
+interface StartAPostProps {
+  onPostCreated?: () => void;
+  groupId?: string;
+}
+
+export default function StartAPost({ onPostCreated, groupId }: Readonly<StartAPostProps>) {
+  const [content, setContent] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const user = useUser();
+  const accessToken = useAccessToken();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Form submitted!', { content, accessToken, groupId });
+    
+    if (!content.trim()) {
+      toast.error("Please write something before posting.");
+      return;
+    }
+
+    if (!accessToken) {
+      toast.error("Please sign in to create a post.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      const payload: CreatePostPayload = {
+        content: content.trim(),
+        ...(groupId && { group_id: parseInt(groupId, 10) }),
+      };
+
+      console.log('Sending payload:', payload);
+      const response = await createPost(payload, accessToken);
+      console.log('Response:', response);
+      
+      toast.success("Your post has been created successfully!");
+      
+      setContent("");
+      setIsOpen(false);
+      
+      if (onPostCreated) {
+        onPostCreated();
+      }
+    } catch (error) {
+      console.error("Error creating post:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to create post. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <Dialog>
-      <form>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
           <Button
             variant="outline"
@@ -25,9 +85,10 @@ export default function StartAPost() {
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[595px]">
-          <DialogHeader className="border-b pb-[1rem]">
-            <DialogTitle className="text-[#344054]">Start a post</DialogTitle>
-          </DialogHeader>
+          <form onSubmit={handleSubmit}>
+            <DialogHeader className="border-b pb-[1rem]">
+              <DialogTitle className="text-[#344054]">Start a post</DialogTitle>
+            </DialogHeader>
           <div className="flex-col flex gap-3">
             <div className="flex items-center gap-[16px]">
               <Avatar className="w-[40px] h-[40px] object-center">
@@ -39,7 +100,9 @@ export default function StartAPost() {
               </Avatar>
 
               <h2 className="text-gray-shade-700 text-[17px] font-[700]">
-                Phoenix Baker
+                {user?.first_name && user?.last_name 
+                  ? `${user.first_name} ${user.last_name}`
+                  : user?.first_name || "User"}
               </h2>
             </div>
 
@@ -54,7 +117,10 @@ export default function StartAPost() {
                 <Textarea
                   placeholder="Type your message here."
                   id="message"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
                   className="border-0 border-transparent shadow-none min-h-[130px] focus:!ring-0"
+                  disabled={isSubmitting}
                 />
                 {/* icons */}
                 <div className="flex items-center ">
@@ -124,19 +190,20 @@ export default function StartAPost() {
               </div>
             </div>
           </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button
-              type="submit"
-              className="bg-primary-orange-500 hover:bg-primary-orange-500/90 text-white"
-            >
-              Post
-            </Button>
-          </DialogFooter>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="outline">Cancel</Button>
+              </DialogClose>
+              <Button
+                type="submit"
+                disabled={isSubmitting || !content.trim()}
+                className="bg-[#334AFF] hover:bg-[#334AFF]/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? "Posting..." : "Post"}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
-      </form>
     </Dialog>
   );
 }
