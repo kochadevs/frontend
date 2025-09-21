@@ -5,7 +5,8 @@ import PostCard from "../(components)/PostCard";
 import StartAPost from "../(components)/StartAPost";
 import { fetchFeed, deletePost, addComment, fetchComments, deleteComment } from "@/utilities/postHandler";
 import { Post as APIPost, ApiComment } from "@/interface/posts";
-import { useUser, useAccessToken } from "@/store/authStore";
+import { useUser, useAccessToken, useAuthActions } from "@/store/authStore";
+import { tokenUtils } from "@/utilities/cookies";
 import { toast } from "react-hot-toast";
 
 // Dynamically import EmojiPicker to avoid SSR issues
@@ -49,6 +50,14 @@ type Post = {
 export default function PostContent() {
   const user = useUser();
   const accessToken = useAccessToken();
+  const { initializeAuth } = useAuthActions();
+  const [isAuthInitialized, setIsAuthInitialized] = useState(false);
+
+  // Initialize auth on component mount
+  useEffect(() => {
+    initializeAuth();
+    setIsAuthInitialized(true);
+  }, [initializeAuth]);
   
   const currentUser: User = {
     id: user?.id?.toString() || "current-user",
@@ -204,7 +213,14 @@ export default function PostContent() {
 
   // Load posts from API (general feed, no group_id specified for home feed)
   const loadPosts = useCallback(async (cursor?: string) => {
-    if (!accessToken) {
+    // Try to get token from store first, then from cookies as fallback
+    let token = accessToken;
+    if (!token) {
+      const { accessToken: cookieToken } = tokenUtils.getTokens();
+      token = cookieToken;
+    }
+    
+    if (!token) {
       toast.error("Please sign in to view posts.");
       setIsLoadingPosts(false);
       return;
@@ -217,7 +233,7 @@ export default function PostContent() {
           // No group_id for home feed - gets posts from all groups
           ...(cursor && { cursor }),
         },
-        accessToken
+        token
       );
 
       const transformedPosts = response.items.map(transformApiPost);
@@ -238,11 +254,13 @@ export default function PostContent() {
     }
   }, [accessToken]);
 
-  // Load posts on component mount
+  // Load posts on component mount, but only after auth is initialized
   useEffect(() => {
-    setIsLoadingPosts(true);
-    loadPosts();
-  }, [loadPosts]);
+    if (isAuthInitialized) {
+      setIsLoadingPosts(true);
+      loadPosts();
+    }
+  }, [loadPosts, isAuthInitialized]);
 
   const [newComment, setNewComment] = useState("");
   const [replyingTo, setReplyingTo] = useState<{
