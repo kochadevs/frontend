@@ -1,5 +1,5 @@
 import axios from "axios";
-import { CreatePostPayload, FeedResponse, FeedParams, Post, CreateCommentPayload, ApiComment, CommentsResponse, CommentParams } from "../interface/posts";
+import { CreatePostPayload, FeedResponse, FeedParams, Post, CreateCommentPayload, ApiComment, CommentsResponse, CommentParams, CreateReactionPayload, ReactionParams } from "../interface/posts";
 
 export const createPost = async (
   payload: CreatePostPayload,
@@ -279,6 +279,191 @@ export const deleteComment = async (
           error.response.data?.error ||
           error.response.data?.detail ||
           "Failed to delete comment";
+        console.error("Server error:", error.response.status, errorMessage);
+        throw new Error(errorMessage);
+      } else if (error.request) {
+        console.error("Network error:", error.request);
+        throw new Error("Network error - please check your connection");
+      }
+    }
+    
+    console.error("Error:", error);
+    throw new Error(error instanceof Error ? error.message : "An unexpected error occurred");
+  }
+};
+
+// Reaction API functions
+export const reactToPost = async (
+  postId: string,
+  payload: CreateReactionPayload,
+  accessToken: string
+): Promise<void> => {
+  try {
+    const baseURL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
+
+    if (!baseURL) {
+      throw new Error(
+        "API base URL is not configured in environment variables"
+      );
+    }
+
+    const url = `${baseURL}/feed/posts/${postId}/reactions`;
+    
+    await axios.put(url, payload, {
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${accessToken}`,
+      },
+      timeout: 10000,
+    });
+
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        const errorMessage =
+          error.response.data?.message ||
+          error.response.data?.error ||
+          error.response.data?.detail ||
+          "Failed to react to post";
+        console.error("Server error:", error.response.status, errorMessage);
+        throw new Error(errorMessage);
+      } else if (error.request) {
+        console.error("Network error:", error.request);
+        throw new Error("Network error - please check your connection");
+      }
+    }
+    
+    console.error("Error:", error);
+    throw new Error(error instanceof Error ? error.message : "An unexpected error occurred");
+  }
+};
+
+export const unreactToPost = async (
+  postId: string,
+  params: ReactionParams,
+  accessToken: string
+): Promise<void> => {
+  try {
+    const baseURL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
+
+    if (!baseURL) {
+      throw new Error(
+        "API base URL is not configured in environment variables"
+      );
+    }
+
+    const queryParams = new URLSearchParams();
+    queryParams.append('type', params.type);
+
+    const url = `${baseURL}/feed/posts/${postId}/reactions?${queryParams.toString()}`;
+    
+    await axios.delete(url, {
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+      },
+      timeout: 10000,
+    });
+
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        const errorMessage =
+          error.response.data?.message ||
+          error.response.data?.error ||
+          error.response.data?.detail ||
+          "Failed to unreact to post";
+        console.error("Server error:", error.response.status, errorMessage);
+        throw new Error(errorMessage);
+      } else if (error.request) {
+        console.error("Network error:", error.request);
+        throw new Error("Network error - please check your connection");
+      }
+    }
+    
+    console.error("Error:", error);
+    throw new Error(error instanceof Error ? error.message : "An unexpected error occurred");
+  }
+};
+
+export const reactToComment = async (
+  commentId: string,
+  payload: CreateReactionPayload,
+  accessToken: string
+): Promise<void> => {
+  try {
+    const baseURL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
+
+    if (!baseURL) {
+      throw new Error(
+        "API base URL is not configured in environment variables"
+      );
+    }
+
+    const url = `${baseURL}/feed/comments/${commentId}/reactions`;
+    
+    await axios.put(url, payload, {
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${accessToken}`,
+      },
+      timeout: 10000,
+    });
+
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        const errorMessage =
+          error.response.data?.message ||
+          error.response.data?.error ||
+          error.response.data?.detail ||
+          "Failed to react to comment";
+        console.error("Server error:", error.response.status, errorMessage);
+        throw new Error(errorMessage);
+      } else if (error.request) {
+        console.error("Network error:", error.request);
+        throw new Error("Network error - please check your connection");
+      }
+    }
+    
+    console.error("Error:", error);
+    throw new Error(error instanceof Error ? error.message : "An unexpected error occurred");
+  }
+};
+
+export const unreactToComment = async (
+  commentId: string,
+  params: ReactionParams,
+  accessToken: string
+): Promise<void> => {
+  try {
+    const baseURL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
+
+    if (!baseURL) {
+      throw new Error(
+        "API base URL is not configured in environment variables"
+      );
+    }
+
+    const queryParams = new URLSearchParams();
+    queryParams.append('type', params.type);
+
+    const url = `${baseURL}/feed/comments/${commentId}/reactions?${queryParams.toString()}`;
+    
+    await axios.delete(url, {
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+      },
+      timeout: 10000,
+    });
+
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        const errorMessage =
+          error.response.data?.message ||
+          error.response.data?.error ||
+          error.response.data?.detail ||
+          "Failed to unreact to comment";
         console.error("Server error:", error.response.status, errorMessage);
         throw new Error(errorMessage);
       } else if (error.request) {

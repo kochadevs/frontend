@@ -111,3 +111,12 @@ export interface CommentParams {
   limit?: number;
   cursor?: string;
 }
+
+// Reaction interfaces
+export interface CreateReactionPayload {
+  type: string;
+}
+
+export interface ReactionParams {
+  type: string;
+}

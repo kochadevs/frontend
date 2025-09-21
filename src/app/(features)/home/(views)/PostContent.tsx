@@ -3,7 +3,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import PostCard from "../(components)/PostCard";
 import StartAPost from "../(components)/StartAPost";
-import { fetchFeed, deletePost, addComment, fetchComments, deleteComment } from "@/utilities/postHandler";
+import { fetchFeed, deletePost, addComment, fetchComments, deleteComment, reactToPost, unreactToPost, reactToComment, unreactToComment } from "@/utilities/postHandler";
 import { Post as APIPost, ApiComment } from "@/interface/posts";
 import { useUser, useAccessToken, useAuthActions } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
@@ -379,42 +379,114 @@ export default function PostContent() {
     }
   };
 
-  const toggleLikePost = (postId: string) => {
-    setPosts(
-      posts.map((post) => {
+  const toggleLikePost = async (postId: string) => {
+    // Try to get token from store first, then from cookies as fallback
+    let token = accessToken;
+    if (!token) {
+      const { accessToken: cookieToken } = tokenUtils.getTokens();
+      token = cookieToken;
+    }
+    
+    if (!token) {
+      toast.error("Please sign in to react to posts.");
+      return;
+    }
+
+    // Find the current post to check its liked state
+    const currentPost = posts.find(post => post.id === postId);
+    if (!currentPost) return;
+
+    // Optimistically update the UI
+    const isCurrentlyLiked = currentPost.likedByUser;
+    setPosts(prevPosts =>
+      prevPosts.map(post => {
         if (post.id === postId) {
           return {
             ...post,
-            likes: post.likedByUser ? post.likes - 1 : post.likes + 1,
-            likedByUser: !post.likedByUser,
+            likes: isCurrentlyLiked ? post.likes - 1 : post.likes + 1,
+            likedByUser: !isCurrentlyLiked,
           };
         }
         return post;
       })
     );
+
+    try {
+      if (isCurrentlyLiked) {
+        // Unlike the post
+        await unreactToPost(postId, { type: "like" }, token);
+      } else {
+        // Like the post
+        await reactToPost(postId, { type: "like" }, token);
+      }
+    } catch (error) {
+      // Revert the optimistic update on error
+      setPosts(prevPosts =>
+        prevPosts.map(post => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              likes: isCurrentlyLiked ? post.likes + 1 : post.likes - 1,
+              likedByUser: isCurrentlyLiked,
+            };
+          }
+          return post;
+        })
+      );
+      
+      console.error("Error toggling post like:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to update reaction");
+    }
   };
 
-  const toggleLikeComment = (
+  const toggleLikeComment = async (
     postId: string,
     commentId: string,
     isReply = false,
     parentCommentId?: string
   ) => {
-    setPosts(
-      posts.map((post) => {
+    // Try to get token from store first, then from cookies as fallback
+    let token = accessToken;
+    if (!token) {
+      const { accessToken: cookieToken } = tokenUtils.getTokens();
+      token = cookieToken;
+    }
+    
+    if (!token) {
+      toast.error("Please sign in to react to comments.");
+      return;
+    }
+
+    // Find the current comment to check its liked state
+    let currentComment;
+    const currentPost = posts.find(post => post.id === postId);
+    if (!currentPost) return;
+
+    if (isReply && parentCommentId) {
+      const parentComment = currentPost.comments.find(c => c.id === parentCommentId);
+      currentComment = parentComment?.replies.find(r => r.id === commentId);
+    } else {
+      currentComment = currentPost.comments.find(c => c.id === commentId);
+    }
+
+    if (!currentComment) return;
+
+    const isCurrentlyLiked = currentComment.likedByUser;
+
+    // Optimistically update the UI
+    setPosts(prevPosts =>
+      prevPosts.map(post => {
         if (post.id === postId) {
           if (isReply && parentCommentId) {
             // Handle reply like
-            const updatedComments = post.comments.map((comment) => {
+            const updatedComments = post.comments.map(comment => {
               if (comment.id === parentCommentId) {
-                const updatedReplies = comment.replies.map((reply) => {
+                const updatedReplies = comment.replies.map(reply => {
                   if (reply.id === commentId) {
                     return {
                       ...reply,
-                      likes: reply.likedByUser
-                        ? reply.likes - 1
-                        : reply.likes + 1,
-                      likedByUser: !reply.likedByUser,
+                      likes: isCurrentlyLiked ? reply.likes - 1 : reply.likes + 1,
+                      likedByUser: !isCurrentlyLiked,
                     };
                   }
                   return reply;
@@ -432,14 +504,12 @@ export default function PostContent() {
             };
           } else {
             // Handle top-level comment like
-            const updatedComments = post.comments.map((comment) => {
+            const updatedComments = post.comments.map(comment => {
               if (comment.id === commentId) {
                 return {
                   ...comment,
-                  likes: comment.likedByUser
-                    ? comment.likes - 1
-                    : comment.likes + 1,
-                  likedByUser: !comment.likedByUser,
+                  likes: isCurrentlyLiked ? comment.likes - 1 : comment.likes + 1,
+                  likedByUser: !isCurrentlyLiked,
                 };
               }
               return comment;
@@ -453,6 +523,69 @@ export default function PostContent() {
         return post;
       })
     );
+
+    try {
+      if (isCurrentlyLiked) {
+        // Unlike the comment
+        await unreactToComment(commentId, { type: "like" }, token);
+      } else {
+        // Like the comment
+        await reactToComment(commentId, { type: "like" }, token);
+      }
+    } catch (error) {
+      // Revert the optimistic update on error
+      setPosts(prevPosts =>
+        prevPosts.map(post => {
+          if (post.id === postId) {
+            if (isReply && parentCommentId) {
+              // Revert reply like
+              const updatedComments = post.comments.map(comment => {
+                if (comment.id === parentCommentId) {
+                  const updatedReplies = comment.replies.map(reply => {
+                    if (reply.id === commentId) {
+                      return {
+                        ...reply,
+                        likes: isCurrentlyLiked ? reply.likes + 1 : reply.likes - 1,
+                        likedByUser: isCurrentlyLiked,
+                      };
+                    }
+                    return reply;
+                  });
+                  return {
+                    ...comment,
+                    replies: updatedReplies,
+                  };
+                }
+                return comment;
+              });
+              return {
+                ...post,
+                comments: updatedComments,
+              };
+            } else {
+              // Revert top-level comment like
+              const updatedComments = post.comments.map(comment => {
+                if (comment.id === commentId) {
+                  return {
+                    ...comment,
+                    likes: isCurrentlyLiked ? comment.likes + 1 : comment.likes - 1,
+                    likedByUser: isCurrentlyLiked,
+                  };
+                }
+                return comment;
+              });
+              return {
+                ...post,
+                comments: updatedComments,
+              };
+            }
+          }
+          return post;
+        })
+      );
+      
+      toast.error(error instanceof Error ? error.message : "Failed to update reaction");
+    }
   };
 
   const toggleShowReplies = (postId: string, commentId: string) => {
