@@ -1,38 +1,56 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Star } from "lucide-react";
+import { Star, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { getMentors } from "@/utilities/mentorHandler";
+import { Mentor } from "@/interface/mentors";
+import { useAccessToken } from "@/store/authStore";
+import { tokenUtils } from "@/utilities/cookies";
+import { toast } from "react-hot-toast";
 
 export default function Mentors() {
-  const mentors = [
-    {
-      id: 1,
-      name: "Cameron Williamson",
-      role: "Leadership Coach",
-      image: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg",
-      about:
-        "A seasoned UI/UX Design Mentor with over [X] years of experience in designing user-centered digital experiences. Specializing in both user in...",
-      isVirtual: false,
-    },
-    {
-      id: 2,
-      name: "Cameron Williamson",
-      role: "Leadership Coach",
-      image: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg",
-      about:
-        "A seasoned UI/UX Design Mentor with over [X] years of experience in designing user-centered digital experiences. Specializing in both user in...",
-      isVirtual: true,
-    },
-    {
-      id: 3,
-      name: "Cameron Williamson",
-      role: "Leadership Coach",
-      image: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg",
-      about:
-        "A seasoned UI/UX Design Mentor with over [X] years of experience in designing user-centered digital experiences. Specializing in both user in...",
-      isVirtual: false,
-    },
-  ];
+  const [mentors, setMentors] = useState<Mentor[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const accessToken = useAccessToken();
+
+  const loadMentors = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      // Try to get token from store first, then from cookies as fallback
+      let token = accessToken;
+      if (!token) {
+        const { accessToken: cookieToken } = tokenUtils.getTokens();
+        token = cookieToken;
+      }
+      
+      if (!token) {
+        setError("Please sign in to view mentors.");
+        setIsLoading(false);
+        return;
+      }
+
+      const mentorsData = await getMentors(token);
+      // Filter only mentors (user_type === "mentor")
+      const actualMentors = mentorsData.filter(mentor => mentor.user_type === "mentor");
+      setMentors(actualMentors.slice(0, 5)); // Show first 5 mentors for recommended section
+      
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to load mentors";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadMentors();
+  }, [accessToken]);
 
   return (
     <div className="bg-white rounded-lg p-4 border">
@@ -47,8 +65,46 @@ export default function Mentors() {
         </Link>
       </div>
 
-      <div className="space-y-4">
-        {mentors.map((mentor) => (
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="flex flex-col items-center space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin text-[#334AFF]" />
+            <p className="text-gray-600">Loading mentors...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && !isLoading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <p className="text-red-600 mb-4">{error}</p>
+            <Button 
+              onClick={loadMentors}
+              variant="outline"
+              className="border-[#334AFF] text-[#334AFF] hover:bg-[#334AFF] hover:text-white"
+            >
+              Try Again
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!isLoading && !error && mentors.length === 0 && (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <p className="text-gray-600 mb-4">No mentors available at the moment.</p>
+            <p className="text-sm text-gray-500">Check back soon for new mentors!</p>
+          </div>
+        </div>
+      )}
+
+      {/* Mentors List */}
+      {!isLoading && !error && mentors.length > 0 && (
+        <div className="space-y-4">
+          {mentors.map((mentor) => (
           <div
             key={mentor.id}
             className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors"
@@ -56,19 +112,23 @@ export default function Mentors() {
             <div className=" flex items-start gap-2 min-w-[240px] h-[65px]">
               <div className="w-[65px] aspect-square h-[65px] relative rounded-md overflow-hidden">
                 <Image
-                  src={mentor.image}
-                  alt={mentor.name}
+                  src={mentor.profile_pic || "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg"}
+                  alt={`${mentor.first_name} ${mentor.last_name || ''}`}
                   className="object-cover"
                   fill
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg";
+                  }}
                 />
               </div>
 
               <div className="flex items-start flex-col">
                 <h3 className="font-medium text-[17px] text-[#344054]">
-                  {mentor.name}
+                  {mentor.first_name} {mentor.last_name || ''}
                 </h3>
                 <p className="text-[15px] text-[#475467] font-semibold mb-1">
-                  {mentor.role}
+                  {mentor.new_role_values?.[0]?.name || "Mentor"}
                 </p>
                 <div className="flex items-center">
                   <svg
@@ -112,12 +172,22 @@ export default function Mentors() {
                 About
               </h6>
               <p className="text-[16px] text-[#344054] line-clamp-2">
-                {mentor.about}
+                {mentor.about || "Experienced mentor ready to guide you in your career journey."}
               </p>
+              {mentor.industry?.[0] && (
+                <p className="text-sm text-[#475467] mt-1">
+                  Industry: {mentor.industry[0].name}
+                </p>
+              )}
+              {mentor.location && (
+                <p className="text-sm text-[#475467]">
+                  Location: {mentor.location}
+                </p>
+              )}
             </div>
 
             <div className="flex gap-2 shrink-0">
-              <Link href="/mentor_match/mentor/1">
+              <Link href={`/mentor_match/mentor/${mentor.id}`}>
                 <Button
                   variant="ghost"
                   className="bg-[#334AFF] hover:bg-[#251F99] text-white hover:text-white"
@@ -130,8 +200,9 @@ export default function Mentors() {
               </Button>
             </div>
           </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
