@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -25,15 +25,14 @@ export default function Groups() {
   const [isLoadingMyGroups, setIsLoadingMyGroups] = useState(false);
   const accessToken = useAuthStore((state) => state.accessToken);
 
-  const handleGroupCreated = (groupId: number) => {
+  const handleGroupCreated = () => {
     // You can add logic here to refresh the groups list or navigate to the new group
-    console.log('New group created with ID:', groupId);
     // Refresh both groups lists
     loadSuggestedGroups();
     loadMyGroups();
   };
 
-  const loadSuggestedGroups = async () => {
+  const loadSuggestedGroups = useCallback(async () => {
     try {
       setIsLoadingGroups(true);
       
@@ -45,7 +44,6 @@ export default function Groups() {
       }
       
       if (!token) {
-        console.log('No token available, skipping groups fetch');
         return;
       }
 
@@ -58,9 +56,9 @@ export default function Groups() {
     } finally {
       setIsLoadingGroups(false);
     }
-  };
+  }, [accessToken]);
 
-  const loadMyGroups = async () => {
+  const loadMyGroups = useCallback(async () => {
     try {
       setIsLoadingMyGroups(true);
       
@@ -72,7 +70,6 @@ export default function Groups() {
       }
       
       if (!token) {
-        console.log('No token available, skipping my groups fetch');
         return;
       }
 
@@ -84,7 +81,7 @@ export default function Groups() {
     } finally {
       setIsLoadingMyGroups(false);
     }
-  };
+  }, [accessToken]);
 
   const handleJoinGroup = async (groupId: number, groupName: string) => {
     try {
@@ -158,7 +155,7 @@ export default function Groups() {
   useEffect(() => {
     loadSuggestedGroups();
     loadMyGroups();
-  }, [accessToken]);
+  }, [loadSuggestedGroups, loadMyGroups]);
 
   return (
     <div className="p-2 pb-[1rem] container mx-auto flex flex-col gap-[1.5rem]">

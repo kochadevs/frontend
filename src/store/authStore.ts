@@ -143,15 +143,12 @@ export const useAuthStore = create<AuthStore>()(
                 refreshToken,
                 tokenType: "Bearer",
               });
-              console.log('Auth initialized from cookies');
-            } catch (error) {
-              console.error("Failed to parse user data from cookies:", error);
+            } catch {
               tokenUtils.clearTokens();
               set({ ...initialState });
             }
           } else if (currentState.isAuthenticated && !accessToken) {
             // If store thinks we're authenticated but no tokens in cookies, clear store
-            console.log('Clearing auth state - no tokens found in cookies');
             set({ ...initialState });
           }
         },

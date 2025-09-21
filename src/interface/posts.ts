@@ -94,7 +94,7 @@ export interface CreateCommentPayload {
 
 export interface ApiComment {
   id: number;
-  user_id: number;
+  user: ApiUser;
   content: string;
   date_created: string;
   last_modified: string;

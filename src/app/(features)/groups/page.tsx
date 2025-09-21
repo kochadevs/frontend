@@ -82,15 +82,8 @@ export default function AllGroupsPage() {
     setFilteredGroups(filtered);
   }, [searchQuery, groups]);
 
-  const handleJoinSuccess = (groupId: number) => {
-    // You can add any logic here after successful join
-    // For example, update the group's member count or refresh the list
-    console.log(`Successfully joined group ${groupId}`);
-  };
-
-  const handleGroupCreated = (groupId: number) => {
+  const handleGroupCreated = () => {
     // Refresh the groups list after creating a new group
-    console.log("New group created with ID:", groupId);
     handleRefresh();
   };
 
@@ -277,7 +270,6 @@ export default function AllGroupsPage() {
                 <GroupCard
                   key={group.id}
                   group={group}
-                  onJoinSuccess={handleJoinSuccess}
                 />
               ))}
             </div>

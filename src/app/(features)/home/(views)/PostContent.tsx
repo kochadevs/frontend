@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import PostCard from "../(components)/PostCard";
 import StartAPost from "../(components)/StartAPost";
@@ -134,12 +134,25 @@ export default function PostContent() {
       }
     };
 
+    // Generate a default avatar if profile_pic is empty
+    const getAvatarUrl = (profilePic: string, firstName: string) => {
+      if (profilePic && profilePic.trim() !== '') {
+        return profilePic;
+      }
+      // Generate a placeholder avatar based on first letter of name
+      const initial = firstName?.charAt(0).toUpperCase() || 'U';
+      return `https://ui-avatars.com/api/?name=${initial}&background=334AFF&color=fff&size=128`;
+    };
+
     return {
       id: apiComment.id.toString(),
       user: {
-        id: apiComment.user_id.toString(),
-        name: "Comment User", // We'll need to get user details from somewhere else
-        avatar: `https://ui-avatars.com/api/?name=U&background=334AFF&color=fff&size=128`,
+        id: apiComment.user.id.toString(),
+        name: `${apiComment.user.first_name} ${apiComment.user.last_name}`.trim(),
+        avatar: getAvatarUrl(apiComment.user.profile_pic, apiComment.user.first_name),
+        role: apiComment.user.user_type === 'mentee' ? 'Mentee' : 
+              apiComment.user.user_type === 'mentor' ? 'Mentor' : 
+              apiComment.user.role_of_interest?.[0]?.name || 'Professional',
       },
       text: apiComment.content,
       timestamp: formatTimeAgo(apiComment.date_created),
@@ -190,7 +203,7 @@ export default function PostContent() {
   };
 
   // Load posts from API (general feed, no group_id specified for home feed)
-  const loadPosts = async (cursor?: string) => {
+  const loadPosts = useCallback(async (cursor?: string) => {
     if (!accessToken) {
       toast.error("Please sign in to view posts.");
       setIsLoadingPosts(false);
@@ -223,13 +236,13 @@ export default function PostContent() {
     } finally {
       setIsLoadingPosts(false);
     }
-  };
+  }, [accessToken]);
 
   // Load posts on component mount
   useEffect(() => {
     setIsLoadingPosts(true);
     loadPosts();
-  }, [accessToken]);
+  }, [loadPosts]);
 
   const [newComment, setNewComment] = useState("");
   const [replyingTo, setReplyingTo] = useState<{
@@ -260,9 +273,6 @@ export default function PostContent() {
 
       const newApiComment = await addComment(postId, payload, accessToken);
       const newCommentObj = transformApiComment(newApiComment);
-      
-      // Update the current user info in the comment
-      newCommentObj.user = currentUser;
 
       // Update the posts state with the new comment
       setPosts(prevPosts =>
@@ -341,13 +351,13 @@ export default function PostContent() {
   };
 
   // Handle clicking on a post to show/hide comments
-  const handlePostClick = (postId: string) => {
+  const handlePostClick = (postId: string | null) => {
     const newActivePost = activePost === postId ? null : postId;
     setActivePost(newActivePost);
     
     // Load comments when opening a post
-    if (newActivePost && !posts.find(p => p.id === postId)?.comments.length) {
-      loadCommentsForPost(postId);
+    if (newActivePost && !posts.find(p => p.id === newActivePost)?.comments.length) {
+      loadCommentsForPost(newActivePost);
     }
   };
 
@@ -463,7 +473,6 @@ export default function PostContent() {
 
   const handlePostCreated = () => {
     // Refresh posts after a new post is created
-    console.log('New post created for home feed, refreshing posts...');
     setIsLoadingPosts(true);
     loadPosts();
   };

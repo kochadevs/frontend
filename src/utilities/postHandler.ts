@@ -7,17 +7,12 @@ export const createPost = async (
 ): Promise<Post> => {
   try {
     const baseURL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
-    console.log('API Base URL:', baseURL);
-    console.log('Payload:', payload);
-    console.log('Access Token:', accessToken ? 'Present' : 'Missing');
 
     if (!baseURL) {
       throw new Error(
         "API base URL is not configured in environment variables"
       );
     }
-
-    console.log('Making request to:', `${baseURL}/feed/posts`);
     
     const response = await axios.post(`${baseURL}/feed/posts`, payload, {
       headers: {
@@ -26,9 +21,6 @@ export const createPost = async (
       },
       timeout: 10000,
     });
-    
-    console.log('Response status:', response.status);
-    console.log('Response data:', response.data);
 
     const { data } = response;
 
@@ -60,9 +52,6 @@ export const fetchFeed = async (
 ): Promise<FeedResponse> => {
   try {
     const baseURL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
-    console.log('Fetching feed with params:', params);
-    console.log('API Base URL:', baseURL);
-    console.log('Access Token:', accessToken ? 'Present' : 'Missing');
 
     if (!baseURL) {
       throw new Error(
@@ -83,7 +72,6 @@ export const fetchFeed = async (
     }
 
     const url = `${baseURL}/feed/posts?${queryParams.toString()}`;
-    console.log('Making request to:', url);
     
     const response = await axios.get(url, {
       headers: {
@@ -91,9 +79,6 @@ export const fetchFeed = async (
       },
       timeout: 10000,
     });
-    
-    console.log('Feed response status:', response.status);
-    console.log('Feed response data:', response.data);
 
     const { data } = response;
     return data as FeedResponse;
@@ -124,9 +109,6 @@ export const deletePost = async (
 ): Promise<void> => {
   try {
     const baseURL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
-    console.log('Deleting post with ID:', postId);
-    console.log('API Base URL:', baseURL);
-    console.log('Access Token:', accessToken ? 'Present' : 'Missing');
 
     if (!baseURL) {
       throw new Error(
@@ -135,17 +117,13 @@ export const deletePost = async (
     }
 
     const url = `${baseURL}/feed/posts/${postId}`;
-    console.log('Making DELETE request to:', url);
     
-    const response = await axios.delete(url, {
+    await axios.delete(url, {
       headers: {
         "Authorization": `Bearer ${accessToken}`,
       },
       timeout: 10000,
     });
-    
-    console.log('Delete response status:', response.status);
-    console.log('Post deleted successfully');
 
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
@@ -176,10 +154,6 @@ export const addComment = async (
 ): Promise<ApiComment> => {
   try {
     const baseURL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
-    console.log('Adding comment to post:', postId);
-    console.log('Comment payload:', payload);
-    console.log('API Base URL:', baseURL);
-    console.log('Access Token:', accessToken ? 'Present' : 'Missing');
 
     if (!baseURL) {
       throw new Error(
@@ -188,7 +162,6 @@ export const addComment = async (
     }
 
     const url = `${baseURL}/feed/posts/${postId}/comments`;
-    console.log('Making POST request to:', url);
     
     const response = await axios.post(url, payload, {
       headers: {
@@ -197,9 +170,6 @@ export const addComment = async (
       },
       timeout: 10000,
     });
-    
-    console.log('Add comment response status:', response.status);
-    console.log('Add comment response data:', response.data);
 
     const { data } = response;
     return data as ApiComment;
@@ -231,10 +201,6 @@ export const fetchComments = async (
 ): Promise<CommentsResponse> => {
   try {
     const baseURL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
-    console.log('Fetching comments for post:', postId);
-    console.log('Comment params:', params);
-    console.log('API Base URL:', baseURL);
-    console.log('Access Token:', accessToken ? 'Present' : 'Missing');
 
     if (!baseURL) {
       throw new Error(
@@ -252,7 +218,6 @@ export const fetchComments = async (
     }
 
     const url = `${baseURL}/feed/posts/${postId}/comments?${queryParams.toString()}`;
-    console.log('Making GET request to:', url);
     
     const response = await axios.get(url, {
       headers: {
@@ -260,9 +225,6 @@ export const fetchComments = async (
       },
       timeout: 10000,
     });
-    
-    console.log('Fetch comments response status:', response.status);
-    console.log('Fetch comments response data:', response.data);
 
     const { data } = response;
     return data as CommentsResponse;
@@ -293,9 +255,6 @@ export const deleteComment = async (
 ): Promise<void> => {
   try {
     const baseURL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
-    console.log('Deleting comment with ID:', commentId);
-    console.log('API Base URL:', baseURL);
-    console.log('Access Token:', accessToken ? 'Present' : 'Missing');
 
     if (!baseURL) {
       throw new Error(
@@ -304,17 +263,13 @@ export const deleteComment = async (
     }
 
     const url = `${baseURL}/feed/comments/${commentId}`;
-    console.log('Making DELETE request to:', url);
     
-    const response = await axios.delete(url, {
+    await axios.delete(url, {
       headers: {
         "Authorization": `Bearer ${accessToken}`,
       },
       timeout: 10000,
     });
-    
-    console.log('Delete comment response status:', response.status);
-    console.log('Comment deleted successfully');
 
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {

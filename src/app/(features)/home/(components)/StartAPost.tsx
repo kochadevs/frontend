@@ -32,7 +32,6 @@ export default function StartAPost({ onPostCreated, groupId }: Readonly<StartAPo
   const accessToken = useAccessToken();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted!', { content, accessToken, groupId });
     
     if (!content.trim()) {
       toast.error("Please write something before posting.");
@@ -52,9 +51,7 @@ export default function StartAPost({ onPostCreated, groupId }: Readonly<StartAPo
         ...(groupId && { group_id: parseInt(groupId, 10) }),
       };
 
-      console.log('Sending payload:', payload);
-      const response = await createPost(payload, accessToken);
-      console.log('Response:', response);
+      await createPost(payload, accessToken);
       
       toast.success("Your post has been created successfully!");
       

@@ -1,10 +1,10 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import PostCard from "../../../(components)/PostCard";
 import StartAPost from "../../../(components)/StartAPost";
-import { fetchFeed } from "@/utilities/postHandler";
-import { Post as APIPost } from "@/interface/posts";
+import { fetchFeed, deletePost, addComment, fetchComments, deleteComment } from "@/utilities/postHandler";
+import { Post as APIPost, ApiComment } from "@/interface/posts";
 import { useUser, useAccessToken } from "@/store/authStore";
 import { toast } from "react-hot-toast";
 
@@ -66,7 +66,6 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoadingPosts, setIsLoadingPosts] = useState(true);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
 
   // Transform API post to local Post format
   const transformApiPost = (apiPost: APIPost): Post => {
@@ -119,8 +118,58 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
     };
   };
 
+  // Transform API comment to local Comment format
+  const transformApiComment = (apiComment: ApiComment): Comment => {
+    const formatTimeAgo = (dateString: string) => {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffInMs = now.getTime() - date.getTime();
+      const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+      const diffInDays = Math.floor(diffInHours / 24);
+      
+      if (diffInHours < 1) {
+        const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+        return diffInMinutes < 1 ? 'Just now' : `${diffInMinutes}m ago`;
+      } else if (diffInHours < 24) {
+        return `${diffInHours}h ago`;
+      } else if (diffInDays < 7) {
+        return `${diffInDays}d ago`;
+      } else {
+        return date.toLocaleDateString();
+      }
+    };
+
+    // Generate a default avatar if profile_pic is empty
+    const getAvatarUrl = (profilePic: string, firstName: string) => {
+      if (profilePic && profilePic.trim() !== '') {
+        return profilePic;
+      }
+      // Generate a placeholder avatar based on first letter of name
+      const initial = firstName?.charAt(0).toUpperCase() || 'U';
+      return `https://ui-avatars.com/api/?name=${initial}&background=334AFF&color=fff&size=128`;
+    };
+
+    return {
+      id: apiComment.id.toString(),
+      user: {
+        id: apiComment.user.id.toString(),
+        name: `${apiComment.user.first_name} ${apiComment.user.last_name}`.trim(),
+        avatar: getAvatarUrl(apiComment.user.profile_pic, apiComment.user.first_name),
+        role: apiComment.user.user_type === 'mentee' ? 'Mentee' : 
+              apiComment.user.user_type === 'mentor' ? 'Mentor' : 
+              apiComment.user.role_of_interest?.[0]?.name || 'Professional',
+      },
+      text: apiComment.content,
+      timestamp: formatTimeAgo(apiComment.date_created),
+      likes: apiComment.reactions_count,
+      likedByUser: false,
+      replies: [], // We'll handle nested comments separately
+      showReplies: false,
+    };
+  };
+
   // Load posts from API
-  const loadPosts = async (cursor?: string) => {
+  const loadPosts = useCallback(async (cursor?: string) => {
     if (!accessToken) {
       toast.error("Please sign in to view posts.");
       setIsLoadingPosts(false);
@@ -146,13 +195,50 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
         // Initial load or refresh
         setPosts(transformedPosts);
       }
-      
-      setNextCursor(response.next_cursor || null);
     } catch (error) {
       console.error("Error loading posts:", error);
       toast.error(error instanceof Error ? error.message : "Failed to load posts");
     } finally {
       setIsLoadingPosts(false);
+    }
+  }, [groupId, accessToken]);
+
+  // Load comments for a specific post
+  const loadCommentsForPost = async (postId: string) => {
+    if (!accessToken) {
+      toast.error("Please sign in to view comments.");
+      return;
+    }
+
+    setLoadingComments(prev => new Set(prev).add(postId));
+
+    try {
+      const response = await fetchComments(
+        postId,
+        { limit: 50 }, // Load up to 50 comments
+        accessToken
+      );
+
+      const transformedComments = response.items.map(transformApiComment);
+      
+      // Update the specific post with comments
+      setPosts(prevPosts => 
+        prevPosts.map(post => 
+          post.id === postId 
+            ? { ...post, comments: transformedComments }
+            : post
+        )
+      );
+      
+    } catch (error) {
+      console.error("Error loading comments:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to load comments");
+    } finally {
+      setLoadingComments(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(postId);
+        return newSet;
+      });
     }
   };
 
@@ -160,7 +246,7 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
   useEffect(() => {
     setIsLoadingPosts(true);
     loadPosts();
-  }, [groupId, accessToken]);
+  }, [loadPosts]);
 
   const [newComment, setNewComment] = useState("");
   const [replyingTo, setReplyingTo] = useState<{
@@ -170,60 +256,133 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
   const [commentMedia, setCommentMedia] = useState<string | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [activePost, setActivePost] = useState<string | null>(null);
+  const [loadingComments, setLoadingComments] = useState<Set<string>>(new Set());
+  const [addingComment, setAddingComment] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleAddComment = (postId: string) => {
-    if (!newComment.trim() && !commentMedia) return;
+  const handleAddComment = async (postId: string) => {
+    if (!newComment.trim()) return;
+    if (!accessToken) {
+      toast.error("Please sign in to add comments.");
+      return;
+    }
 
-    setPosts(
-      posts.map((post) => {
-        if (post.id === postId) {
-          const newCommentObj: Comment = {
-            id: `c${Date.now()}`,
-            user: currentUser,
-            text: newComment,
-            timestamp: "Just now",
-            likes: 0,
-            likedByUser: false,
-            replies: [],
-            showReplies: false,
-          };
+    setAddingComment(prev => new Set(prev).add(postId));
 
-          if (commentMedia) {
-            newCommentObj.media = commentMedia;
+    try {
+      const payload = {
+        content: newComment,
+        ...(replyingTo && { parent_comment_id: parseInt(replyingTo.commentId) })
+      };
+
+      const newApiComment = await addComment(postId, payload, accessToken);
+      const newCommentObj = transformApiComment(newApiComment);
+
+      // Update the posts state with the new comment
+      setPosts(prevPosts =>
+        prevPosts.map(post => {
+          if (post.id === postId) {
+            if (replyingTo) {
+              // Handle replies - for now, add to the parent comment's replies
+              const updatedComments = post.comments.map(comment => {
+                if (comment.id === replyingTo.commentId) {
+                  return {
+                    ...comment,
+                    replies: [...comment.replies, newCommentObj],
+                  };
+                }
+                return comment;
+              });
+              return { ...post, comments: updatedComments };
+            } else {
+              // Add as top-level comment
+              return {
+                ...post,
+                comments: [...post.comments, newCommentObj],
+              };
+            }
           }
+          return post;
+        })
+      );
 
-          // If replying to a comment
-          if (replyingTo) {
-            const updatedComments = post.comments.map((comment) => {
-              if (comment.id === replyingTo.commentId) {
-                return {
-                  ...comment,
-                  replies: [...comment.replies, newCommentObj],
-                };
-              }
-              return comment;
-            });
+      // Clear the input
+      setNewComment("");
+      setCommentMedia(null);
+      setReplyingTo(null);
+      
+      toast.success("Comment added successfully!");
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to add comment");
+    } finally {
+      setAddingComment(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(postId);
+        return newSet;
+      });
+    }
+  };
 
+  // Handle delete comment
+  const handleDeleteComment = async (commentId: string, postId: string) => {
+    if (!accessToken) {
+      toast.error("Please sign in to delete comments.");
+      return;
+    }
+
+    try {
+      await deleteComment(commentId, accessToken);
+      
+      // Remove comment from local state
+      setPosts(prevPosts =>
+        prevPosts.map(post => {
+          if (post.id === postId) {
             return {
               ...post,
-              comments: updatedComments,
+              comments: post.comments.filter(comment => comment.id !== commentId)
             };
           }
+          return post;
+        })
+      );
+      
+      toast.success("Comment deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to delete comment");
+    }
+  };
 
-          // If adding a top-level comment
-          return {
-            ...post,
-            comments: [...post.comments, newCommentObj],
-          };
-        }
-        return post;
-      })
-    );
+  // Handle delete post
+  const handleDeletePost = async (postId: string) => {
+    if (!accessToken) {
+      toast.error("Please sign in to delete posts.");
+      return;
+    }
 
-    setNewComment("");
-    setCommentMedia(null);
-    setReplyingTo(null);
+    try {
+      await deletePost(postId, accessToken);
+      
+      // Remove the post from the local state
+      setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
+      
+      toast.success("Post deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to delete post");
+    }
+  };
+
+  // Handle clicking on a post to show/hide comments
+  const handlePostClick = (postId: string | null) => {
+    const newActivePost = activePost === postId ? null : postId;
+    setActivePost(newActivePost);
+    
+    // Load comments when opening a post
+    if (newActivePost && !posts.find(p => p.id === newActivePost)?.comments.length) {
+      loadCommentsForPost(newActivePost);
+    }
   };
 
   const toggleLikePost = (postId: string) => {
@@ -338,7 +497,6 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
 
   const handlePostCreated = () => {
     // Refresh posts after a new post is created
-    console.log('New post created, refreshing posts...');
     setIsLoadingPosts(true);
     loadPosts();
   };
@@ -405,12 +563,16 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
           onToggleLikeComment={toggleLikeComment}
           onToggleShowReplies={toggleShowReplies}
           onSetReplyingTo={setReplyingTo}
-          onSetActivePost={setActivePost}
+          onSetActivePost={handlePostClick}
           onSetNewComment={setNewComment}
           onSetCommentMedia={setCommentMedia}
           onSetShowEmojiPicker={setShowEmojiPicker}
           onHandleAddComment={handleAddComment}
           onHandleMediaUpload={handleMediaUpload}
+          onDeletePost={handleDeletePost}
+          isLoadingComments={loadingComments.has(post.id)}
+          isAddingComment={addingComment.has(post.id)}
+          onDeleteComment={handleDeleteComment}
         />
       ))}
     </div>

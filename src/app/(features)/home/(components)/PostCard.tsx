@@ -7,6 +7,7 @@ import Image from "next/image";
 import { RefObject, useState } from "react";
 import dynamic from "next/dynamic";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
+import DeleteCommentModal from "@/components/modals/DeleteCommentModal";
 
 // Dynamically import EmojiPicker to avoid SSR issues
 const EmojiPicker = dynamic(() => import("emoji-picker-react"), { ssr: false });
@@ -105,6 +106,9 @@ export default function PostCard({
 }: Readonly<PostCardProps>) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showDeleteCommentModal, setShowDeleteCommentModal] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState<{id: string, postId: string, author: string} | null>(null);
+  const [isDeletingComment, setIsDeletingComment] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteConfirm = async () => {
@@ -113,6 +117,18 @@ export default function PostCard({
       await onDeletePost(post.id);
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteCommentConfirm = async () => {
+    if (!commentToDelete || !onDeleteComment) return;
+    
+    setIsDeletingComment(true);
+    try {
+      await onDeleteComment(commentToDelete.id, commentToDelete.postId);
+    } finally {
+      setIsDeletingComment(false);
+      setCommentToDelete(null);
     }
   };
 
@@ -200,8 +216,15 @@ export default function PostCard({
         </Avatar>
         <div className="flex-1">
           <div className="bg-gray-100 p-3 rounded-lg">
-            <p className="font-medium">{comment.user.name}</p>
-            <p>{comment.text}</p>
+            <div className="flex items-center gap-2 mb-1">
+              <p className="font-medium text-[14px]">{comment.user.name}</p>
+              {comment.user.role && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#334AFF]/10 text-[#334AFF] border border-[#334AFF]/20">
+                  {comment.user.role}
+                </span>
+              )}
+            </div>
+            <p className="text-[14px] text-gray-800">{comment.text}</p>
             {comment.media && (
               <div className="mt-2 max-w-[200px]">
                 <Image
@@ -260,9 +283,12 @@ export default function PostCard({
             {currentUser.id === comment.user.id && onDeleteComment && (
               <button
                 onClick={() => {
-                  if (window.confirm('Are you sure you want to delete this comment?')) {
-                    onDeleteComment(comment.id, post.id);
-                  }
+                  setCommentToDelete({
+                    id: comment.id,
+                    postId: post.id,
+                    author: comment.user.name
+                  });
+                  setShowDeleteCommentModal(true);
                 }}
                 className="text-sm text-red-500 hover:text-red-700"
               >
@@ -722,6 +748,18 @@ export default function PostCard({
         onClose={() => setShowDeleteModal(false)}
         onConfirm={handleDeleteConfirm}
         isLoading={isDeleting}
+      />
+      
+      {/* Delete Comment Modal */}
+      <DeleteCommentModal
+        isOpen={showDeleteCommentModal}
+        onClose={() => {
+          setShowDeleteCommentModal(false);
+          setCommentToDelete(null);
+        }}
+        onConfirm={handleDeleteCommentConfirm}
+        isLoading={isDeletingComment}
+        commentAuthor={commentToDelete?.author}
       />
     </Card>
   );
