@@ -14,6 +14,11 @@ const baseFields = {
   gender: z.string().min(1, "Gender is required"),
   nationality: z.string().min(1, "Nationality is required"),
   location: z.string().min(1, "Location is required"),
+  user_type: z
+    .string()
+    .refine((val) => val === "mentee" || val === "mentor", {
+      message: "User type must be either mentee or mentor",
+    }),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")

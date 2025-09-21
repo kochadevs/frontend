@@ -40,9 +40,11 @@ export default function Mentors() {
         <h2 className="text-lg font-semibold text-[#344054]">
           Recommended mentors
         </h2>
-        <Button variant="link" className="text-[#344054]">
-          View all
-        </Button>
+        <Link href="/mentors">
+          <Button variant="link" className="text-[#344054]">
+            View all
+          </Button>
+        </Link>
       </div>
 
       <div className="space-y-4">

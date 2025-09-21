@@ -19,6 +19,7 @@ export default function Signup() {
     gender: "",
     nationality: "",
     location: "",
+    user_type: "",
     password: "",
     password_confirmation: "",
   });
@@ -59,6 +60,7 @@ export default function Signup() {
         is_active: true,
         profile_pic: "",
         about: "",
+        user_type: validatedData.user_type,
       };
 
       // Call the signup function
@@ -72,6 +74,7 @@ export default function Signup() {
         gender: "",
         nationality: "",
         location: "",
+        user_type: "",
         password: "",
         password_confirmation: "",
       });
@@ -285,6 +288,36 @@ export default function Signup() {
                     {errors.location && (
                       <p className="mt-1 text-sm text-red-600">
                         {errors.location}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* User Type */}
+                <div>
+                  <label
+                    htmlFor="user_type"
+                    className="block text-sm/6 font-medium text-[#344054]"
+                  >
+                    User Type
+                  </label>
+                  <div className="mt-2">
+                    <select
+                      id="user_type"
+                      name="user_type"
+                      value={formData.user_type}
+                      onChange={handleInputChange}
+                      className={`block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
+                        errors.user_type ? "outline-red-500" : ""
+                      }`}
+                    >
+                      <option value="">Select user type</option>
+                      <option value="mentee">Mentee</option>
+                      <option value="mentor">Mentor</option>
+                    </select>
+                    {errors.user_type && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.user_type}
                       </p>
                     )}
                   </div>

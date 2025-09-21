@@ -8,6 +8,7 @@ export interface SignupPayload {
   is_active: boolean;
   profile_pic: string;
   about: string;
+  user_type: string;
   password: string;
   password_confirmation: string;
 }
