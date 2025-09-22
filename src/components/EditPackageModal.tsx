@@ -94,7 +94,7 @@ export default function EditPackageModal({
 
       await onUpdatePackage(pkg.id, packageData);
       onClose();
-    } catch (error) {
+    } catch {
       // Error is handled by parent component
     }
   };

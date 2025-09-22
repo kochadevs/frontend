@@ -115,7 +115,7 @@ export default function PostContent() {
       content: apiPost.content,
       media: [], // We'll need to handle media in the future
       likes: apiPost.reactions_count,
-      likedByUser: false, // We'll need to track this from user data
+      likedByUser: apiPost.user_reaction === 'like', // Track user's like status from API
       comments: [], // We'll need to load comments separately
       reposts: 0, // Not available in current API
       timestamp: formatTimeAgo(apiPost.date_created),
@@ -166,7 +166,7 @@ export default function PostContent() {
       text: apiComment.content,
       timestamp: formatTimeAgo(apiComment.date_created),
       likes: apiComment.reactions_count,
-      likedByUser: false,
+      likedByUser: false, // API doesn't provide user reaction for comments yet
       replies: [], // We'll handle nested comments separately
       showReplies: false,
     };

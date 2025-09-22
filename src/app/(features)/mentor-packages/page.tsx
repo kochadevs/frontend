@@ -221,7 +221,7 @@ export default function MentorPackagesPage() {
     setShowDeleteModal(true);
   };
 
-  const handleBookingSuccess = (bookingId: number) => {
+  const handleBookingSuccess = () => {
     toast.success(
       "Booking successful! You'll receive a confirmation email shortly.",
       {
@@ -238,20 +238,20 @@ export default function MentorPackagesPage() {
       first_name: "Mentor", // We'll use generic names since we don't have full mentor data
       last_name: `#${pkg.user_id}`,
       email: "",
-      user_type: "mentor",
-      profile_pic: null,
-      bio: "",
-      date_joined: "",
-      last_login: "",
+      gender: "",
+      nationality: "",
+      location: "",
       is_active: true,
-      is_verified: true,
+      profile_pic: "",
+      about: "",
+      user_type: "mentor",
       new_role_values: [],
+      job_search_status: [],
+      role_of_interest: [],
+      industry: [],
       skills: [],
-      languages: [],
-      certifications: [],
-      educations: [],
-      experiences: []
-    } as Mentor;
+      career_goals: []
+    };
   };
 
   const clearFilters = () => {

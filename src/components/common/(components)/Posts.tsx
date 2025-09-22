@@ -10,10 +10,8 @@ import { useAccessToken } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import { toast } from "react-hot-toast";
 import { Loader2 } from "lucide-react";
-import { Mentor } from "@/interface/mentors";
-
 // Transform API post to card format
-const transformApiPostToCard = (apiPost: ApiPost): any => {
+const transformApiPostToCard = (apiPost: ApiPost) => {
   const timeAgo = new Date(apiPost.date_created).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric'
@@ -43,12 +41,8 @@ const transformApiPostToCard = (apiPost: ApiPost): any => {
   };
 };
 
-type PostsProps = {
-  mentor?: Mentor | null;
-};
-
-export default function Posts({ mentor }: PostsProps) {
-  const [posts, setPosts] = useState<any[]>([]);
+export default function Posts() {
+  const [posts, setPosts] = useState<ReturnType<typeof transformApiPostToCard>[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const accessToken = useAccessToken();

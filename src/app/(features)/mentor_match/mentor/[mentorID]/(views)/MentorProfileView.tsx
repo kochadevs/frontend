@@ -15,7 +15,7 @@ export default function MentorProfileView({ mentor }: MentorProfileViewProps) {
   return (
     <>
       <About mentor={mentor} />
-      <Posts mentor={mentor} />
+      <Posts />
       <Experience />
       <Education />
       <Certification />

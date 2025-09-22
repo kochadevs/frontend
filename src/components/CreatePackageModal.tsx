@@ -86,7 +86,7 @@ export default function CreatePackageModal({
       });
       setErrors({});
       setIsOpen(false);
-    } catch (error) {
+    } catch {
       // Error is handled by parent component
     }
   };

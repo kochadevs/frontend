@@ -26,7 +26,7 @@ export default function DeletePackageModal({
     try {
       await onDeletePackage(pkg.id);
       onClose();
-    } catch (error) {
+    } catch {
       // Error is handled by parent component
     }
   };
