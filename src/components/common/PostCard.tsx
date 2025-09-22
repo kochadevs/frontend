@@ -1,8 +1,15 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Image from "next/image";
+import { togglePostLike } from "@/utilities/postHandler";
+import { useAccessToken } from "@/store/authStore";
+import { tokenUtils } from "@/utilities/cookies";
+import { toast } from "react-hot-toast";
+import { Loader2 } from "lucide-react";
 
 interface Post {
   id: string;
@@ -20,6 +27,7 @@ interface Post {
   };
   comments: number;
   reposts: number;
+  user_reaction: "like" | null;
 }
 
 interface InfluencerPostCardProps {
@@ -27,6 +35,61 @@ interface InfluencerPostCardProps {
 }
 
 const PostCard: React.FC<InfluencerPostCardProps> = ({ post }) => {
+  const [userReaction, setUserReaction] = useState<"like" | null>(post.user_reaction);
+  const [likesCount, setLikesCount] = useState(post.likes.count);
+  const [isLiking, setIsLiking] = useState(false);
+  const accessToken = useAccessToken();
+
+  const handleLike = async () => {
+    if (isLiking) return; // Prevent multiple clicks
+    
+    setIsLiking(true);
+    try {
+      // Get token
+      let token = accessToken;
+      if (!token) {
+        const { accessToken: cookieToken } = tokenUtils.getTokens();
+        token = cookieToken;
+      }
+      
+      if (!token) {
+        toast.error("Please sign in to like posts.");
+        return;
+      }
+
+      // Optimistically update UI
+      const newReaction = userReaction === "like" ? null : "like";
+      const newLikesCount = userReaction === "like" ? likesCount - 1 : likesCount + 1;
+      
+      setUserReaction(newReaction);
+      setLikesCount(newLikesCount);
+
+      // Make API call
+      const result = await togglePostLike(post.id, userReaction, token);
+      
+      // The optimistic update should match the result, but let's be safe
+      if (result !== newReaction) {
+        setUserReaction(result);
+        // Adjust count if needed
+        if (result === "like" && newReaction !== "like") {
+          setLikesCount(prev => prev + 1);
+        } else if (result !== "like" && newReaction === "like") {
+          setLikesCount(prev => prev - 1);
+        }
+      }
+      
+    } catch (error) {
+      // Revert optimistic update on error
+      setUserReaction(post.user_reaction);
+      setLikesCount(post.likes.count);
+      
+      const errorMessage = error instanceof Error ? error.message : "Failed to update like";
+      toast.error(errorMessage);
+    } finally {
+      setIsLiking(false);
+    }
+  };
+
   return (
     <Card className="w-[459px] gap-1">
       <div className="p-[16px]">
@@ -125,7 +188,7 @@ const PostCard: React.FC<InfluencerPostCardProps> = ({ post }) => {
               </div>
               <div>
                 <p className="text-black-shade-900 text-[13px]">
-                  {post.likes.count} others
+                  {likesCount} others
                 </p>
               </div>
             </div>
@@ -145,20 +208,31 @@ const PostCard: React.FC<InfluencerPostCardProps> = ({ post }) => {
 
       {/* Action buttons */}
       <div className="p-[8px] flex items-center gap-[24px]">
-        <Button variant="ghost" className="cursor-pointer hover:bg-transparent">
-          <svg
-            width="25"
-            height="25"
-            viewBox="0 0 25 25"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M3.73672 12.6165C3.34297 12.0962 3.125 11.4587 3.125 10.7955C3.125 9.74311 3.71328 8.74701 4.66016 8.19155C4.90392 8.04857 5.18146 7.97331 5.46406 7.97358H11.0844L10.9437 5.09311C10.9109 4.39701 11.157 3.73608 11.6352 3.23217C11.8698 2.9838 12.1529 2.78619 12.4669 2.65154C12.7809 2.5169 13.1193 2.44809 13.4609 2.44936C14.6797 2.44936 15.7578 3.26967 16.0812 4.44389L18.0945 11.733H21.125C21.5398 11.733 21.875 12.0681 21.875 12.483V21.0142C21.875 21.429 21.5398 21.7642 21.125 21.7642H7.03203C6.81641 21.7642 6.60547 21.722 6.41094 21.6376C5.29531 21.1619 4.57578 20.072 4.57578 18.8626C4.57578 18.5673 4.61797 18.2767 4.70234 17.9955C4.30859 17.4751 4.09063 16.8376 4.09063 16.1744C4.09063 15.879 4.13281 15.5884 4.21719 15.3072C3.82344 14.7869 3.60547 14.1494 3.60547 13.4861C3.61016 13.1908 3.65234 12.8978 3.73672 12.6165ZM20.1875 20.0767V13.4205H18.2891V20.0767H20.1875ZM5.27187 11.8033L5.78516 12.2486L5.45937 12.8439C5.35205 13.04 5.29639 13.2602 5.29766 13.4837C5.29766 13.8705 5.46641 14.2384 5.75703 14.4915L6.27031 14.9369L5.94453 15.5322C5.8372 15.7283 5.78155 15.9485 5.78281 16.172C5.78281 16.5587 5.95156 16.9267 6.24219 17.1798L6.75547 17.6251L6.42969 18.2205C6.32236 18.4166 6.2667 18.6367 6.26797 18.8603C6.26797 19.3853 6.57734 19.8587 7.05547 20.0744H16.7891V13.3455L14.457 4.89623C14.3969 4.67967 14.2678 4.48861 14.0893 4.35201C13.9109 4.2154 13.6927 4.14069 13.468 4.1392C13.2898 4.1392 13.1141 4.19076 12.9734 4.29623C12.7414 4.46967 12.6172 4.73217 12.6313 5.01108L12.8563 9.66108H5.4875C5.07031 9.91655 4.8125 10.3478 4.8125 10.7955C4.8125 11.1822 4.98125 11.5478 5.27187 11.8033Z"
-              fill="black"
-            />
-          </svg>
-          <span>Like</span>
+        <Button 
+          variant="ghost" 
+          className="cursor-pointer hover:bg-transparent transition-colors"
+          onClick={handleLike}
+          disabled={isLiking}
+        >
+          {isLiking ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <svg
+              width="25"
+              height="25"
+              viewBox="0 0 25 25"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3.73672 12.6165C3.34297 12.0962 3.125 11.4587 3.125 10.7955C3.125 9.74311 3.71328 8.74701 4.66016 8.19155C4.90392 8.04857 5.18146 7.97331 5.46406 7.97358H11.0844L10.9437 5.09311C10.9109 4.39701 11.157 3.73608 11.6352 3.23217C11.8698 2.9838 12.1529 2.78619 12.4669 2.65154C12.7809 2.5169 13.1193 2.44809 13.4609 2.44936C14.6797 2.44936 15.7578 3.26967 16.0812 4.44389L18.0945 11.733H21.125C21.5398 11.733 21.875 12.0681 21.875 12.483V21.0142C21.875 21.429 21.5398 21.7642 21.125 21.7642H7.03203C6.81641 21.7642 6.60547 21.722 6.41094 21.6376C5.29531 21.1619 4.57578 20.072 4.57578 18.8626C4.57578 18.5673 4.61797 18.2767 4.70234 17.9955C4.30859 17.4751 4.09063 16.8376 4.09063 16.1744C4.09063 15.879 4.13281 15.5884 4.21719 15.3072C3.82344 14.7869 3.60547 14.1494 3.60547 13.4861C3.61016 13.1908 3.65234 12.8978 3.73672 12.6165ZM20.1875 20.0767V13.4205H18.2891V20.0767H20.1875ZM5.27187 11.8033L5.78516 12.2486L5.45937 12.8439C5.35205 13.04 5.29639 13.2602 5.29766 13.4837C5.29766 13.8705 5.46641 14.2384 5.75703 14.4915L6.27031 14.9369L5.94453 15.5322C5.8372 15.7283 5.78155 15.9485 5.78281 16.172C5.78281 16.5587 5.95156 16.9267 6.24219 17.1798L6.75547 17.6251L6.42969 18.2205C6.32236 18.4166 6.2667 18.6367 6.26797 18.8603C6.26797 19.3853 6.57734 19.8587 7.05547 20.0744H16.7891V13.3455L14.457 4.89623C14.3969 4.67967 14.2678 4.48861 14.0893 4.35201C13.9109 4.2154 13.6927 4.14069 13.468 4.1392C13.2898 4.1392 13.1141 4.19076 12.9734 4.29623C12.7414 4.46967 12.6172 4.73217 12.6313 5.01108L12.8563 9.66108H5.4875C5.07031 9.91655 4.8125 10.3478 4.8125 10.7955C4.8125 11.1822 4.98125 11.5478 5.27187 11.8033Z"
+                fill={userReaction === "like" ? "#3B82F6" : "black"}
+              />
+            </svg>
+          )}
+          <span className={userReaction === "like" ? "text-blue-500 font-medium" : ""}>
+            {userReaction === "like" ? "Liked" : "Like"}
+          </span>
         </Button>
 
         <Button variant="ghost" className="cursor-pointer hover:bg-transparent">

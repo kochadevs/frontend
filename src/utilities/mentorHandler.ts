@@ -30,3 +30,32 @@ export async function getMentors(token: string): Promise<Mentor[]> {
     throw error;
   }
 }
+
+/**
+ * Fetch a single mentor by ID from the API
+ */
+export async function getMentorById(token: string, mentorId: string): Promise<Mentor> {
+  try {
+    const response = await fetch(`${BASE_URL}/mentors${mentorId}/details`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.message ||
+          errorData.detail ||
+          `Failed to fetch mentor: ${response.status} ${response.statusText}`
+      );
+    }
+
+    const mentor: Mentor = await response.json();
+    return mentor;
+  } catch (error) {
+    throw error;
+  }
+}

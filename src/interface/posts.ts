@@ -73,6 +73,7 @@ export interface Post {
   last_modified: string;
   comments_count: number;
   reactions_count: number;
+  user_reaction: "like" | null;
 }
 
 export interface FeedResponse {

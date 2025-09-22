@@ -476,3 +476,24 @@ export const unreactToComment = async (
     throw new Error(error instanceof Error ? error.message : "An unexpected error occurred");
   }
 };
+
+// Helper function to toggle like on a post
+export const togglePostLike = async (
+  postId: string,
+  currentUserReaction: "like" | null,
+  accessToken: string
+): Promise<"like" | null> => {
+  try {
+    if (currentUserReaction === "like") {
+      // Unlike the post
+      await unreactToPost(postId, { type: "like" }, accessToken);
+      return null;
+    } else {
+      // Like the post
+      await reactToPost(postId, { type: "like" }, accessToken);
+      return "like";
+    }
+  } catch (error) {
+    throw error;
+  }
+};

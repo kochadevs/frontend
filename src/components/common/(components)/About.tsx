@@ -1,26 +1,58 @@
 import { Card } from "@/components/ui/card";
+import { Mentor } from "@/interface/mentors";
 
-export default function About() {
+type AboutProps = {
+  mentor?: Mentor | null;
+};
+
+export default function About({ mentor }: AboutProps) {
   return (
     <Card className="p-0 overflow-hidden gap-1">
       <div className="w-full h-[63px] flex items-center px-[38px] py-[16px] border-b">
         <h3 className="font-[600] text-[20px] text-[#475467]">About</h3>
       </div>
       <div className="px-[38px] py-[16px]">
-        <p className="text-[#344054] font-[400]">
-          Hi there! I&apos;m a talented full stack developer primarily focusing
-          on backend development at AmaliTech Services. My tech stack includes
-          JavaScript, Java, PHP, Node.js, Spring Boot, Laravel, Angular, Reactjs
-          and Vuejs.I bring passion and expertise to my backend developer role,
-          creating scalable, high-performing, and maintainable systems using
-          languages like JavaScript, Java, and PHP and their respective
-          frameworks, such as Node.js, Spring Boot, and Laravel.I have extensive
-          experience with Laravel, having worked on an Enterprise Resource
-          Management System and Java, where I contributed to a robust Payroll
-          System. I am dedicated to creating scalable and maintainable backends
-          and aspire to become a Java and Spring Boot expert.I enjoy watching
-          movies in my free time and am upskilling in Spring Boot microservices.
+        <p className="text-[#344054] font-[400] whitespace-pre-wrap">
+          {mentor?.about || 
+            "This mentor has not provided an about section yet. Please check back later for more information about their background, expertise, and mentoring approach."
+          }
         </p>
+        
+        {mentor && (
+          <div className="mt-6 space-y-3">
+            {mentor.skills && mentor.skills.length > 0 && (
+              <div>
+                <h4 className="font-[600] text-[16px] text-[#475467] mb-2">Skills</h4>
+                <div className="flex flex-wrap gap-2">
+                  {mentor.skills.slice(0, 8).map((skill) => (
+                    <span 
+                      key={skill.id} 
+                      className="px-3 py-1 bg-[#F2F4F7] text-[#344054] rounded-full text-sm"
+                    >
+                      {skill.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {mentor.career_goals && mentor.career_goals.length > 0 && (
+              <div>
+                <h4 className="font-[600] text-[16px] text-[#475467] mb-2">Career Goals</h4>
+                <div className="flex flex-wrap gap-2">
+                  {mentor.career_goals.slice(0, 5).map((goal) => (
+                    <span 
+                      key={goal.id} 
+                      className="px-3 py-1 bg-[#EFF8FF] text-[#175CD3] rounded-full text-sm"
+                    >
+                      {goal.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </Card>
   );

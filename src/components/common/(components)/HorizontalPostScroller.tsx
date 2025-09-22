@@ -20,6 +20,7 @@ interface Post {
   };
   comments: number;
   reposts: number;
+  user_reaction: "like" | null;
 }
 
 interface HorizontalPostScrollerProps {

@@ -16,12 +16,12 @@ export default function MentorMatch() {
       </header>
 
       <main className="p-[20px] flex-col flex gap-y-[30px]">
-        <div className="bg-[#EAECF0] h-[80px] rounded-[8px] flex items-center justify-between p-[16px]">
+        <div className="bg-[#EAECF0] min-h-[80px] rounded-[8px] flex items-center justify-between p-[16px]">
           <p className="flex-1 text-[#344054] font-[500]">
-            Find your ideal career guide with AI-driven mentor matching tailored
-            to your goals. Gain insider knowledge, navigate challenges, and
-            unlock your potential—through personalized advice that accelerates
-            your growth.
+            Connect with industry-leading mentors who understand your career aspirations.
+            Get personalized guidance, strategic insights, and actionable advice from experienced 
+            professionals who have walked your path. Transform your potential into success with 
+            mentorship that matters.
           </p>
           <svg
             className="cursor-pointer"

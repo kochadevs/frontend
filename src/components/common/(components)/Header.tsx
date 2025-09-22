@@ -3,13 +3,15 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import React from "react";
 import { usePathname } from "next/navigation";
+import { Mentor } from "@/interface/mentors";
 
 type HeaderProps = {
   handleChangeView?: (view: "book_session" | "mentor_view") => void;
   currentView?: "book_session" | "mentor_view";
+  mentor?: Mentor | null;
 };
 
-const Header = ({ handleChangeView, currentView }: HeaderProps) => {
+const Header = ({ handleChangeView, currentView, mentor }: HeaderProps) => {
   const pathname = usePathname();
 
   return (
@@ -19,10 +21,14 @@ const Header = ({ handleChangeView, currentView }: HeaderProps) => {
           <div className="flex items-end justify-between w-full">
             <div className="relative md:h-[234px] md:w-[234px] h-[180px] w-[180px] sm:h-[234px] sm:w-[234px] min-w-[150px] sm:min-w-[234px] border-[4px] border-white overflow-hidden shadow rounded-full">
               <Image
-                src="https://images.unsplash.com/photo-1592173993451-73c4b56495b3?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                src={mentor?.profile_pic || "https://images.unsplash.com/photo-1592173993451-73c4b56495b3?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"}
                 fill
-                alt="profile image"
+                alt={`${mentor?.first_name || ''} ${mentor?.last_name || ''} profile image`}
                 className="object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "https://images.unsplash.com/photo-1592173993451-73c4b56495b3?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
+                }}
               />
             </div>
           </div>
@@ -30,9 +36,11 @@ const Header = ({ handleChangeView, currentView }: HeaderProps) => {
           <div className="flex-1 w-full h-full flex items-center justify-center rounded-sm">
             <div className="w-full flex items-start justify-between flex-col gap-2">
               <h1 className="text-xl sm:text-2xl font-bold text-[#475467] sm:text-[30px]">
-                Olivia Rhye
+                {mentor ? `${mentor.first_name} ${mentor.last_name || ''}`.trim() : 'Loading...'}
               </h1>
-              <h3 className="font-[600] text-[#344054]">Fullstack Developer</h3>
+              <h3 className="font-[600] text-[#344054]">
+                {mentor?.new_role_values?.[0]?.name || 'Professional Mentor'}
+              </h3>
               <div className="grid grid-cols-2 gap-x-20 gap-y-4 text-gray-500 text-[14px]">
                 <div>
                   <p>Current Email</p>
@@ -43,15 +51,33 @@ const Header = ({ handleChangeView, currentView }: HeaderProps) => {
                 </div>
 
                 <div>
-                  <p className="font-[500]">oliviarhye@example.com</p>
+                  <p className="font-[500]">{mentor?.email || 'N/A'}</p>
                 </div>
 
                 <div className="bg-[#EFF8FF] px-[6px] py-[2px] w-fit rounded-[16px] flex items-center justify-center">
                   <p className="font-[500] text-[13px] text-[#175CD3]">
-                    Actively looking
+                    {mentor?.job_search_status?.[0]?.name || 'Available for mentoring'}
                   </p>
                 </div>
               </div>
+              
+              {/* Additional Info */}
+              {mentor && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-20 gap-y-2 text-gray-500 text-[14px] mt-2">
+                  {mentor.location && (
+                    <div>
+                      <p className="text-gray-500">Location</p>
+                      <p className="font-[500] text-[#344054]">{mentor.location}</p>
+                    </div>
+                  )}
+                  {mentor.industry?.[0] && (
+                    <div>
+                      <p className="text-gray-500">Industry</p>
+                      <p className="font-[500] text-[#344054]">{mentor.industry[0].name}</p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="flex items-center gap-4 mt-2">
                 <Button

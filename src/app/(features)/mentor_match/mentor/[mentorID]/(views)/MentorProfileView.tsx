@@ -5,16 +5,21 @@ import Experience from "@/components/common/(components)/Experience";
 import Language from "@/components/common/(components)/Language";
 import Posts from "@/components/common/(components)/Posts";
 import Skill from "@/components/common/(components)/Skill";
+import { Mentor } from "@/interface/mentors";
 
-export default function MentorProfileView() {
+type MentorProfileViewProps = {
+  mentor?: Mentor | null;
+};
+
+export default function MentorProfileView({ mentor }: MentorProfileViewProps) {
   return (
     <>
-      <About />
-      <Posts />
+      <About mentor={mentor} />
+      <Posts mentor={mentor} />
       <Experience />
       <Education />
       <Certification />
-      <Skill />
+      <Skill mentor={mentor} />
       <Language />
     </>
   );

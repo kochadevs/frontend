@@ -172,7 +172,13 @@ export default function Mentors() {
                 About
               </h6>
               <p className="text-[16px] text-[#344054] line-clamp-2">
-                {mentor.about || "Experienced mentor ready to guide you in your career journey."}
+                {mentor.about ? 
+                  (mentor.about.length > 150 ? 
+                    `${mentor.about.substring(0, 150)}...` : 
+                    mentor.about
+                  ) : 
+                  "Experienced mentor ready to guide you in your career journey."
+                }
               </p>
               {mentor.industry?.[0] && (
                 <p className="text-sm text-[#475467] mt-1">
