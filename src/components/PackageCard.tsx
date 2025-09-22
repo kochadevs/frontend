@@ -1,26 +1,34 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MentorPackage } from "@/interface/mentorPackages";
+import { Mentor } from "@/interface/mentors";
 import { Clock, DollarSign, Calendar, User } from "lucide-react";
+import BookingModal from "@/components/BookingModal";
 
 interface PackageCardProps {
   package: MentorPackage;
+  mentor?: Mentor; // Mentor data for booking
   onEdit?: (pkg: MentorPackage) => void;
   onDelete?: (pkg: MentorPackage) => void;
+  onBookingSuccess?: (bookingId: number) => void;
   showActions?: boolean;
   currentUserId?: number;
 }
 
 export default function PackageCard({ 
   package: pkg, 
+  mentor,
   onEdit, 
   onDelete, 
+  onBookingSuccess,
   showActions = false,
   currentUserId 
 }: PackageCardProps) {
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -165,16 +173,41 @@ export default function PackageCard({
             </>
           )}
 
-          {!isOwner && (
+          {!isOwner && pkg.is_active && mentor && (
             <Button
               size="sm"
               className="w-full text-xs bg-[#334AFF] hover:bg-[#334AFF]/90"
+              onClick={() => setIsBookingModalOpen(true)}
             >
-              Book This Package
+              Book This Package - ${pkg.price}
+            </Button>
+          )}
+          
+          {!isOwner && (!pkg.is_active || !mentor) && (
+            <Button
+              size="sm"
+              disabled
+              className="w-full text-xs"
+            >
+              {!pkg.is_active ? "Package Unavailable" : "Booking Unavailable"}
             </Button>
           )}
         </div>
       </CardContent>
+      
+      {/* Booking Modal */}
+      {mentor && (
+        <BookingModal
+          isOpen={isBookingModalOpen}
+          onClose={() => setIsBookingModalOpen(false)}
+          mentor={mentor}
+          mentorPackage={pkg}
+          onBookingSuccess={(bookingId) => {
+            setIsBookingModalOpen(false);
+            onBookingSuccess?.(bookingId);
+          }}
+        />
+      )}
     </Card>
   );
 }

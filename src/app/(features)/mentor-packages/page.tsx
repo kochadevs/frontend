@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { MentorPackage, CreateMentorPackageRequest } from "@/interface/mentorPackages";
+import { Mentor } from "@/interface/mentors";
 import { getMentorPackages, createMentorPackage, updateMentorPackage, deleteMentorPackage } from "@/utilities/mentorPackageHandler";
 import { useAccessToken, useUser } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
@@ -220,6 +221,39 @@ export default function MentorPackagesPage() {
     setShowDeleteModal(true);
   };
 
+  const handleBookingSuccess = (bookingId: number) => {
+    toast.success(
+      "Booking successful! You'll receive a confirmation email shortly.",
+      {
+        duration: 5000,
+        icon: "🎉",
+      }
+    );
+  };
+
+  // Create a simple mentor object from package data for booking
+  const createMentorFromPackage = (pkg: MentorPackage): Mentor => {
+    return {
+      id: pkg.user_id,
+      first_name: "Mentor", // We'll use generic names since we don't have full mentor data
+      last_name: `#${pkg.user_id}`,
+      email: "",
+      user_type: "mentor",
+      profile_pic: null,
+      bio: "",
+      date_joined: "",
+      last_login: "",
+      is_active: true,
+      is_verified: true,
+      new_role_values: [],
+      skills: [],
+      languages: [],
+      certifications: [],
+      educations: [],
+      experiences: []
+    } as Mentor;
+  };
+
   const clearFilters = () => {
     setSearchQuery("");
     setFilterType("all");
@@ -420,8 +454,10 @@ export default function MentorPackagesPage() {
               <PackageCard 
                 key={pkg.id} 
                 package={pkg}
+                mentor={!isMentor ? createMentorFromPackage(pkg) : undefined}
                 onEdit={handleEditPackage}
                 onDelete={handleDeletePackageClick}
+                onBookingSuccess={handleBookingSuccess}
                 showActions={isMentor && pkg.user_id === user?.id}
                 currentUserId={user?.id}
               />

@@ -37,6 +37,37 @@ export async function getMentorPackages(token: string, mentorId?: number): Promi
   }
 }
 
+export async function getMentorPackagesForMentees(
+  token: string,
+  mentorId?: number
+): Promise<MentorPackage[]> {
+  try {
+    const endpoint = `${BASE_URL}/mentors${mentorId}/packages`;
+
+    const response = await fetch(endpoint, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.message ||
+          errorData.detail ||
+          `Failed to fetch mentor packages: ${response.status} ${response.statusText}`
+      );
+    }
+
+    const packages: MentorPackage[] = await response.json();
+    return packages;
+  } catch (error) {
+    throw error;
+  }
+}
+
 /**
  * Create a new mentor package
  */

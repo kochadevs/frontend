@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -7,8 +11,45 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Mentors from "./(components)/Mentors";
+import { useUser } from "@/store/authStore";
+import { Loader2 } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 export default function MentorMatch() {
+  const user = useUser();
+  const router = useRouter();
+  const isMentor = user?.user_type === "mentor";
+
+  useEffect(() => {
+    if (user && isMentor) {
+      toast.error("Mentors cannot access the Mentor Match feature.");
+      router.push("/home");
+    }
+  }, [user, isMentor, router]);
+
+  // Show loading while checking user type
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-[#334AFF]" />
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render content for mentors (they will be redirected)
+  if (isMentor) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-[#334AFF]" />
+          <p className="text-gray-600">Redirecting...</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="relative">
       <header className="bg-white h-[70px] z-10 sticky top-0 w-full px-[16px] py-[25px] flex items-center border-b">

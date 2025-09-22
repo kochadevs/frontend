@@ -3,10 +3,10 @@ import Image from "next/image";
 import Breadcrumb from "@/components/common/Breadcrumbs/Breadcrumb";
 import Header from "@/components/common/(components)/Header";
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { getMentorById } from "@/utilities/mentorHandler";
 import { Mentor } from "@/interface/mentors";
-import { useAccessToken } from "@/store/authStore";
+import { useAccessToken, useUser } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import { toast } from "react-hot-toast";
 import { Loader2 } from "lucide-react";
@@ -22,8 +22,19 @@ export default function MentorProfilePage() {
   const [error, setError] = useState<string | null>(null);
   
   const params = useParams();
+  const router = useRouter();
   const accessToken = useAccessToken();
+  const user = useUser();
   const mentorId = params.mentorID as string;
+  const isMentor = user?.user_type === "mentor";
+
+  // Redirect mentors away from mentor match pages
+  useEffect(() => {
+    if (user && isMentor) {
+      toast.error("Mentors cannot access mentor profiles through Mentor Match.");
+      router.push("/home");
+    }
+  }, [user, isMentor, router]);
 
   const handleChangeView = (view: "book_session" | "mentor_view") => {
     setCurrentView(view);
@@ -62,6 +73,30 @@ export default function MentorProfilePage() {
   useEffect(() => {
     loadMentor();
   }, [mentorId, accessToken]);
+
+  // Show loading while checking user type
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-[#334AFF]" />
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render content for mentors (they will be redirected)
+  if (isMentor) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-[#334AFF]" />
+          <p className="text-gray-600">Redirecting...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Loading state
   if (isLoading) {
@@ -163,7 +198,7 @@ export default function MentorProfilePage() {
             <Header handleChangeView={handleChangeView} currentView={currentView} mentor={mentor} />
           </div>
 
-          {currentView == "mentor_view" ? <MentorProfileView mentor={mentor} /> : <BookSessionView/>}
+          {currentView == "mentor_view" ? <MentorProfileView mentor={mentor} /> : <BookSessionView mentor={mentor} />}
         </div>
       </main>
     </div>
