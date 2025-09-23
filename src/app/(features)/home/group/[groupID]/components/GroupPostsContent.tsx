@@ -3,12 +3,21 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import PostCard from "../../../(components)/PostCard";
 import StartAPost from "../../../(components)/StartAPost";
-import { fetchFeed, deletePost, addComment, fetchComments, deleteComment, reactToComment, unreactToComment } from "@/utilities/postHandler";
+import {
+  fetchFeed,
+  deletePost,
+  addComment,
+  fetchComments,
+  deleteComment,
+  reactToComment,
+  unreactToComment,
+  unreactToPost,
+  reactToPost,
+} from "@/utilities/postHandler";
 import { Post as APIPost, ApiComment } from "@/interface/posts";
 import { useUser, useAccessToken, useAuthActions } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import { toast } from "react-hot-toast";
-
 
 // Dynamically import EmojiPicker to avoid SSR issues
 
@@ -52,7 +61,7 @@ interface GroupPostContentProps {
   groupId: string;
 }
 
-export default function GroupPostContent({ groupId }: GroupPostContentProps) {
+export default function GroupPostContent({ groupId }: Readonly<GroupPostContentProps>) {
   const user = useUser();
   const accessToken = useAccessToken();
   const { initializeAuth } = useAuthActions();
@@ -63,12 +72,13 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
     initializeAuth();
     setIsAuthInitialized(true);
   }, [initializeAuth]);
-  
+
   const currentUser: User = {
     id: user?.id?.toString() || "current-user",
-    name: user?.first_name && user?.last_name 
-      ? `${user.first_name} ${user.last_name}`
-      : user?.first_name || "Current User",
+    name:
+      user?.first_name && user?.last_name
+        ? `${user.first_name} ${user.last_name}`
+        : user?.first_name || "Current User",
     avatar:
       "https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
   };
@@ -80,11 +90,11 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
   const transformApiPost = (apiPost: APIPost): Post => {
     // Generate a default avatar if profile_pic is empty
     const getAvatarUrl = (profilePic: string, firstName: string) => {
-      if (profilePic && profilePic.trim() !== '') {
+      if (profilePic && profilePic.trim() !== "") {
         return profilePic;
       }
       // Generate a placeholder avatar based on first letter of name
-      const initial = firstName?.charAt(0).toUpperCase() || 'U';
+      const initial = firstName?.charAt(0).toUpperCase() || "U";
       return `https://ui-avatars.com/api/?name=${initial}&background=334AFF&color=fff&size=128`;
     };
 
@@ -94,10 +104,10 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
       const diffInMs = now.getTime() - date.getTime();
       const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
       const diffInDays = Math.floor(diffInHours / 24);
-      
+
       if (diffInHours < 1) {
         const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
-        return diffInMinutes < 1 ? 'Just now' : `${diffInMinutes}m ago`;
+        return diffInMinutes < 1 ? "Just now" : `${diffInMinutes}m ago`;
       } else if (diffInHours < 24) {
         return `${diffInHours}h ago`;
       } else if (diffInDays < 7) {
@@ -113,14 +123,17 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
         id: apiPost.user.id.toString(),
         name: `${apiPost.user.first_name} ${apiPost.user.last_name}`.trim(),
         avatar: getAvatarUrl(apiPost.user.profile_pic, apiPost.user.first_name),
-        role: apiPost.user.user_type === 'mentee' ? 'Mentee' : 
-              apiPost.user.user_type === 'mentor' ? 'Mentor' : 
-              apiPost.user.role_of_interest?.[0]?.name || 'Professional',
+        role:
+          apiPost.user.user_type === "mentee"
+            ? "Mentee"
+            : apiPost.user.user_type === "mentor"
+            ? "Mentor"
+            : apiPost.user.role_of_interest?.[0]?.name || "Professional",
       },
       content: apiPost.content,
       media: [], // We'll need to handle media in the future
       likes: apiPost.reactions_count,
-      likedByUser: false, // We'll need to track this from user data
+      likedByUser: apiPost.user_reaction === 'like', // Track user's like status from API
       comments: [], // We'll need to load comments separately
       reposts: 0, // Not available in current API
       timestamp: formatTimeAgo(apiPost.date_created),
@@ -135,10 +148,10 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
       const diffInMs = now.getTime() - date.getTime();
       const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
       const diffInDays = Math.floor(diffInHours / 24);
-      
+
       if (diffInHours < 1) {
         const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
-        return diffInMinutes < 1 ? 'Just now' : `${diffInMinutes}m ago`;
+        return diffInMinutes < 1 ? "Just now" : `${diffInMinutes}m ago`;
       } else if (diffInHours < 24) {
         return `${diffInHours}h ago`;
       } else if (diffInDays < 7) {
@@ -150,11 +163,11 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
 
     // Generate a default avatar if profile_pic is empty
     const getAvatarUrl = (profilePic: string, firstName: string) => {
-      if (profilePic && profilePic.trim() !== '') {
+      if (profilePic && profilePic.trim() !== "") {
         return profilePic;
       }
       // Generate a placeholder avatar based on first letter of name
-      const initial = firstName?.charAt(0).toUpperCase() || 'U';
+      const initial = firstName?.charAt(0).toUpperCase() || "U";
       return `https://ui-avatars.com/api/?name=${initial}&background=334AFF&color=fff&size=128`;
     };
 
@@ -163,61 +176,72 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
       user: {
         id: apiComment.user.id.toString(),
         name: `${apiComment.user.first_name} ${apiComment.user.last_name}`.trim(),
-        avatar: getAvatarUrl(apiComment.user.profile_pic, apiComment.user.first_name),
-        role: apiComment.user.user_type === 'mentee' ? 'Mentee' : 
-              apiComment.user.user_type === 'mentor' ? 'Mentor' : 
-              apiComment.user.role_of_interest?.[0]?.name || 'Professional',
+        avatar: getAvatarUrl(
+          apiComment.user.profile_pic,
+          apiComment.user.first_name
+        ),
+        role:
+          apiComment.user.user_type === "mentee"
+            ? "Mentee"
+            : apiComment.user.user_type === "mentor"
+            ? "Mentor"
+            : apiComment.user.role_of_interest?.[0]?.name || "Professional",
       },
       text: apiComment.content,
       timestamp: formatTimeAgo(apiComment.date_created),
       likes: apiComment.reactions_count,
-      likedByUser: false,
+      likedByUser: false, // API doesn't provide user reaction for comments yet
       replies: [], // We'll handle nested comments separately
       showReplies: false,
     };
   };
 
   // Load posts from API
-  const loadPosts = useCallback(async (cursor?: string) => {
-    // Try to get token from store first, then from cookies as fallback
-    let token = accessToken;
-    if (!token) {
-      const { accessToken: cookieToken } = tokenUtils.getTokens();
-      token = cookieToken;
-    }
-    
-    if (!token) {
-      toast.error("Please sign in to view posts.");
-      setIsLoadingPosts(false);
-      return;
-    }
-
-    try {
-      const response = await fetchFeed(
-        {
-          limit: 20,
-          group_id: parseInt(groupId),
-          ...(cursor && { cursor }),
-        },
-        token
-      );
-
-      const transformedPosts = response.items.map(transformApiPost);
-      
-      if (cursor) {
-        // Appending more posts
-        setPosts(prev => [...prev, ...transformedPosts]);
-      } else {
-        // Initial load or refresh
-        setPosts(transformedPosts);
+  const loadPosts = useCallback(
+    async (cursor?: string) => {
+      // Try to get token from store first, then from cookies as fallback
+      let token = accessToken;
+      if (!token) {
+        const { accessToken: cookieToken } = tokenUtils.getTokens();
+        token = cookieToken;
       }
-    } catch (error) {
-      console.error("Error loading posts:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to load posts");
-    } finally {
-      setIsLoadingPosts(false);
-    }
-  }, [groupId, accessToken]);
+
+      if (!token) {
+        toast.error("Please sign in to view posts.");
+        setIsLoadingPosts(false);
+        return;
+      }
+
+      try {
+        const response = await fetchFeed(
+          {
+            limit: 20,
+            group_id: parseInt(groupId),
+            ...(cursor && { cursor }),
+          },
+          token
+        );
+
+        const transformedPosts = response.items.map(transformApiPost);
+
+        if (cursor) {
+          // Appending more posts
+          setPosts((prev) => [...prev, ...transformedPosts]);
+        } else {
+          // Initial load or refresh
+          setPosts(transformedPosts);
+        }
+      } catch (error) {
+        console.error("Error loading posts:", error);
+        toast.error(
+          error instanceof Error ? error.message : "Failed to load posts"
+        );
+      } finally {
+        setIsLoadingPosts(false);
+      }
+    },
+    [groupId, accessToken]
+  );
 
   // Load comments for a specific post
   const loadCommentsForPost = async (postId: string) => {
@@ -226,7 +250,7 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
       return;
     }
 
-    setLoadingComments(prev => new Set(prev).add(postId));
+    setLoadingComments((prev) => new Set(prev).add(postId));
 
     try {
       const response = await fetchComments(
@@ -236,21 +260,20 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
       );
 
       const transformedComments = response.items.map(transformApiComment);
-      
+
       // Update the specific post with comments
-      setPosts(prevPosts => 
-        prevPosts.map(post => 
-          post.id === postId 
-            ? { ...post, comments: transformedComments }
-            : post
+      setPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post.id === postId ? { ...post, comments: transformedComments } : post
         )
       );
-      
     } catch (error) {
       console.error("Error loading comments:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to load comments");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to load comments"
+      );
     } finally {
-      setLoadingComments(prev => {
+      setLoadingComments((prev) => {
         const newSet = new Set(prev);
         newSet.delete(postId);
         return newSet;
@@ -274,7 +297,9 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
   const [commentMedia, setCommentMedia] = useState<string | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [activePost, setActivePost] = useState<string | null>(null);
-  const [loadingComments, setLoadingComments] = useState<Set<string>>(new Set());
+  const [loadingComments, setLoadingComments] = useState<Set<string>>(
+    new Set()
+  );
   const [addingComment, setAddingComment] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -285,24 +310,26 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
       return;
     }
 
-    setAddingComment(prev => new Set(prev).add(postId));
+    setAddingComment((prev) => new Set(prev).add(postId));
 
     try {
       const payload = {
         content: newComment,
-        ...(replyingTo && { parent_comment_id: parseInt(replyingTo.commentId) })
+        ...(replyingTo && {
+          parent_comment_id: parseInt(replyingTo.commentId),
+        }),
       };
 
       const newApiComment = await addComment(postId, payload, accessToken);
       const newCommentObj = transformApiComment(newApiComment);
 
       // Update the posts state with the new comment
-      setPosts(prevPosts =>
-        prevPosts.map(post => {
+      setPosts((prevPosts) =>
+        prevPosts.map((post) => {
           if (post.id === postId) {
             if (replyingTo) {
               // Handle replies - for now, add to the parent comment's replies
-              const updatedComments = post.comments.map(comment => {
+              const updatedComments = post.comments.map((comment) => {
                 if (comment.id === replyingTo.commentId) {
                   return {
                     ...comment,
@@ -328,13 +355,15 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
       setNewComment("");
       setCommentMedia(null);
       setReplyingTo(null);
-      
+
       toast.success("Comment added successfully!");
     } catch (error) {
       console.error("Error adding comment:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to add comment");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to add comment"
+      );
     } finally {
-      setAddingComment(prev => {
+      setAddingComment((prev) => {
         const newSet = new Set(prev);
         newSet.delete(postId);
         return newSet;
@@ -351,24 +380,28 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
 
     try {
       await deleteComment(commentId, accessToken);
-      
+
       // Remove comment from local state
-      setPosts(prevPosts =>
-        prevPosts.map(post => {
+      setPosts((prevPosts) =>
+        prevPosts.map((post) => {
           if (post.id === postId) {
             return {
               ...post,
-              comments: post.comments.filter(comment => comment.id !== commentId)
+              comments: post.comments.filter(
+                (comment) => comment.id !== commentId
+              ),
             };
           }
           return post;
         })
       );
-      
+
       toast.success("Comment deleted successfully!");
     } catch (error) {
       console.error("Error deleting comment:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to delete comment");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete comment"
+      );
     }
   };
 
@@ -381,14 +414,16 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
 
     try {
       await deletePost(postId, accessToken);
-      
+
       // Remove the post from the local state
-      setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
-      
+      setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
+
       toast.success("Post deleted successfully!");
     } catch (error) {
       console.error("Error deleting post:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to delete post");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete post"
+      );
     }
   };
 
@@ -396,26 +431,76 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
   const handlePostClick = (postId: string | null) => {
     const newActivePost = activePost === postId ? null : postId;
     setActivePost(newActivePost);
-    
+
     // Load comments when opening a post
-    if (newActivePost && !posts.find(p => p.id === newActivePost)?.comments.length) {
+    if (
+      newActivePost &&
+      !posts.find((p) => p.id === newActivePost)?.comments.length
+    ) {
       loadCommentsForPost(newActivePost);
     }
   };
 
-  const toggleLikePost = (postId: string) => {
-    setPosts(
-      posts.map((post) => {
+  const toggleLikePost = async (postId: string) => {
+    // Try to get token from store first, then from cookies as fallback
+    let token = accessToken;
+    if (!token) {
+      const { accessToken: cookieToken } = tokenUtils.getTokens();
+      token = cookieToken;
+    }
+
+    if (!token) {
+      toast.error("Please sign in to react to posts.");
+      return;
+    }
+
+    // Find the current post to check its liked state
+    const currentPost = posts.find((post) => post.id === postId);
+    if (!currentPost) return;
+
+    // Optimistically update the UI
+    const isCurrentlyLiked = currentPost.likedByUser;
+    setPosts((prevPosts) =>
+      prevPosts.map((post) => {
         if (post.id === postId) {
           return {
             ...post,
-            likes: post.likedByUser ? post.likes - 1 : post.likes + 1,
-            likedByUser: !post.likedByUser,
+            likes: isCurrentlyLiked ? post.likes - 1 : post.likes + 1,
+            likedByUser: !isCurrentlyLiked,
           };
         }
         return post;
       })
     );
+
+    try {
+      if (isCurrentlyLiked) {
+        // Unlike the post
+        await unreactToPost(postId, { type: "like" }, token);
+      } else {
+        // Like the post
+        await reactToPost(postId, { type: "like" }, token);
+      }
+    } catch (error) {
+      // Revert the optimistic update on error
+      setPosts((prevPosts) =>
+        prevPosts.map((post) => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              likes: isCurrentlyLiked ? post.likes + 1 : post.likes - 1,
+              likedByUser: isCurrentlyLiked,
+            };
+          }
+          return post;
+        })
+      );
+
+      console.error("Error toggling post like:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update reaction"
+      );
+    }
   };
 
   const toggleLikeComment = async (
@@ -430,7 +515,7 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
       const { accessToken: cookieToken } = tokenUtils.getTokens();
       token = cookieToken;
     }
-    
+
     if (!token) {
       toast.error("Please sign in to react to comments.");
       return;
@@ -438,14 +523,16 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
 
     // Find the current comment to check its liked state
     let currentComment;
-    const currentPost = posts.find(post => post.id === postId);
+    const currentPost = posts.find((post) => post.id === postId);
     if (!currentPost) return;
 
     if (isReply && parentCommentId) {
-      const parentComment = currentPost.comments.find(c => c.id === parentCommentId);
-      currentComment = parentComment?.replies.find(r => r.id === commentId);
+      const parentComment = currentPost.comments.find(
+        (c) => c.id === parentCommentId
+      );
+      currentComment = parentComment?.replies.find((r) => r.id === commentId);
     } else {
-      currentComment = currentPost.comments.find(c => c.id === commentId);
+      currentComment = currentPost.comments.find((c) => c.id === commentId);
     }
 
     if (!currentComment) return;
@@ -453,18 +540,20 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
     const isCurrentlyLiked = currentComment.likedByUser;
 
     // Optimistically update the UI
-    setPosts(prevPosts =>
-      prevPosts.map(post => {
+    setPosts((prevPosts) =>
+      prevPosts.map((post) => {
         if (post.id === postId) {
           if (isReply && parentCommentId) {
             // Handle reply like
-            const updatedComments = post.comments.map(comment => {
+            const updatedComments = post.comments.map((comment) => {
               if (comment.id === parentCommentId) {
-                const updatedReplies = comment.replies.map(reply => {
+                const updatedReplies = comment.replies.map((reply) => {
                   if (reply.id === commentId) {
                     return {
                       ...reply,
-                      likes: isCurrentlyLiked ? reply.likes - 1 : reply.likes + 1,
+                      likes: isCurrentlyLiked
+                        ? reply.likes - 1
+                        : reply.likes + 1,
                       likedByUser: !isCurrentlyLiked,
                     };
                   }
@@ -483,11 +572,13 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
             };
           } else {
             // Handle top-level comment like
-            const updatedComments = post.comments.map(comment => {
+            const updatedComments = post.comments.map((comment) => {
               if (comment.id === commentId) {
                 return {
                   ...comment,
-                  likes: isCurrentlyLiked ? comment.likes - 1 : comment.likes + 1,
+                  likes: isCurrentlyLiked
+                    ? comment.likes - 1
+                    : comment.likes + 1,
                   likedByUser: !isCurrentlyLiked,
                 };
               }
@@ -513,18 +604,20 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
       }
     } catch (error) {
       // Revert the optimistic update on error
-      setPosts(prevPosts =>
-        prevPosts.map(post => {
+      setPosts((prevPosts) =>
+        prevPosts.map((post) => {
           if (post.id === postId) {
             if (isReply && parentCommentId) {
               // Revert reply like
-              const updatedComments = post.comments.map(comment => {
+              const updatedComments = post.comments.map((comment) => {
                 if (comment.id === parentCommentId) {
-                  const updatedReplies = comment.replies.map(reply => {
+                  const updatedReplies = comment.replies.map((reply) => {
                     if (reply.id === commentId) {
                       return {
                         ...reply,
-                        likes: isCurrentlyLiked ? reply.likes + 1 : reply.likes - 1,
+                        likes: isCurrentlyLiked
+                          ? reply.likes + 1
+                          : reply.likes - 1,
                         likedByUser: isCurrentlyLiked,
                       };
                     }
@@ -543,11 +636,13 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
               };
             } else {
               // Revert top-level comment like
-              const updatedComments = post.comments.map(comment => {
+              const updatedComments = post.comments.map((comment) => {
                 if (comment.id === commentId) {
                   return {
                     ...comment,
-                    likes: isCurrentlyLiked ? comment.likes + 1 : comment.likes - 1,
+                    likes: isCurrentlyLiked
+                      ? comment.likes + 1
+                      : comment.likes - 1,
                     likedByUser: isCurrentlyLiked,
                   };
                 }
@@ -562,8 +657,10 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
           return post;
         })
       );
-      
-      toast.error(error instanceof Error ? error.message : "Failed to update reaction");
+
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update reaction"
+      );
     }
   };
 
@@ -619,10 +716,7 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
           <AvatarFallback>You</AvatarFallback>
         </Avatar>
         <div className="flex-1">
-          <StartAPost 
-            groupId={groupId}
-            onPostCreated={handlePostCreated}
-          />
+          <StartAPost groupId={groupId} onPostCreated={handlePostCreated} />
         </div>
       </div>
 
@@ -641,13 +735,27 @@ export default function GroupPostContent({ groupId }: GroupPostContentProps) {
         <div className="flex items-center justify-center py-8">
           <div className="flex flex-col items-center gap-4 text-center">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+              <svg
+                className="w-8 h-8 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
+                />
               </svg>
             </div>
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No posts yet</h3>
-              <p className="text-gray-600 text-sm">Be the first to share something with the group!</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No posts yet
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Be the first to share something with the group!
+              </p>
             </div>
           </div>
         </div>
