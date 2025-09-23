@@ -35,14 +35,16 @@ interface InfluencerPostCardProps {
 }
 
 const PostCard: React.FC<InfluencerPostCardProps> = ({ post }) => {
-  const [userReaction, setUserReaction] = useState<"like" | null>(post.user_reaction);
+  const [userReaction, setUserReaction] = useState<"like" | null>(
+    post.user_reaction
+  );
   const [likesCount, setLikesCount] = useState(post.likes.count);
   const [isLiking, setIsLiking] = useState(false);
   const accessToken = useAccessToken();
 
   const handleLike = async () => {
     if (isLiking) return; // Prevent multiple clicks
-    
+
     setIsLiking(true);
     try {
       // Get token
@@ -51,7 +53,7 @@ const PostCard: React.FC<InfluencerPostCardProps> = ({ post }) => {
         const { accessToken: cookieToken } = tokenUtils.getTokens();
         token = cookieToken;
       }
-      
+
       if (!token) {
         toast.error("Please sign in to like posts.");
         return;
@@ -59,31 +61,32 @@ const PostCard: React.FC<InfluencerPostCardProps> = ({ post }) => {
 
       // Optimistically update UI
       const newReaction = userReaction === "like" ? null : "like";
-      const newLikesCount = userReaction === "like" ? likesCount - 1 : likesCount + 1;
-      
+      const newLikesCount =
+        userReaction === "like" ? likesCount - 1 : likesCount + 1;
+
       setUserReaction(newReaction);
       setLikesCount(newLikesCount);
 
       // Make API call
       const result = await togglePostLike(post.id, userReaction, token);
-      
+
       // The optimistic update should match the result, but let's be safe
       if (result !== newReaction) {
         setUserReaction(result);
         // Adjust count if needed
         if (result === "like" && newReaction !== "like") {
-          setLikesCount(prev => prev + 1);
+          setLikesCount((prev) => prev + 1);
         } else if (result !== "like" && newReaction === "like") {
-          setLikesCount(prev => prev - 1);
+          setLikesCount((prev) => prev - 1);
         }
       }
-      
     } catch (error) {
       // Revert optimistic update on error
       setUserReaction(post.user_reaction);
       setLikesCount(post.likes.count);
-      
-      const errorMessage = error instanceof Error ? error.message : "Failed to update like";
+
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to update like";
       toast.error(errorMessage);
     } finally {
       setIsLiking(false);
@@ -91,7 +94,7 @@ const PostCard: React.FC<InfluencerPostCardProps> = ({ post }) => {
   };
 
   return (
-    <Card className="w-[459px] gap-1">
+    <Card className="w-[459px] h-full gap-1">
       <div className="p-[16px]">
         <header className="flex items-start justify-between">
           <div className="flex items-start gap-[16px]">
@@ -160,8 +163,11 @@ const PostCard: React.FC<InfluencerPostCardProps> = ({ post }) => {
             </Button>
           </div>
         </header>
-        <div>
-          <p className="text-gray-700 text-[16px]">{post.content}</p>
+        <div className="h-[80px]">
+          <p className="text-gray-700 text-[16px]">
+            {post.content.split(" ").slice(0, 20).join(" ") +
+              (post.content.split(" ").length > 20 ? "..." : "")}
+          </p>
         </div>
       </div>
       <div className="relative w-full h-[222px]">
@@ -208,8 +214,8 @@ const PostCard: React.FC<InfluencerPostCardProps> = ({ post }) => {
 
       {/* Action buttons */}
       <div className="p-[8px] flex items-center gap-[24px]">
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           className="cursor-pointer hover:bg-transparent transition-colors"
           onClick={handleLike}
           disabled={isLiking}
@@ -230,7 +236,11 @@ const PostCard: React.FC<InfluencerPostCardProps> = ({ post }) => {
               />
             </svg>
           )}
-          <span className={userReaction === "like" ? "text-blue-500 font-medium" : ""}>
+          <span
+            className={
+              userReaction === "like" ? "text-blue-500 font-medium" : ""
+            }
+          >
             {userReaction === "like" ? "Liked" : "Like"}
           </span>
         </Button>

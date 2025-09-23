@@ -13,36 +13,21 @@ export default function About({ mentor }: AboutProps) {
       </div>
       <div className="px-[38px] py-[16px]">
         <p className="text-[#344054] font-[400] whitespace-pre-wrap">
-          {mentor?.about || 
-            "This mentor has not provided an about section yet. Please check back later for more information about their background, expertise, and mentoring approach."
-          }
+          {mentor?.about ||
+            "This mentor has not provided an about section yet. Please check back later for more information about their background, expertise, and mentoring approach."}
         </p>
-        
+
         {mentor && (
           <div className="mt-6 space-y-3">
-            {mentor.skills && mentor.skills.length > 0 && (
-              <div>
-                <h4 className="font-[600] text-[16px] text-[#475467] mb-2">Skills</h4>
-                <div className="flex flex-wrap gap-2">
-                  {mentor.skills.slice(0, 8).map((skill) => (
-                    <span 
-                      key={skill.id} 
-                      className="px-3 py-1 bg-[#F2F4F7] text-[#344054] rounded-full text-sm"
-                    >
-                      {skill.name}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-            
             {mentor.career_goals && mentor.career_goals.length > 0 && (
               <div>
-                <h4 className="font-[600] text-[16px] text-[#475467] mb-2">Career Goals</h4>
+                <h4 className="font-[600] text-[16px] text-[#475467] mb-2">
+                  Career Goals
+                </h4>
                 <div className="flex flex-wrap gap-2">
                   {mentor.career_goals.slice(0, 5).map((goal) => (
-                    <span 
-                      key={goal.id} 
+                    <span
+                      key={goal.id}
                       className="px-3 py-1 bg-[#EFF8FF] text-[#175CD3] rounded-full text-sm"
                     >
                       {goal.name}
