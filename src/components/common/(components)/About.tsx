@@ -5,7 +5,7 @@ type AboutProps = {
   mentor?: Mentor | null;
 };
 
-export default function About({ mentor }: AboutProps) {
+export default function About({ mentor }: Readonly<AboutProps>) {
   return (
     <Card className="p-0 overflow-hidden gap-1">
       <div className="w-full h-[63px] flex items-center px-[38px] py-[16px] border-b">
