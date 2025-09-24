@@ -1,0 +1,208 @@
+"use client";
+
+import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react";
+import { z } from "zod";
+import { ForgotPasswordFormData, forgotPasswordSchema } from "../../../zodSchema/passwordResetSchema";
+import { handleForgotPassword } from "../../../utilities/authHandler";
+import { toast } from "react-hot-toast";
+
+const ForgotPassword = () => {
+  const [formData, setFormData] = useState<ForgotPasswordFormData>({
+    email: "",
+  });
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof ForgotPasswordFormData, string>>
+  >({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Clear error when user starts typing
+    if (errors[name as keyof ForgotPasswordFormData]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      // Validate form data
+      const validatedData = forgotPasswordSchema.parse(formData);
+
+      // Call the forgot password API
+      const response = await handleForgotPassword(validatedData);
+
+      if(response){
+      // Show success state
+      setIsSuccess(true);
+      toast.success("Reset email sent successfully!");
+      // Clear form and errors
+      setFormData({ email: "" });
+      setErrors({});
+      }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        // Handle validation errors
+        const newErrors: Partial<Record<keyof ForgotPasswordFormData, string>> = {};
+        error.issues.forEach((err: z.ZodIssue) => {
+          if (err.path[0]) {
+            newErrors[err.path[0] as keyof ForgotPasswordFormData] = err.message;
+          }
+        });
+        setErrors(newErrors);
+      } else {
+        // Handle API errors
+        console.error("Forgot password error:", error);
+        toast.error(error instanceof Error ? error.message : "Failed to send reset email");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isSuccess) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="md:w-[499px] w-full md:px-2 px-4">
+          <div className="flex flex-col items-center justify-center gap-4">
+            <div className="relative h-[38px] w-[144.66px]">
+              <Image
+                alt="kocha_logo"
+                src="/asset/kocha_logo.png"
+                className="h-10 w-auto"
+                fill
+              />
+            </div>
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+              <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="text-[30px] font-[700] tracking-tight text-[#2E3646]">
+              Check your email
+            </h2>
+            <p className="text-[#667085] text-[14px] text-center">
+              We&apos;ve sent a password reset link to your email address. Please check your inbox and follow the instructions to reset your password.
+            </p>
+          </div>
+
+          <div className="mt-10">
+            <div className="flex flex-col gap-4">
+              <Link href="/login">
+                <Button
+                  variant="ghost"
+                  className="flex w-full justify-center rounded-md bg-[#334AFF] hover:text-white px-3 py-1.5 text-[16px] font-semibold text-white shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px]"
+                >
+                  Back to log in
+                </Button>
+              </Link>
+              
+              <Button
+                variant="ghost"
+                onClick={() => setIsSuccess(false)}
+                className="flex w-full justify-center rounded-md border hover:bg-gray-200 px-3 py-1.5 text-[16px] font-semibold shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2 text-[#344054] cursor-pointer h-[40px]"
+              >
+                Send another email
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="md:w-[499px] w-full md:px-2 px-4">
+        <div className="flex flex-col items-center justify-center gap-4">
+          <div className="relative h-[38px] w-[144.66px]">
+            <Image
+              alt="kocha_logo"
+              src="/asset/kocha_logo.png"
+              className="h-10 w-auto"
+              fill
+            />
+          </div>
+          <h2 className="text-[30px] font-[700] tracking-tight text-[#2E3646]">
+            Forgot password
+          </h2>
+          <p className="text-[#667085] text-[14px]">
+            You&apos;ll be sent an email to reset your password.
+          </p>
+        </div>
+
+        <div className="mt-10">
+          <div>
+            <form onSubmit={handleSubmit}>
+              <div className="mb-4">
+                <label
+                  htmlFor="email"
+                  className="block text-sm/6 font-medium text-[#344054]"
+                >
+                  Email
+                </label>
+                <div className="mt-2">
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    autoComplete="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className={`block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
+                      errors.email ? "outline-red-500" : ""
+                    }`}
+                    placeholder="Enter email"
+                  />
+                  {errors.email && (
+                    <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                <Button
+                  variant="ghost"
+                  type="submit"
+                  disabled={isLoading}
+                  className="flex w-full justify-center rounded-md bg-[#334AFF] hover:text-white px-3 py-1.5 text-[16px] font-semibold text-white shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? "Sending..." : "Submit"}
+                </Button>
+
+                <Link href="/login">
+                  <Button
+                    variant="ghost"
+                    type="button"
+                    className="flex w-full justify-center rounded-md border hover:bg-gray-200 px-3 py-1.5 text-[16px] font-semibold shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2 text-[#344054] cursor-pointer h-[40px]"
+                  >
+                    Back to log in
+                  </Button>
+                </Link>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ForgotPassword;

@@ -1,105 +1,69 @@
-import React, { useState } from "react";
+"use client";
+import React, { useState, useEffect } from "react";
 import { clsx } from "clsx";
-import { StepProps } from "@/interface/onboarding";
+import { StepProps, RoleInterestOption } from "@/interface/onboarding";
 import { Button } from "@/components/ui/button";
+import { useOnboardingStore } from "@/store/onboardingStore";
+import { fetchRoleInterest } from "@/utilities/onboardingHandler";
+import { toast } from "react-hot-toast";
 
-interface Role {
-  id: string;
-  label: string;
+interface CategorizedRoles {
+  [category: string]: RoleInterestOption[];
 }
 
-interface Category {
-  title: string;
-  roles: Role[];
-}
 
-const categories: Category[] = [
-  {
-    title: "Engineering and Technical",
-    roles: [
-      { id: "aerospace", label: "Aerospace Engineering" },
-      { id: "ai_ml", label: "AI & Machine Learning" },
-      { id: "architecture", label: "Architecture & Civil Engineering" },
-      { id: "data_analytics", label: "Data & Analytics" },
-      { id: "developer_relations", label: "Developer Relations" },
-      { id: "devops", label: "DevOps & Infrastructure" },
-      { id: "electrical", label: "Electrical Engineering" },
-      { id: "engineering_management", label: "Engineering Management" },
-      { id: "hardware", label: "Hardware Engineering" },
-      { id: "it_security", label: "IT & Security" },
-      { id: "mechanical", label: "Mechanical Engineering" },
-      { id: "process", label: "Process Engineering" },
-      { id: "qa", label: "QA & Testing" },
-      { id: "quantitative", label: "Quantitative Finance" },
-      { id: "quantum", label: "Quantum Computing" },
-      { id: "sales_engineering", label: "Sales & Solution Engineering" },
-      { id: "software", label: "Software Engineering" },
-    ],
-  },
-  {
-    title: "Finance & Operations & Strategy",
-    roles: [
-      { id: "accounting", label: "Accounting" },
-      { id: "business_strategy", label: "Business & Strategy" },
-      { id: "consulting", label: "Consulting" },
-      { id: "finance_banking", label: "Finance & Banking" },
-      { id: "growth_marketing", label: "Growth & Marketing" },
-      { id: "operations_logistics", label: "Operations & Logistics" },
-      { id: "product", label: "Product" },
-      { id: "real_estate", label: "Real Estate" },
-      { id: "retail", label: "Retail" },
-      { id: "sales_account", label: "Sales & Account Management" },
-    ],
-  },
-  {
-    title: "Creative & Design",
-    roles: [
-      { id: "art_graphics", label: "Art, Graphics & Animation" },
-      { id: "audio_sound", label: "Audio & Sound Design" },
-      { id: "content_writing", label: "Content & Writing" },
-      { id: "creative_production", label: "Creative Production" },
-      { id: "journalism", label: "Journalism" },
-      { id: "social_media", label: "Social Media" },
-      { id: "ui_ux", label: "UI/UX & Design" },
-    ],
-  },
-  {
-    title: "Education & Training",
-    roles: [
-      { id: "education", label: "Education" },
-      { id: "training", label: "Training" },
-    ],
-  },
-  {
-    title: "Legal & Support & Administration",
-    roles: [
-      { id: "admin_executive", label: "Administrative & Executive Assistance" },
-      { id: "clerical_data", label: "Clerical & Data Entry" },
-      { id: "customer_experience", label: "Customer Experience & Support" },
-      { id: "legal_compliance", label: "Legal & Compliance" },
-      { id: "people_hr", label: "People & HR" },
-      { id: "security_services", label: "Security & Protective Services" },
-    ],
-  },
-];
-
-const RoleSelection: React.FC<StepProps> = ({
-  handleNext,
-  handlePrevious,
-})  => {
-  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
-
-  const toggleRole = (id: string) => {
-    setSelectedRoles((prev) => {
-      if (prev.includes(id)) {
-        return prev.filter((v) => v !== id);
+const RoleSelection: React.FC<StepProps> = ({ handleNext, handlePrevious }) => {
+  const { selectedRoles, toggleRole, submitRoleInterest, isSubmitting } =
+    useOnboardingStore();
+  
+  const [categorizedRoles, setCategorizedRoles] = useState<CategorizedRoles>({});
+  const [isLoading, setIsLoading] = useState(true);
+  
+  useEffect(() => {
+    const loadRoles = async () => {
+      try {
+        const data = await fetchRoleInterest();
+        
+        // Group roles by category
+        const grouped = data.reduce((acc: CategorizedRoles, role) => {
+          if (!acc[role.category]) {
+            acc[role.category] = [];
+          }
+          acc[role.category].push(role);
+          return acc;
+        }, {});
+        
+        setCategorizedRoles(grouped);
+      } catch (error) {
+        console.error('Error fetching role interests:', error);
+        toast.error('Failed to load role interests');
+      } finally {
+        setIsLoading(false);
       }
-      if (prev.length >= 5) {
-        return prev;
-      }
-      return [...prev, id];
-    });
+    };
+    
+    loadRoles();
+  }, []);
+
+  const handleSaveAndContinue = async () => {
+    try {
+      await submitRoleInterest();
+      toast.success('Role interests saved successfully!');
+      handleNext();
+    } catch (error) {
+      console.error('Error submitting role interests:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to save role interests');
+    }
   };
+  
+  if (isLoading) {
+    return (
+      <div className="w-full mx-auto px-4 text-center flex flex-col items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#251F99]"></div>
+        <p className="mt-4 text-[#667085]">Loading role interests...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full mx-auto px-4">
@@ -113,13 +77,13 @@ const RoleSelection: React.FC<StepProps> = ({
       </div>
 
       <div className="space-y-8">
-        {categories.map((category) => (
-          <div key={category.title}>
+        {Object.entries(categorizedRoles).map(([categoryName, categoryRoles]) => (
+          <div key={categoryName}>
             <h2 className="text-sm font-medium text-[#111827] mb-3">
-              {category.title}
+              {categoryName}
             </h2>
             <div className="flex flex-wrap gap-2">
-              {category.roles.map((role) => (
+              {categoryRoles.map((role) => (
                 <button
                   key={role.id}
                   onClick={() => toggleRole(role.id)}
@@ -130,7 +94,7 @@ const RoleSelection: React.FC<StepProps> = ({
                       : "border-[#E5E7EB] text-[#374151] hover:border-[#D1D5DB]"
                   )}
                 >
-                  {role.label}
+                  {role.name}
                 </button>
               ))}
             </div>
@@ -138,7 +102,7 @@ const RoleSelection: React.FC<StepProps> = ({
         ))}
       </div>
 
-      <div className="flex items-center justify-end w-full gap-6 mt-64">
+      <div className="flex items-center justify-end w-full gap-6 mt-40">
         <Button
           variant="ghost"
           className="cursor-pointer px-4 py-2 border border-[#D0D5DD] text-[#6B7280] hover:text-[#374151]"
@@ -150,10 +114,11 @@ const RoleSelection: React.FC<StepProps> = ({
         <Button
           variant="ghost"
           type="submit"
-          className="flex w-[153px] justify-center rounded-md bg-linear-to-r from-[#334AFF] to-[#251F99] px-3 py-1.5 text-[16px] font-semibold text-white hover:text-[#fff]/70 shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px]"
-          onClick={handleNext}
+          className="flex w-[153px] justify-center rounded-md bg-[#334AFF] px-3 py-1.5 text-[16px] font-semibold text-white hover:text-[#fff]/70 shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px] disabled:opacity-50 disabled:cursor-not-allowed"
+          onClick={handleSaveAndContinue}
+          disabled={selectedRoles.length === 0 || isSubmitting}
         >
-          Save & continue
+          {isSubmitting ? "Saving..." : "Save & continue"}
         </Button>
       </div>
     </div>

@@ -2,24 +2,46 @@
 import React, { useState } from "react";
 import {
   LayoutDashboard,
-  FileText,
-  Briefcase,
+  // FileText,
+  // Briefcase,
+  PackagePlus,
   Users,
   MessagesSquare,
+  Calendar,
 } from "lucide-react";
 import { clsx } from "clsx";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useUser } from "@/store/authStore";
 
 const SideNavigationBar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const pathname = usePathname();
+  const user = useUser();
+  const isMentor = user?.user_type === "mentor";
 
-  const navItems = [
+  // Base navigation items
+  const baseNavItems = [
     { icon: LayoutDashboard, label: "Home", href: "/home" },
-    { icon: FileText, label: "Documents", href: "/documents" },
-    { icon: Briefcase, label: "Jobs", href: "/jobs" },
-    { icon: Users, label: "Mentor match", href: "/mentor-match" },
-    { icon: MessagesSquare, label: "Community", href: "/community" },
+    // { icon: FileText, label: "Documents", href: "/documents" },
+    // { icon: Briefcase, label: "Jobs", href: "/jobs" },
+    { icon: PackagePlus, label: "Mentor Packages", href: "/mentor-packages" },
+    { icon: Calendar, label: "Bookings", href: "/bookings" },
+    { icon: MessagesSquare, label: "Message", href: "/message" },
   ];
+
+  // Add Mentor Match only for mentees (non-mentors)
+  const navItems = !isMentor 
+    ? [
+        baseNavItems[0], // Home
+        { icon: Users, label: "Mentor Match", href: "/mentor_match" },
+        ...baseNavItems.slice(1) // Rest of the items
+      ]
+    : baseNavItems;
+
+   const isActive = (path: string) => {
+     return pathname.startsWith(path);
+   };
 
   return (
     <nav
@@ -71,8 +93,12 @@ const SideNavigationBar = () => {
         {navItems.map((item) => (
           <Link
             key={item.href}
-            href="#"
-            className="flex items-center gap-3 text-white/90 hover:bg-linear-to-r from-[#334AFF] to-[#251F99] border-l-2 border-transparent hover:border-white  p-3 transition-colors"
+            href={item.href}
+            className={`flex items-center gap-3 text-white/90  border-l-2 border-transparent   p-3 transition-colors ${
+              isActive(item.href)
+                ? "bg-linear-to-r from-[#334AFF] to-[#251F99] border-white"
+                : "hover:bg-linear-to-r from-[#334AFF] to-[#251F99] hover:border-white"
+            }`}
           >
             <item.icon className="h-5 w-5 shrink-0" />
             {!isCollapsed && (

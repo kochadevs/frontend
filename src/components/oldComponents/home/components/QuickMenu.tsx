@@ -6,7 +6,7 @@ const QuickMenu = () => {
   return (
     <div className="min-h-[344px] border rounded-md p-[16px]">
       <h3 className="text-[#344054] font-semibold text-[16px]">Quick Menu</h3>
-      <div className=" grid md:grid-cols-2 gap-4 mt-4 h-full">
+      <div className=" grid lg:grid-cols-2 gap-4 mt-4 h-full">
         <Link href="/documents">
           <div className="bg-white p-4 rounded-md shadow-lg hover:shadow-xl transition cursor-pointer h-[132px] border">
             <div className="flex items-center gap-4">
