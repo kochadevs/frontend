@@ -103,7 +103,7 @@ export default function StartAPost({ onPostCreated, groupId }: Readonly<StartAPo
               </h2>
             </div>
 
-            <div className="grid w-full gap-3">
+            <div className="grid w-full gap-3 mb-2">
               <Label
                 htmlFor="message"
                 className="text-[15px] text-gray-shade-700 font-[600]"
