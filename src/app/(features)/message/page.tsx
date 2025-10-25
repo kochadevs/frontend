@@ -1,54 +1,21 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import SearchField from "@/components/common/SearchField";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import Divider from "@/components/common/Divider";
+import { useAuth } from "@/store/authStore";
+import { useChatWS, ActionMessage } from "@/utilities/chatWS";
+import { listChatRooms, listUserRoomMessages, ChatRoom, getRoomHistory, ChatMessage } from "@/utilities/chatApi";
+import CreateRoomModal from "@/components/CreateRoomModal";
+import toast from "react-hot-toast";
+import { Conversation, Message } from "@/interface/messageChat";
 
-// Types
-interface Message {
-  id: string;
-  sender: string;
-  senderId: string;
-  content: string;
-  timestamp: string;
-  avatar?: string;
-  type: "sent" | "received";
-}
-
-interface Conversation {
-  id: string;
-  name: string;
-  participants: string[];
-  lastMessage?: string;
-  lastMessageTime?: string;
-  avatar?: string;
-  unread?: boolean;
-}
-
-interface WebSocketMessage {
-  type:
-    | "message"
-    | "conversation_update"
-    | "user_typing"
-    | "error"
-    | "connection_ack";
-  data: {
-    id?: string;
-    sender?: string;
-    senderId?: string;
-    content?: string;
-    timestamp?: string;
-    conversationId?: string;
-    conversations?: Conversation[];
-    typing?: boolean;
-    userId?: string;
-  };
-}
 
 export default function Messaging() {
+  const { accessToken, user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [messageContent, setMessageContent] = useState("");
   const [selectedConversation, setSelectedConversation] = useState<
@@ -56,143 +23,166 @@ export default function Messaging() {
   >(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [currentUser, setCurrentUser] = useState({ id: "user-1", name: "You" }); // You'd get this from auth
+  const recipientId = 3// Default recipient ID
+  const [rooms, setRooms] = useState<ChatRoom[]>([]);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const ws = useRef<WebSocket | null>(null);
+  // Scroll only the messages container to avoid page jump that hides nav
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  // WebSocket connection
-  useEffect(() => {
-    const connectWebSocket = () => {
-      try {
-        ws.current = new WebSocket("ws://35.238.249.192:8095/api/v1/chat/ws");
+  const handleIncomingMessage = useCallback((message: ActionMessage) => {
+    if (message.action === "message" && message.message?.content) {
+      const newMessage: Message = {
+        id: message.message.id || Date.now().toString(),
+        sender: message.message.sender_id === user?.id ? "You" : `User ${message.message.sender_id}`,
+        senderId: message.message.sender_id?.toString() || "unknown",
+        content: message.message.content,
+        timestamp:
+          message.message.timestamp ?
+          new Date(message.message.timestamp).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }) :
+          new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        avatar: message.message.sender_id === user?.id ? "" : getAvatarForUser(`User ${message.message.sender_id}`),
+        type: message.message.sender_id === user?.id ? "sent" : "received",
+      };
 
-        ws.current.onopen = () => {
-          console.log("WebSocket connected");
-          setIsConnected(true);
+      setMessages((prev) => [...prev, newMessage]);
 
-          // Send initial connection message to get conversations
-          if (ws.current?.readyState === WebSocket.OPEN) {
-            const initMessage: WebSocketMessage = {
-              type: "connection_ack",
-              data: {
-                userId: currentUser.id,
-              },
-            };
-            ws.current.send(JSON.stringify(initMessage));
-          }
-        };
-
-        ws.current.onmessage = (event) => {
-          try {
-            const message: WebSocketMessage = JSON.parse(event.data);
-            handleIncomingMessage(message);
-          } catch (error) {
-            console.error("Error parsing WebSocket message:", error);
-          }
-        };
-
-        ws.current.onclose = () => {
-          console.log("WebSocket disconnected");
-          setIsConnected(false);
-          // Attempt to reconnect after 3 seconds
-          setTimeout(connectWebSocket, 3000);
-        };
-
-        ws.current.onerror = (error) => {
-          console.error("WebSocket error:", error);
-          setIsConnected(false);
-        };
-      } catch (error) {
-        console.error("Error connecting to WebSocket:", error);
-        setIsConnected(false);
+      // Update conversation last message
+      if (message.room_id) {
+        setConversations((prev) =>
+          prev.map((conv) =>
+            conv.id === message.room_id?.toString()
+              ? {
+                  ...conv,
+                  lastMessage: message.message?.content,
+                  lastMessageTime: newMessage.timestamp,
+                  unread: conv.id !== selectedConversation,
+                }
+              : conv
+          )
+        );
       }
-    };
+    }
+  }, [user?.id, selectedConversation]);
 
-    connectWebSocket();
+  const { isConnected, roomId: _, sendMessage: wsSendMessage } = useChatWS({
+    accessToken,
+    recipientId,
+    currentUserId: user?.id,
+    onMessage: handleIncomingMessage,
+  });
 
-    // Cleanup on unmount
-    return () => {
-      if (ws.current) {
-        ws.current.close();
+  // Load rooms from API
+  const loadRooms = async () => {
+    if (!accessToken) return;
+    
+    try {
+      const roomsData = await listChatRooms(accessToken);
+      setRooms(roomsData);
+      
+      // Fetch all user room messages once and compute latest per room
+    const allMessages = await listUserRoomMessages(accessToken);
+      const latestByRoom = new Map<number, ChatMessage>();
+      for (const msg of allMessages) {
+        const rid = msg.chat_room?.id;
+        if (typeof rid !== 'number') continue;
+        const existing = latestByRoom.get(rid);
+        if (!existing || new Date(msg.date_created).getTime() > new Date(existing.date_created).getTime()) {
+          latestByRoom.set(rid, msg);
+        }
       }
+      
+      // Convert rooms to conversations format for existing UI using latest message per room
+      const roomConversations: Conversation[] = roomsData.map((room) => {
+        const latest = latestByRoom.get(room.id);
+        const lastMessage = latest ? latest.content : "No messages yet";
+        const lastMessageTime = latest ? new Date(latest.date_created).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
+        return {
+          id: room.id.toString(),
+          name: room.name,
+          participants: [user?.id?.toString() || "1", room.created_by.toString()],
+          lastMessage,
+          lastMessageTime,
+          avatar: "",
+          unread: false,
+        };
+      });
+      
+      setConversations(roomConversations);
+    } catch (error) {
+      console.error("Failed to load rooms:", error);
+      toast.error("Failed to load chat rooms");
+    }
+  };
+
+  const handleRoomCreated = (room: ChatRoom) => {
+    setRooms((prev) => [...prev, room]);
+    
+    // Add to conversations
+    const newConversation: Conversation = {
+      id: room.id.toString(),
+      name: room.name,
+      participants: [user?.id?.toString() || "1", room.created_by.toString()],
+      lastMessage: "Room created",
+      lastMessageTime: new Date(room.date_created).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      avatar: "",
+      unread: false,
     };
-  }, [currentUser.id]);
+    
+    setConversations((prev) => [newConversation, ...prev]);
+  };
 
-  // Handle incoming WebSocket messages
-  const handleIncomingMessage = (message: WebSocketMessage) => {
-    console.log("Received message:", message);
+  // Load messages for a specific room
+  const loadRoomMessages = async (roomId: number) => {
+    if (!accessToken) return;
+    
+    try {
+      const messagesData = await getRoomHistory(roomId, accessToken);
 
-    switch (message.type) {
-      case "message":
-        if (
-          message.data.content &&
-          message.data.sender &&
-          message.data.conversationId
-        ) {
-          const newMessage: Message = {
-            id: message.data.id || Date.now().toString(),
-            sender: message.data.sender,
-            senderId: message.data.senderId || "unknown",
-            content: message.data.content,
-            timestamp:
-              message.data.timestamp ||
-              new Date().toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              }),
-            avatar:
-              message.data.sender === "You"
-                ? ""
-                : getAvatarForUser(message.data.sender),
-            type:
-              message.data.senderId === currentUser.id ? "sent" : "received",
-          };
-
-          setMessages((prev) => [...prev, newMessage]);
-
-          // Update conversation last message
-          if (message.data.conversationId) {
-            setConversations((prev) =>
-              prev.map((conv) =>
-                conv.id === message.data.conversationId
-                  ? {
-                      ...conv,
-                      lastMessage: message.data.content,
-                      lastMessageTime: newMessage.timestamp,
-                      unread: conv.id !== selectedConversation,
-                    }
-                  : conv
-              )
-            );
-          }
+      // Ensure ascending order (oldest -> newest) so newest is at the bottom
+      const sorted = [...messagesData].sort(
+        (a, b) => new Date(a.date_created).getTime() - new Date(b.date_created).getTime()
+      );
+      
+      // Convert API messages to UI format
+      const formattedMessages: Message[] = sorted.map((msg) => ({
+        id: msg.id.toString(),
+        sender: msg.sender_id === user?.id ? "You" : `User ${msg.sender_id}`,
+        senderId: msg.sender_id.toString(),
+        content: msg.content,
+        timestamp: new Date(msg.date_created).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        avatar: msg.sender_id === user?.id ? "" : getAvatarForUser(`User ${msg.sender_id}`),
+        type: msg.sender_id === user?.id ? "sent" : "received",
+      }));
+      
+      setMessages(formattedMessages);
+      
+      // Update sidebar conversation with the latest message/time
+      setConversations((prev) => prev.map((conv) => {
+        if (conv.id !== roomId.toString()) return conv;
+        if (formattedMessages.length === 0) {
+          return { ...conv, lastMessage: "No messages yet", lastMessageTime: "" };
         }
-        break;
-
-      case "conversation_update":
-        if (message.data.conversations) {
-          setConversations(message.data.conversations);
-        }
-        break;
-
-      case "user_typing":
-        // Handle typing indicators (you can implement this later)
-        console.log("User typing:", message.data);
-        break;
-
-      case "connection_ack":
-        console.log("Connection acknowledged by server");
-        break;
-
-      case "error":
-        console.error("WebSocket error:", message.data.content);
-        break;
-
-      default:
-        console.warn("Unknown message type:", message);
+        const last = formattedMessages[formattedMessages.length - 1];
+        return { ...conv, lastMessage: last.content, lastMessageTime: last.timestamp };
+      }));
+    } catch (error) {
+      console.error("Failed to load room messages:", error);
+      toast.error("Failed to load messages");
     }
   };
 
@@ -207,37 +197,6 @@ export default function Messaging() {
     return avatarMap[username] || "";
   };
 
-  // Send message via WebSocket
-  const sendMessage = (content: string) => {
-    if (!ws.current || ws.current.readyState !== WebSocket.OPEN) {
-      console.error("WebSocket is not connected");
-      return false;
-    }
-
-    if (!selectedConversation) {
-      console.error("No conversation selected");
-      return false;
-    }
-
-    const message: WebSocketMessage = {
-      type: "message",
-      data: {
-        content: content,
-        conversationId: selectedConversation,
-        senderId: currentUser.id,
-        sender: currentUser.name,
-        timestamp: new Date().toISOString(),
-      },
-    };
-
-    try {
-      ws.current.send(JSON.stringify(message));
-      return true;
-    } catch (error) {
-      console.error("Error sending message:", error);
-      return false;
-    }
-  };
 
   const filteredConversations = conversations.filter(
     (conv) =>
@@ -248,12 +207,14 @@ export default function Messaging() {
   const handleSendMessage = () => {
     if (messageContent.trim() && isConnected && selectedConversation) {
       setIsLoading(true);
+      
+      const selectedRoomId = parseInt(selectedConversation);
 
       // Add message to UI immediately (optimistic update)
       const tempMessage: Message = {
         id: `temp-${Date.now()}`,
-        sender: currentUser.name,
-        senderId: currentUser.id,
+        sender: user?.first_name || "You",
+        senderId: user?.id?.toString() || "unknown",
         content: messageContent,
         timestamp: new Date().toLocaleTimeString([], {
           hour: "2-digit",
@@ -278,8 +239,8 @@ export default function Messaging() {
         )
       );
 
-      // Send via WebSocket
-      const success = sendMessage(messageContent);
+      // Send via WebSocket with the selected room ID
+      const success = wsSendMessage(messageContent, selectedRoomId);
 
       if (!success) {
         // If sending fails, mark message as failed
@@ -318,15 +279,19 @@ export default function Messaging() {
     }
   }, [messageContent]);
 
-  // Scroll to bottom when messages change
+  // Scroll to bottom of the messages container (not the page) when messages change
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = messagesContainerRef.current;
+    if (el) {
+      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+    }
   }, [messages]);
 
-  // Clear messages when conversation changes
+  // Load messages when conversation changes
   useEffect(() => {
     if (selectedConversation) {
-      setMessages([]);
+      setMessages([]); // Clear current messages
+      
       // Mark conversation as read
       setConversations((prev) =>
         prev.map((conv) =>
@@ -334,45 +299,46 @@ export default function Messaging() {
         )
       );
 
-      // In a real app, you'd request messages for this conversation from the server
-      console.log("Loading messages for conversation:", selectedConversation);
+      // Load messages for this room
+      const roomId = parseInt(selectedConversation);
+      if (!isNaN(roomId)) {
+        loadRoomMessages(roomId);
+      }
     }
-  }, [selectedConversation]);
+  }, [selectedConversation, accessToken]);
+
+  // Load rooms on component mount
+  useEffect(() => {
+    loadRooms();
+  }, [accessToken]);
 
   const selectedConversationData = conversations.find(
     (c) => c.id === selectedConversation
   );
 
   return (
-    <div className="container mx-auto flex flex-col gap-y-[1.5rem] px-4 py-6 h-full max-h-screen">
-      <header>
+    <div className="flex flex-col gap-y-[1.5rem] p-4 h-[90vh] max-h-screen">
+      <header className="flex-shrink-0">
         <h2 className="text-[24px] font-bold text-gray-700">Messaging</h2>
         <p className="text-black-shade-900 text-[15px]">
           Connect with other influencers, brands, and collaborate with the
           community to drive success together.
         </p>
-        <div className="flex items-center gap-2 mt-2">
-          <div
-            className={`w-3 h-3 rounded-full ${
-              isConnected ? "bg-green-500" : "bg-red-500"
-            }`}
-          ></div>
-          <span className="text-sm text-gray-600">
-            {isConnected ? "Connected" : "Connecting..."}
-          </span>
-        </div>
       </header>
 
-      <main className="border rounded-[8px] bg-white flex items-start w-full flex-1 min-h-[550px] overflow-hidden">
+      <main className="border rounded-[8px] bg-white flex items-stretch w-full flex-1 min-h-0 overflow-hidden">
         {/* Conversations Sidebar */}
-        <aside className="border-r w-full md:w-[458px] flex flex-col h-full">
-          <header className="p-[8px] border-b">
+        <aside className="border-r w-full md:w-[458px] flex flex-col min-h-0">
+          <header className="p-[8px] border-b space-y-2 flex-shrink-0">
             <SearchField
               clsName="md:!w-full"
               value={searchQuery}
               onChange={setSearchQuery}
               placeholder="Search conversations..."
             />
+            <div className="flex justify-end">
+              <CreateRoomModal onRoomCreated={handleRoomCreated} />
+            </div>
           </header>
 
           <div className="flex-1 overflow-y-auto">
@@ -429,7 +395,7 @@ export default function Messaging() {
         </aside>
 
         {/* Chat Area */}
-        <aside className="flex-1 flex flex-col h-full min-h-0">
+        <aside className="flex-1 flex flex-col min-h-0">
           {selectedConversation ? (
             <>
               {/* Header */}
@@ -458,7 +424,7 @@ export default function Messaging() {
               <Divider text="Today" />
 
               {/* Messages Container */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-6 min-h-0">
+              <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-6 space-y-6 min-h-0">
                 {messages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-32 text-gray-500">
                     <p>No messages yet. Start a conversation!</p>
@@ -602,7 +568,7 @@ export default function Messaging() {
                     <Button
                       onClick={handleSendMessage}
                       disabled={
-                        !messageContent.trim() || !isConnected || isLoading
+                        !messageContent.trim() || !isConnected || isLoading || !selectedConversation
                       }
                       className="bg-[#00A498] hover:bg-[#00857a] text-white"
                     >
