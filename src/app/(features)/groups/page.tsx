@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Group } from "@/interface/groups";
-import { fetchAllGroups } from "@/utilities/groupHandler";
+import { fetchAllGroups } from "@/utilities/handlers/groupHandler";
 import GroupCard from "@/components/groups/GroupCard";
 import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
@@ -177,8 +177,8 @@ export default function AllGroupsPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
-      <Link href="/home">
-        <Button variant="outline" size="sm" className="flex items-center gap-2">
+      <Link href="/home" >
+        <Button variant="outline" size="sm" className="flex items-center gap-2 mb-4">
           <ArrowLeft className="w-4 h-4" />
           Back to Home
         </Button>

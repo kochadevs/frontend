@@ -1,12 +1,15 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { handleSignup } from "../../../utilities/authHandler";
+import { handleSignup } from "../../../utilities/handlers/authHandler";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { z } from "zod";
-import { SignupFormData, signupFormSchema } from "../../../zodSchema/signupSchema";
+import {
+  SignupFormData,
+  signupFormSchema,
+} from "../../../zodSchema/signupSchema";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
@@ -204,7 +207,9 @@ export default function Signup() {
                       placeholder="Enter email"
                     />
                     {errors.email && (
-                      <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.email}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -232,7 +237,9 @@ export default function Signup() {
                       <option value="female">Female</option>
                     </select>
                     {errors.gender && (
-                      <p className="mt-1 text-sm text-red-600">{errors.gender}</p>
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.gender}
+                      </p>
                     )}
                   </div>
                 </div>

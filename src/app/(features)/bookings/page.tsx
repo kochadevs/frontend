@@ -10,7 +10,7 @@ import {
   confirmBooking,
   cancelBooking,
   deleteBooking,
-} from "@/utilities/bookingHandler";
+} from "@/utilities/handlers/bookingHandler";
 import { Booking } from "@/interface/bookings";
 import BookingDetailsModal from "@/components/BookingDetailsModal";
 import {
@@ -115,7 +115,8 @@ export default function BookingsPage() {
       // Sort bookings by booking_date (most recent first)
       const sortedBookings = bookingsData.sort(
         (a, b) =>
-          new Date(b.booking_date).getTime() - new Date(a.booking_date).getTime()
+          new Date(b.booking_date).getTime() -
+          new Date(a.booking_date).getTime()
       );
 
       setBookings(sortedBookings);
@@ -378,7 +379,7 @@ export default function BookingsPage() {
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button
-                                className="text-red-600 hover:text-red-700 bg-transparent hover:bg-transparent"
+                                  className="text-red-600 hover:text-red-700 bg-transparent hover:bg-transparent"
                                   size="sm"
                                   variant="destructive"
                                   disabled={

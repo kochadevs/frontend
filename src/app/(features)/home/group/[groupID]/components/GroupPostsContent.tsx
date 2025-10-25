@@ -13,7 +13,7 @@ import {
   unreactToComment,
   unreactToPost,
   reactToPost,
-} from "@/utilities/postHandler";
+} from "@/utilities/handlers/postHandler";
 import { Post as APIPost, ApiComment } from "@/interface/posts";
 import { useUser, useAccessToken, useAuthActions } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
@@ -61,7 +61,9 @@ interface GroupPostContentProps {
   groupId: string;
 }
 
-export default function GroupPostContent({ groupId }: Readonly<GroupPostContentProps>) {
+export default function GroupPostContent({
+  groupId,
+}: Readonly<GroupPostContentProps>) {
   const user = useUser();
   const accessToken = useAccessToken();
   const { initializeAuth } = useAuthActions();
@@ -133,7 +135,7 @@ export default function GroupPostContent({ groupId }: Readonly<GroupPostContentP
       content: apiPost.content,
       media: [], // We'll need to handle media in the future
       likes: apiPost.reactions_count,
-      likedByUser: apiPost.user_reaction === 'like', // Track user's like status from API
+      likedByUser: apiPost.user_reaction === "like", // Track user's like status from API
       comments: [], // We'll need to load comments separately
       reposts: 0, // Not available in current API
       timestamp: formatTimeAgo(apiPost.date_created),

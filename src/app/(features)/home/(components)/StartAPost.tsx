@@ -15,7 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "react-hot-toast";
-import { createPost } from "@/utilities/postHandler";
+import { createPost } from "@/utilities/handlers/postHandler";
 import { CreatePostPayload } from "@/interface/posts";
 import { useUser, useAccessToken } from "@/store/authStore";
 
@@ -24,7 +24,10 @@ interface StartAPostProps {
   groupId?: string;
 }
 
-export default function StartAPost({ onPostCreated, groupId }: Readonly<StartAPostProps>) {
+export default function StartAPost({
+  onPostCreated,
+  groupId,
+}: Readonly<StartAPostProps>) {
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -32,7 +35,7 @@ export default function StartAPost({ onPostCreated, groupId }: Readonly<StartAPo
   const accessToken = useAccessToken();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!content.trim()) {
       toast.error("Please write something before posting.");
       return;
@@ -44,7 +47,7 @@ export default function StartAPost({ onPostCreated, groupId }: Readonly<StartAPo
     }
 
     setIsSubmitting(true);
-    
+
     try {
       const payload: CreatePostPayload = {
         content: content.trim(),
@@ -52,19 +55,21 @@ export default function StartAPost({ onPostCreated, groupId }: Readonly<StartAPo
       };
 
       await createPost(payload, accessToken);
-      
+
       toast.success("Your post has been created successfully!");
-      
+
       setContent("");
       setIsOpen(false);
-      
+
       if (onPostCreated) {
         onPostCreated();
       }
     } catch (error) {
       console.error("Error creating post:", error);
       toast.error(
-        error instanceof Error ? error.message : "Failed to create post. Please try again."
+        error instanceof Error
+          ? error.message
+          : "Failed to create post. Please try again."
       );
     } finally {
       setIsSubmitting(false);
@@ -73,19 +78,19 @@ export default function StartAPost({ onPostCreated, groupId }: Readonly<StartAPo
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogTrigger asChild>
-          <Button
-            variant="outline"
-            className="h-[54px] text-[16px] border bg-white w-full flex items-center justify-start text-gray-300 hover:bg-transparent hover:text-gray-300"
-          >
-            Start a post
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[595px]">
-          <form onSubmit={handleSubmit}>
-            <DialogHeader className="border-b pb-[1rem]">
-              <DialogTitle className="text-[#344054]">Start a post</DialogTitle>
-            </DialogHeader>
+      <DialogTrigger asChild>
+        <Button
+          variant="outline"
+          className="h-[54px] text-[16px] border bg-white w-full flex items-center justify-start text-gray-300 hover:bg-transparent hover:text-gray-300"
+        >
+          Start a post
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[595px]">
+        <form onSubmit={handleSubmit}>
+          <DialogHeader className="border-b pb-[1rem]">
+            <DialogTitle className="text-[#344054]">Start a post</DialogTitle>
+          </DialogHeader>
           <div className="flex-col flex gap-3">
             <div className="flex items-center gap-[16px]">
               <Avatar className="w-[40px] h-[40px] object-center">
@@ -97,7 +102,7 @@ export default function StartAPost({ onPostCreated, groupId }: Readonly<StartAPo
               </Avatar>
 
               <h2 className="text-gray-shade-700 text-[17px] font-[700]">
-                {user?.first_name && user?.last_name 
+                {user?.first_name && user?.last_name
                   ? `${user.first_name} ${user.last_name}`
                   : user?.first_name || "User"}
               </h2>
@@ -187,20 +192,22 @@ export default function StartAPost({ onPostCreated, groupId }: Readonly<StartAPo
               </div>
             </div>
           </div>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button type="button" variant="outline">Cancel</Button>
-              </DialogClose>
-              <Button
-                type="submit"
-                disabled={isSubmitting || !content.trim()}
-                className="bg-[#334AFF] hover:bg-[#334AFF]/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSubmitting ? "Posting..." : "Post"}
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button type="button" variant="outline">
+                Cancel
               </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
+            </DialogClose>
+            <Button
+              type="submit"
+              disabled={isSubmitting || !content.trim()}
+              className="bg-[#334AFF] hover:bg-[#334AFF]/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? "Posting..." : "Post"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
     </Dialog>
   );
 }

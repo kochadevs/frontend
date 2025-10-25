@@ -16,10 +16,11 @@ import {
   joinGroup,
   fetchMyGroups,
   leaveGroup,
-} from "@/utilities/groupHandler";
+} from "@/utilities/handlers/groupHandler";
 import { useAuthStore } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import { toast } from "react-hot-toast";
+import { getGroupInitials } from "@/utilities/getNameInitials";
 
 export default function Groups() {
   const [activeTab, setActiveTab] = useState("all");
@@ -192,15 +193,6 @@ export default function Groups() {
         error instanceof Error ? error.message : "Failed to leave group"
       );
     }
-  };
-
-  const getGroupInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((word) => word[0])
-      .join("")
-      .substring(0, 2)
-      .toUpperCase();
   };
 
   useEffect(() => {

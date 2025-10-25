@@ -10,7 +10,7 @@ import {
   ResetPasswordFormData,
   resetPasswordSchema,
 } from "../../../zodSchema/passwordResetSchema";
-import { handleResetPassword } from "../../../utilities/authHandler";
+import { handleResetPassword } from "../../../utilities/handlers/authHandler";
 import { toast } from "react-hot-toast";
 
 const ResetPasswordContent = () => {

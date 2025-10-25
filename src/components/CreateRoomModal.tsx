@@ -23,7 +23,11 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Plus } from "lucide-react";
-import { createChatRoom, ChatRoom, CreateRoomPayload } from "@/utilities/chatApi";
+import {
+  createChatRoom,
+  ChatRoom,
+  CreateRoomPayload,
+} from "@/utilities/chat/chatApi";
 import { useAuth } from "@/store/authStore";
 import toast from "react-hot-toast";
 
@@ -47,20 +51,20 @@ export default function CreateRoomModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name.trim()) {
       toast.error("Room name is required");
       return;
     }
 
     setIsLoading(true);
-    
+
     try {
       const room = await createChatRoom(formData, accessToken);
       toast.success(`Room "${room.name}" created successfully!`);
       onRoomCreated?.(room);
       setOpen(false);
-      
+
       // Reset form
       setFormData({
         name: "",
@@ -84,9 +88,7 @@ export default function CreateRoomModal({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {triggerButton || defaultTrigger}
-      </DialogTrigger>
+      <DialogTrigger asChild>{triggerButton || defaultTrigger}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
@@ -95,7 +97,7 @@ export default function CreateRoomModal({
               Create a new chat room to start conversations.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="name">Room Name</Label>

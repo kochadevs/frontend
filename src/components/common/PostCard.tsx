@@ -5,7 +5,7 @@ import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Image from "next/image";
-import { togglePostLike } from "@/utilities/postHandler";
+import { togglePostLike } from "@/utilities/handlers/postHandler";
 import { useAccessToken } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import { toast } from "react-hot-toast";

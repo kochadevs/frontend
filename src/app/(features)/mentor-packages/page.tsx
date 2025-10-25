@@ -1,9 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MentorPackage, CreateMentorPackageRequest } from "@/interface/mentorPackages";
+import {
+  MentorPackage,
+  CreateMentorPackageRequest,
+} from "@/interface/mentorPackages";
 import { Mentor } from "@/interface/mentors";
-import { getMentorPackages, createMentorPackage, updateMentorPackage, deleteMentorPackage } from "@/utilities/mentorPackageHandler";
+import {
+  getMentorPackages,
+  createMentorPackage,
+  updateMentorPackage,
+  deleteMentorPackage,
+} from "@/utilities/handlers/mentorPackageHandler";
 import { useAccessToken, useUser } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import { toast } from "react-hot-toast";
@@ -25,12 +33,18 @@ export default function MentorPackagesPage() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterType, setFilterType] = useState<"all" | "active" | "inactive" | "mine">("all");
-  const [editingPackage, setEditingPackage] = useState<MentorPackage | null>(null);
-  const [deletingPackage, setDeletingPackage] = useState<MentorPackage | null>(null);
+  const [filterType, setFilterType] = useState<
+    "all" | "active" | "inactive" | "mine"
+  >("all");
+  const [editingPackage, setEditingPackage] = useState<MentorPackage | null>(
+    null
+  );
+  const [deletingPackage, setDeletingPackage] = useState<MentorPackage | null>(
+    null
+  );
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  
+
   const accessToken = useAccessToken();
   const user = useUser();
   const isMentor = user?.user_type === "mentor";
@@ -51,7 +65,7 @@ export default function MentorPackagesPage() {
         const { accessToken: cookieToken } = tokenUtils.getTokens();
         token = cookieToken;
       }
-      
+
       if (!token) {
         toast.error("Please sign in to view mentor packages.");
         setIsLoading(false);
@@ -59,7 +73,7 @@ export default function MentorPackagesPage() {
       }
 
       let packagesData: MentorPackage[];
-      
+
       // Strictly call only one endpoint based on user type
       if (user.user_type === "mentor") {
         // For mentors: fetch only their own packages using mentor-specific endpoint
@@ -68,18 +82,23 @@ export default function MentorPackagesPage() {
         // For mentees: fetch all packages using general endpoint
         packagesData = await getMentorPackages(token);
       }
-      
+
       setPackages(packagesData);
       setFilteredPackages(packagesData);
-      
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to load mentor packages");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to load mentor packages"
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleCreatePackage = async (packageData: CreateMentorPackageRequest) => {
+  const handleCreatePackage = async (
+    packageData: CreateMentorPackageRequest
+  ) => {
     // Check if user is a mentor
     if (!isMentor) {
       toast.error("Only mentors can create packages.");
@@ -94,25 +113,29 @@ export default function MentorPackagesPage() {
         const { accessToken: cookieToken } = tokenUtils.getTokens();
         token = cookieToken;
       }
-      
+
       if (!token) {
         toast.error("Please sign in to create a package.");
         return;
       }
 
       const newPackage = await createMentorPackage(packageData, token);
-      setPackages(prev => [newPackage, ...prev]);
+      setPackages((prev) => [newPackage, ...prev]);
       toast.success("Package created successfully!");
-      
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to create package");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to create package"
+      );
       throw error; // Re-throw to prevent modal from closing
     } finally {
       setIsCreating(false);
     }
   };
 
-  const handleUpdatePackage = async (packageId: number, packageData: CreateMentorPackageRequest) => {
+  const handleUpdatePackage = async (
+    packageId: number,
+    packageData: CreateMentorPackageRequest
+  ) => {
     // Check if user is a mentor
     if (!isMentor) {
       toast.error("Only mentors can update packages.");
@@ -127,18 +150,25 @@ export default function MentorPackagesPage() {
         const { accessToken: cookieToken } = tokenUtils.getTokens();
         token = cookieToken;
       }
-      
+
       if (!token) {
         toast.error("Please sign in to update the package.");
         return;
       }
 
-      const updatedPackage = await updateMentorPackage(packageId, packageData, token);
-      setPackages(prev => prev.map(pkg => pkg.id === packageId ? updatedPackage : pkg));
+      const updatedPackage = await updateMentorPackage(
+        packageId,
+        packageData,
+        token
+      );
+      setPackages((prev) =>
+        prev.map((pkg) => (pkg.id === packageId ? updatedPackage : pkg))
+      );
       toast.success("Package updated successfully!");
-      
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to update package");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update package"
+      );
       throw error; // Re-throw to prevent modal from closing
     } finally {
       setIsUpdating(false);
@@ -160,18 +190,19 @@ export default function MentorPackagesPage() {
         const { accessToken: cookieToken } = tokenUtils.getTokens();
         token = cookieToken;
       }
-      
+
       if (!token) {
         toast.error("Please sign in to delete the package.");
         return;
       }
 
       await deleteMentorPackage(packageId, token);
-      setPackages(prev => prev.filter(pkg => pkg.id !== packageId));
+      setPackages((prev) => prev.filter((pkg) => pkg.id !== packageId));
       toast.success("Package deleted successfully!");
-      
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to delete package");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete package"
+      );
       throw error; // Re-throw to prevent modal from closing
     } finally {
       setIsDeleting(false);
@@ -191,21 +222,23 @@ export default function MentorPackagesPage() {
 
     // Apply search filter
     if (searchQuery.trim()) {
-      filtered = filtered.filter(pkg => {
+      filtered = filtered.filter((pkg) => {
         const query = searchQuery.toLowerCase();
-        return pkg.name.toLowerCase().includes(query) || 
-               pkg.description.toLowerCase().includes(query);
+        return (
+          pkg.name.toLowerCase().includes(query) ||
+          pkg.description.toLowerCase().includes(query)
+        );
       });
     }
 
     // Apply status/ownership filter
     if (filterType === "active") {
-      filtered = filtered.filter(pkg => pkg.is_active);
+      filtered = filtered.filter((pkg) => pkg.is_active);
     } else if (filterType === "inactive") {
-      filtered = filtered.filter(pkg => !pkg.is_active);
+      filtered = filtered.filter((pkg) => !pkg.is_active);
     } else if (filterType === "mine" && user?.id && !isMentor) {
       // "Mine" filter only applies to mentees viewing all packages
-      filtered = filtered.filter(pkg => pkg.user_id === user.id);
+      filtered = filtered.filter((pkg) => pkg.user_id === user.id);
     }
 
     setFilteredPackages(filtered);
@@ -250,7 +283,7 @@ export default function MentorPackagesPage() {
       role_of_interest: [],
       industry: [],
       skills: [],
-      career_goals: []
+      career_goals: [],
     };
   };
 
@@ -260,12 +293,15 @@ export default function MentorPackagesPage() {
   };
 
   const getFilterCounts = () => {
-    const active = packages.filter(pkg => pkg.is_active).length;
-    const inactive = packages.filter(pkg => !pkg.is_active).length;
+    const active = packages.filter((pkg) => pkg.is_active).length;
+    const inactive = packages.filter((pkg) => !pkg.is_active).length;
     // For mentors, "mine" doesn't make sense since they only see their own packages
     // For mentees, "mine" shows packages they might have created (if any)
-    const mine = user?.id && !isMentor ? packages.filter(pkg => pkg.user_id === user.id).length : 0;
-    
+    const mine =
+      user?.id && !isMentor
+        ? packages.filter((pkg) => pkg.user_id === user.id).length
+        : 0;
+
     return { active, inactive, mine, total: packages.length };
   };
 
@@ -283,7 +319,6 @@ export default function MentorPackagesPage() {
     );
   }
 
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -299,26 +334,27 @@ export default function MentorPackagesPage() {
                   {isMentor ? "My Mentor Packages" : "Mentor Packages"}
                 </h1>
                 <p className="text-sm text-gray-600">
-                  {isMentor 
+                  {isMentor
                     ? "Create and manage your mentorship packages"
                     : "Discover mentorship packages from experienced mentors"}
                 </p>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               {!isLoading && (
                 <div className="flex items-center space-x-2 text-sm text-gray-600">
                   <Package className="h-4 w-4" />
                   <span>
-                    {filteredPackages.length} {isMentor ? "my" : ""} packages {isMentor ? "" : "found"}
+                    {filteredPackages.length} {isMentor ? "my" : ""} packages{" "}
+                    {isMentor ? "" : "found"}
                   </span>
                 </div>
               )}
-              
+
               {isMentor && (
-                <CreatePackageModal 
-                  onCreatePackage={handleCreatePackage} 
+                <CreatePackageModal
+                  onCreatePackage={handleCreatePackage}
                   isLoading={isCreating}
                 />
               )}
@@ -341,10 +377,14 @@ export default function MentorPackagesPage() {
                 className="pl-10"
               />
             </div>
-            
+
             {/* Clear Filters */}
             {(searchQuery || filterType !== "all") && (
-              <Button variant="outline" onClick={clearFilters} className="shrink-0">
+              <Button
+                variant="outline"
+                onClick={clearFilters}
+                className="shrink-0"
+              >
                 Clear Filters
               </Button>
             )}
@@ -363,7 +403,7 @@ export default function MentorPackagesPage() {
             >
               All ({counts.total})
             </Badge>
-            
+
             <Badge
               variant={filterType === "active" ? "default" : "outline"}
               className={`cursor-pointer transition-colors ${
@@ -375,7 +415,7 @@ export default function MentorPackagesPage() {
             >
               Active ({counts.active})
             </Badge>
-            
+
             <Badge
               variant={filterType === "inactive" ? "default" : "outline"}
               className={`cursor-pointer transition-colors ${
@@ -387,7 +427,7 @@ export default function MentorPackagesPage() {
             >
               Inactive ({counts.inactive})
             </Badge>
-            
+
             {user?.id && !isMentor && (
               <Badge
                 variant={filterType === "mine" ? "default" : "outline"}
@@ -422,24 +462,29 @@ export default function MentorPackagesPage() {
                 <Package className="h-8 w-8 text-gray-400" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {packages.length === 0 ? "No packages available" : "No packages match your filters"}
+                {packages.length === 0
+                  ? "No packages available"
+                  : "No packages match your filters"}
               </h3>
               <p className="text-gray-600 mb-4">
-                {packages.length === 0 
-                  ? (isMentor 
-                      ? "Create your first mentor package to start offering your mentorship services!"
-                      : "No mentor packages are available at the moment. Check back soon!")
-                  : "Try adjusting your search criteria or clearing filters to see more results."
-                }
+                {packages.length === 0
+                  ? isMentor
+                    ? "Create your first mentor package to start offering your mentorship services!"
+                    : "No mentor packages are available at the moment. Check back soon!"
+                  : "Try adjusting your search criteria or clearing filters to see more results."}
               </p>
               {(searchQuery || filterType !== "all") && (
-                <Button variant="outline" onClick={clearFilters} className="mb-4">
+                <Button
+                  variant="outline"
+                  onClick={clearFilters}
+                  className="mb-4"
+                >
                   Clear All Filters
                 </Button>
               )}
               {packages.length === 0 && isMentor && (
-                <CreatePackageModal 
-                  onCreatePackage={handleCreatePackage} 
+                <CreatePackageModal
+                  onCreatePackage={handleCreatePackage}
                   isLoading={isCreating}
                 />
               )}
@@ -451,8 +496,8 @@ export default function MentorPackagesPage() {
         {!isLoading && filteredPackages.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredPackages.map((pkg) => (
-              <PackageCard 
-                key={pkg.id} 
+              <PackageCard
+                key={pkg.id}
                 package={pkg}
                 mentor={!isMentor ? createMentorFromPackage(pkg) : undefined}
                 onEdit={handleEditPackage}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
-import { getMentorPackagesForMentees } from "@/utilities/mentorPackageHandler";
+import { getMentorPackagesForMentees } from "@/utilities/handlers/mentorPackageHandler";
 import { MentorPackage } from "@/interface/mentorPackages";
 import { Mentor } from "@/interface/mentors";
 import { useAccessToken } from "@/store/authStore";
@@ -16,11 +16,15 @@ type BookSessionViewProps = {
   mentor?: Mentor | null;
 };
 
-export default function BookSessionView({ mentor }: Readonly<BookSessionViewProps>) {
+export default function BookSessionView({
+  mentor,
+}: Readonly<BookSessionViewProps>) {
   const [packages, setPackages] = useState<MentorPackage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedPackage, setSelectedPackage] = useState<MentorPackage | null>(null);
+  const [selectedPackage, setSelectedPackage] = useState<MentorPackage | null>(
+    null
+  );
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const accessToken = useAccessToken();
 
@@ -33,7 +37,7 @@ export default function BookSessionView({ mentor }: Readonly<BookSessionViewProp
 
     setIsLoading(true);
     setError(null);
-    
+
     try {
       // Get token from store first, then from cookies as fallback
       let token = accessToken;
@@ -41,7 +45,7 @@ export default function BookSessionView({ mentor }: Readonly<BookSessionViewProp
         const { accessToken: cookieToken } = tokenUtils.getTokens();
         token = cookieToken;
       }
-      
+
       if (!token) {
         setError("Please sign in to view mentor packages.");
         return;
@@ -52,13 +56,15 @@ export default function BookSessionView({ mentor }: Readonly<BookSessionViewProp
         token,
         mentor.id
       );
-      
+
       // Filter only active packages for booking
-      const activePackages = mentorPackages.filter(pkg => pkg.is_active);
+      const activePackages = mentorPackages.filter((pkg) => pkg.is_active);
       setPackages(activePackages);
-      
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to load mentor packages";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to load mentor packages";
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -74,7 +80,9 @@ export default function BookSessionView({ mentor }: Readonly<BookSessionViewProp
   const handleBookingSuccess = () => {
     setIsBookingModalOpen(false);
     setSelectedPackage(null);
-    toast.success("Booking successful! You'll receive a confirmation email shortly.");
+    toast.success(
+      "Booking successful! You'll receive a confirmation email shortly."
+    );
   };
 
   useEffect(() => {
@@ -110,7 +118,7 @@ export default function BookSessionView({ mentor }: Readonly<BookSessionViewProp
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <p className="text-red-600 mb-4">{error}</p>
-            <Button 
+            <Button
               onClick={loadMentorPackages}
               variant="outline"
               className="border-[#334AFF] text-[#334AFF] hover:bg-[#334AFF] hover:text-white"
@@ -157,7 +165,10 @@ export default function BookSessionView({ mentor }: Readonly<BookSessionViewProp
       {!isLoading && !error && packages.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
           {packages.map((pkg) => (
-            <Card key={pkg.id} className="p-4 flex flex-col gap-4 hover:shadow-md transition-shadow">
+            <Card
+              key={pkg.id}
+              className="p-4 flex flex-col gap-4 hover:shadow-md transition-shadow"
+            >
               <div>
                 <h3 className="text-[#475467] text-xl sm:text-2xl font-[600]">
                   {pkg.name}
@@ -194,7 +205,8 @@ export default function BookSessionView({ mentor }: Readonly<BookSessionViewProp
 
                   <div className="flex-1">
                     <h4 className="text-[#344054] font-[600] text-sm sm:text-base">
-                      {mentor?.new_role_values?.[0]?.name || "Professional Mentor"}
+                      {mentor?.new_role_values?.[0]?.name ||
+                        "Professional Mentor"}
                     </h4>
                     <p className="text-[#667085] text-xs sm:text-sm">
                       Video meeting • {pkg.duration} minutes
@@ -231,7 +243,7 @@ export default function BookSessionView({ mentor }: Readonly<BookSessionViewProp
           ))}
         </div>
       )}
-      
+
       {/* Booking Modal */}
       {mentor && selectedPackage && (
         <BookingModal

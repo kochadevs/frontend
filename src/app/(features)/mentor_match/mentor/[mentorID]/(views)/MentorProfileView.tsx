@@ -11,7 +11,7 @@ type MentorProfileViewProps = {
   mentor?: Mentor | null;
 };
 
-export default function MentorProfileView({ mentor }: MentorProfileViewProps) {
+export default function MentorProfileView({ mentor }: Readonly<MentorProfileViewProps>) {
   return (
     <>
       <About mentor={mentor} />

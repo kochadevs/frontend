@@ -12,10 +12,15 @@ export default function About({ mentor }: Readonly<AboutProps>) {
         <h3 className="font-[600] text-[20px] text-[#475467]">About</h3>
       </div>
       <div className="px-[38px] py-[16px]">
-        <p className="text-[#344054] font-[400] whitespace-pre-wrap">
-          {mentor?.about ||
-            "This mentor has not provided an about section yet. Please check back later for more information about their background, expertise, and mentoring approach."}
-        </p>
+        {mentor?.about ? (
+          <p className="text-[#344054] font-[400] whitespace-pre-wrap">
+            {mentor?.about}
+          </p>
+        ) : (
+          <p className="text-gray-500 text-center">
+            This mentor has not provided an about section yet.
+          </p>
+        )}
 
         {mentor && (
           <div className="mt-6 space-y-3">

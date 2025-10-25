@@ -8,7 +8,10 @@ import MembersView from "./components/MembersView";
 import { useParams } from "next/navigation";
 import { GroupMember } from "@/interface/groupMembers";
 import type { Group } from "@/interface/groups";
-import { fetchGroupMembers, fetchGroupDetails } from "@/utilities/groupHandler";
+import {
+  fetchGroupMembers,
+  fetchGroupDetails,
+} from "@/utilities/handlers/groupHandler";
 import { useAuthStore } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import { toast } from "react-hot-toast";

@@ -107,7 +107,11 @@ export default function PostCard({
   const [showDropdown, setShowDropdown] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDeleteCommentModal, setShowDeleteCommentModal] = useState(false);
-  const [commentToDelete, setCommentToDelete] = useState<{id: string, postId: string, author: string} | null>(null);
+  const [commentToDelete, setCommentToDelete] = useState<{
+    id: string;
+    postId: string;
+    author: string;
+  } | null>(null);
   const [isDeletingComment, setIsDeletingComment] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -122,7 +126,7 @@ export default function PostCard({
 
   const handleDeleteCommentConfirm = async () => {
     if (!commentToDelete || !onDeleteComment) return;
-    
+
     setIsDeletingComment(true);
     try {
       await onDeleteComment(commentToDelete.id, commentToDelete.postId);
@@ -218,11 +222,6 @@ export default function PostCard({
           <div className="bg-gray-100 p-3 rounded-lg">
             <div className="flex items-center gap-2 mb-1">
               <p className="font-medium text-[14px]">{comment.user.name}</p>
-              {comment.user.role && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#334AFF]/10 text-[#334AFF] border border-[#334AFF]/20">
-                  {comment.user.role}
-                </span>
-              )}
             </div>
             <p className="text-[14px] text-gray-800">{comment.text}</p>
             {comment.media && (
@@ -286,7 +285,7 @@ export default function PostCard({
                   setCommentToDelete({
                     id: comment.id,
                     postId: post.id,
-                    author: comment.user.name
+                    author: comment.user.name,
                   });
                   setShowDeleteCommentModal(true);
                 }}
@@ -381,7 +380,7 @@ export default function PostCard({
               src={post.user.avatar}
               className="w-full h-full object-cover"
             />
-            <AvatarFallback className="bg-[#334AFF] text-white font-semibold">
+            <AvatarFallback className="bg-gradient-to-br from-[#334AFF] to-[#251F99] text-white font-semibold">
               {post.user.name?.charAt(0) || "U"}
             </AvatarFallback>
           </Avatar>
@@ -390,11 +389,6 @@ export default function PostCard({
               <h2 className="font-semibold text-[#1a1a1a] text-[16px] hover:text-[#334AFF] cursor-pointer transition-colors">
                 {post.user.name}
               </h2>
-              {post.user.role && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#334AFF]/10 text-[#334AFF] border border-[#334AFF]/20">
-                  {post.user.role}
-                </span>
-              )}
             </div>
             <div className="flex items-center gap-1 mt-1">
               <span className="text-gray-600 text-[13px]">
@@ -645,18 +639,23 @@ export default function PostCard({
             <div className="flex items-center justify-center py-4">
               <div className="flex items-center gap-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#334AFF]"></div>
-                <span className="text-gray-600 text-sm">Loading comments...</span>
+                <span className="text-gray-600 text-sm">
+                  Loading comments...
+                </span>
               </div>
             </div>
           )}
-          
+
           {/* Existing comments */}
-          {!isLoadingComments && post.comments.map((comment) => renderComment(comment))}
-          
+          {!isLoadingComments &&
+            post.comments.map((comment) => renderComment(comment))}
+
           {/* No comments message */}
           {!isLoadingComments && post.comments.length === 0 && (
             <div className="text-center py-4">
-              <p className="text-gray-500 text-sm">No comments yet. Be the first to comment!</p>
+              <p className="text-gray-500 text-sm">
+                No comments yet. Be the first to comment!
+              </p>
             </div>
           )}
 
@@ -725,7 +724,9 @@ export default function PostCard({
                 <Button
                   className="mt-2"
                   onClick={() => onHandleAddComment(post.id)}
-                  disabled={(!newComment.trim() && !commentMedia) || isAddingComment}
+                  disabled={
+                    (!newComment.trim() && !commentMedia) || isAddingComment
+                  }
                 >
                   {isAddingComment ? (
                     <div className="flex items-center gap-2">
@@ -741,7 +742,7 @@ export default function PostCard({
           )}
         </div>
       )}
-      
+
       {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal
         isOpen={showDeleteModal}
@@ -749,7 +750,7 @@ export default function PostCard({
         onConfirm={handleDeleteConfirm}
         isLoading={isDeleting}
       />
-      
+
       {/* Delete Comment Modal */}
       <DeleteCommentModal
         isOpen={showDeleteCommentModal}

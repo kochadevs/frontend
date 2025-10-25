@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import MemberCard from "./MemberCard";
 import { GroupMember } from "@/interface/groupMembers";
-import { fetchGroupMembers } from "@/utilities/groupHandler";
+import { fetchGroupMembers } from "@/utilities/handlers/groupHandler";
 import { useAuthStore } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import { toast } from "react-hot-toast";

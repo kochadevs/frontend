@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Star, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { getMentors } from "@/utilities/mentorHandler";
+import { getMentors } from "@/utilities/handlers/mentorHandler";
 import { Mentor } from "@/interface/mentors";
 import { useAccessToken } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
