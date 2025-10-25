@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MentorPackage } from "@/interface/mentorPackages";
 import { Mentor } from "@/interface/mentors";
-import { Clock, DollarSign, Calendar, User } from "lucide-react";
+import { Calendar, User } from "lucide-react";
 import BookingModal from "@/components/BookingModal";
 
 interface PackageCardProps {
@@ -19,22 +19,22 @@ interface PackageCardProps {
   currentUserId?: number;
 }
 
-export default function PackageCard({ 
-  package: pkg, 
+export default function PackageCard({
+  package: pkg,
   mentor,
-  onEdit, 
-  onDelete, 
+  onEdit,
+  onDelete,
   onBookingSuccess,
   showActions = false,
-  currentUserId 
-}: PackageCardProps) {
+  currentUserId,
+}: Readonly<PackageCardProps>) {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
-      day: "numeric"
+      day: "numeric",
     });
   };
 
@@ -108,9 +108,6 @@ export default function PackageCard({
         <div className="grid grid-cols-2 gap-4">
           {/* Price */}
           <div className="flex items-center space-x-2">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <DollarSign className="w-4 h-4 text-green-600" />
-            </div>
             <div>
               <p className="text-xs text-gray-500 font-medium">Price</p>
               <p className="text-lg font-bold text-green-600">
@@ -121,9 +118,6 @@ export default function PackageCard({
 
           {/* Duration */}
           <div className="flex items-center space-x-2">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Clock className="w-4 h-4 text-blue-600" />
-            </div>
             <div>
               <p className="text-xs text-gray-500 font-medium">Duration</p>
               <p className="text-sm font-semibold text-gray-900">
@@ -182,19 +176,15 @@ export default function PackageCard({
               Book This Package - ${pkg.price}
             </Button>
           )}
-          
+
           {!isOwner && (!pkg.is_active || !mentor) && (
-            <Button
-              size="sm"
-              disabled
-              className="w-full text-xs"
-            >
+            <Button size="sm" disabled className="w-full text-xs">
               {!pkg.is_active ? "Package Unavailable" : "Booking Unavailable"}
             </Button>
           )}
         </div>
       </CardContent>
-      
+
       {/* Booking Modal */}
       {mentor && (
         <BookingModal

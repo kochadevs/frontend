@@ -20,7 +20,7 @@ import {
 import { useAuthStore } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import { toast } from "react-hot-toast";
-import { getGroupInitials } from "@/utilities/getNameInitials";
+import { getInitialsFromSingleName } from "@/utilities/getNameInitials";
 
 export default function Groups() {
   const [activeTab, setActiveTab] = useState("all");
@@ -264,7 +264,7 @@ export default function Groups() {
                   <div className="flex items-start gap-2">
                     <Avatar className="w-[32px] h-[32px] object-center bg-gradient-to-br from-[#334AFF] to-[#251F99] text-white">
                       <AvatarFallback className="bg-gradient-to-br from-[#334AFF] to-[#251F99] text-white text-xs font-semibold">
-                        {getGroupInitials(group.name)}
+                        {getInitialsFromSingleName(group.name)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="cursor-pointer">
@@ -375,7 +375,7 @@ export default function Groups() {
                   <div className="flex items-start  gap-4">
                     <Avatar className="w-[32px] h-[32px] object-center bg-gradient-to-br from-[#334AFF] to-[#251F99] text-white">
                       <AvatarFallback className="bg-gradient-to-br from-[#334AFF] to-[#251F99] text-white text-xs font-semibold">
-                        {getGroupInitials(group.name)}
+                        {getInitialsFromSingleName(group.name)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-col flex gap-y-1">

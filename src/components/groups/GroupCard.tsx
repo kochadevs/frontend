@@ -55,7 +55,7 @@ export default function GroupCard({
     }
   };
 
-  const getGroupInitials = (name: string) => {
+  const getInitialsFromSingleName = (name: string) => {
     return name
       .split(" ")
       .map((word) => word[0])
@@ -64,7 +64,7 @@ export default function GroupCard({
       .toUpperCase();
   };
 
-  console.log(group)
+  console.log(group);
 
   return (
     <Card className="p-6 hover:shadow-md transition-shadow duration-200">
@@ -72,7 +72,7 @@ export default function GroupCard({
         {/* Group Avatar */}
         <Avatar className="w-12 h-12 bg-gradient-to-br from-[#334AFF] to-[#251F99] text-white">
           <AvatarFallback className="bg-gradient-to-br from-[#334AFF] to-[#251F99] text-white font-semibold">
-            {getGroupInitials(group.name)}
+            {getInitialsFromSingleName(group.name)}
           </AvatarFallback>
         </Avatar>
 

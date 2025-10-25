@@ -320,15 +320,12 @@ export default function MentorPackagesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-[80vh] bg-gray-50 relative">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-[#334AFF]/10 rounded-lg">
-                <Package className="h-6 w-6 text-[#334AFF]" />
-              </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
                   {isMentor ? "My Mentor Packages" : "Mentor Packages"}
@@ -342,15 +339,17 @@ export default function MentorPackagesPage() {
             </div>
 
             <div className="flex items-center space-x-4">
-              {!isLoading && (
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <Package className="h-4 w-4" />
-                  <span>
-                    {filteredPackages.length} {isMentor ? "my" : ""} packages{" "}
-                    {isMentor ? "" : "found"}
-                  </span>
+              <div>
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search packages by name or description..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
                 </div>
-              )}
+              </div>
 
               {isMentor && (
                 <CreatePackageModal
@@ -359,35 +358,6 @@ export default function MentorPackagesPage() {
                 />
               )}
             </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search and Filters */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-          <div className="flex flex-col lg:flex-row gap-4 mb-4">
-            {/* Search Input */}
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search packages by name or description..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-
-            {/* Clear Filters */}
-            {(searchQuery || filterType !== "all") && (
-              <Button
-                variant="outline"
-                onClick={clearFilters}
-                className="shrink-0"
-              >
-                Clear Filters
-              </Button>
-            )}
           </div>
 
           {/* Filter Badges */}
@@ -443,7 +413,9 @@ export default function MentorPackagesPage() {
             )}
           </div>
         </div>
+      </header>
 
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Loading State */}
         {isLoading && (
           <div className="flex items-center justify-center py-12">

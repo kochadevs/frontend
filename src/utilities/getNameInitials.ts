@@ -13,12 +13,11 @@ export const getInitials = (
   return `${firstInitial}${lastInitial}`;
 };
 
-
-  export const getGroupInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((word) => word[0])
-      .join("")
-      .substring(0, 2)
-      .toUpperCase();
-  };
+export const getInitialsFromSingleName = (name: string) => {
+  return name
+    .split(" ")
+    .map((word) => word[0])
+    .join("")
+    .substring(0, 2)
+    .toUpperCase();
+};

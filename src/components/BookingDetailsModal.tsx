@@ -40,7 +40,7 @@ export default function BookingDetailsModal({
   booking,
   isOpen,
   onClose,
-}: BookingDetailsModalProps) {
+}: Readonly<BookingDetailsModalProps>) {
   if (!booking) return null;
 
   const formatDate = (dateString: string) => {

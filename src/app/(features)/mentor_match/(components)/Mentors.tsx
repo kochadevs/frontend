@@ -3,13 +3,14 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Star, Loader2 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { getMentors } from "@/utilities/handlers/mentorHandler";
 import { Mentor } from "@/interface/mentors";
 import { useAccessToken } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import { toast } from "react-hot-toast";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getInitials } from "@/utilities/getNameInitials";
 
 export default function Mentors() {
   const [mentors, setMentors] = useState<Mentor[]>([]);
@@ -117,20 +118,18 @@ export default function Mentors() {
             >
               <div className=" flex items-start gap-2 min-w-[240px] h-[65px]">
                 <div className="w-[65px] aspect-square h-[65px] relative rounded-md overflow-hidden">
-                  <Image
-                    src={
-                      mentor.profile_pic ||
-                      "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg"
-                    }
-                    alt={`${mentor.first_name} ${mentor.last_name || ""}`}
-                    className="object-cover"
-                    fill
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src =
-                        "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg";
-                    }}
-                  />
+                  <Avatar className="h-full w-full object-center">
+                    {mentor.profile_pic ? (
+                      <AvatarImage
+                        src={mentor?.profile_pic}
+                        className="w-full h-full object-cover"
+                        alt={`${mentor?.first_name} ${mentor?.last_name}`}
+                      />
+                    ) : null}
+                    <AvatarFallback className="bg-gradient-to-br from-[#334AFF] to-[#251F99] text-white font-semibold">
+                      {getInitials(mentor.first_name, mentor.last_name)}
+                    </AvatarFallback>
+                  </Avatar>
                 </div>
 
                 <div className="flex items-start flex-col">
