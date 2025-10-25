@@ -9,8 +9,7 @@ import { Mentor } from "@/interface/mentors";
 import { useAccessToken } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import { toast } from "react-hot-toast";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getInitials } from "@/utilities/getNameInitials";
+import { CustomAvatar } from "@/components/common/CustomAvatar";
 
 export default function Mentors() {
   const [mentors, setMentors] = useState<Mentor[]>([]);
@@ -118,18 +117,10 @@ export default function Mentors() {
             >
               <div className=" flex items-start gap-2 min-w-[240px] h-[65px]">
                 <div className="w-[65px] aspect-square h-[65px] relative rounded-md overflow-hidden">
-                  <Avatar className="h-full w-full object-center">
-                    {mentor.profile_pic ? (
-                      <AvatarImage
-                        src={mentor?.profile_pic}
-                        className="w-full h-full object-cover"
-                        alt={`${mentor?.first_name} ${mentor?.last_name}`}
-                      />
-                    ) : null}
-                    <AvatarFallback className="bg-gradient-to-br from-[#334AFF] to-[#251F99] text-white font-semibold">
-                      {getInitials(mentor.first_name, mentor.last_name)}
-                    </AvatarFallback>
-                  </Avatar>
+                  <CustomAvatar
+                    src={mentor?.profile_pic}
+                    name={`${mentor?.first_name} ${mentor?.last_name}`}
+                  />
                 </div>
 
                 <div className="flex items-start flex-col">

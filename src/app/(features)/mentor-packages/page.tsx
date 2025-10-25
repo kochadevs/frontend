@@ -19,7 +19,7 @@ import PackageCard from "@/components/PackageCard";
 import CreatePackageModal from "@/components/CreatePackageModal";
 import EditPackageModal from "@/components/EditPackageModal";
 import DeletePackageModal from "@/components/DeletePackageModal";
-import { Package, Loader2 } from "lucide-react";
+import { Package, Loader2, Rocket, Users, Target, Star, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -44,7 +44,6 @@ export default function MentorPackagesPage() {
   );
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-
   const accessToken = useAccessToken();
   const user = useUser();
   const isMentor = user?.user_type === "mentor";
@@ -321,100 +320,131 @@ export default function MentorPackagesPage() {
 
   return (
     <div className="min-h-[80vh] bg-gray-50 relative">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  {isMentor ? "My Mentor Packages" : "Mentor Packages"}
-                </h1>
-                <p className="text-sm text-gray-600">
-                  {isMentor
-                    ? "Create and manage your mentorship packages"
-                    : "Discover mentorship packages from experienced mentors"}
-                </p>
-              </div>
-            </div>
+      {/* Enhanced Banner Header */}
+      <div className=" z-20 sticky top-0 bg-gradient-to-r from-[#334AFF] to-[#6C47FF] text-white overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -translate-y-16 translate-x-16"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white rounded-full translate-y-12 -translate-x-12"></div>
+        </div>
 
-            <div className="flex items-center space-x-4">
-              <div>
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Search packages by name or description..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
+        {/* Content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <Rocket className="h-6 w-6" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold">
+                    {isMentor ? "My Mentor Packages" : "Mentor Packages"}
+                  </h1>
+                  <p className="text-white/80 text-sm">
+                    {isMentor
+                      ? "Create and manage your mentorship packages"
+                      : "Discover mentorship packages from experienced mentors"}
+                  </p>
                 </div>
               </div>
 
-              {isMentor && (
-                <CreatePackageModal
-                  onCreatePackage={handleCreatePackage}
-                  isLoading={isCreating}
-                />
-              )}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-white/80" />
+                  <span className="text-sm font-medium">Expert Mentors</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Target className="h-4 w-4 text-white/80" />
+                  <span className="text-sm font-medium">Custom Packages</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Star className="h-4 w-4 text-white/80" />
+                  <span className="text-sm font-medium">Proven Results</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Filter Badges */}
-          <div className="flex flex-wrap gap-2">
-            <Badge
-              variant={filterType === "all" ? "default" : "outline"}
-              className={`cursor-pointer transition-colors ${
-                filterType === "all"
-                  ? "bg-[#334AFF] hover:bg-[#334AFF]/90"
-                  : "hover:bg-[#334AFF]/10 hover:text-[#334AFF] hover:border-[#334AFF]/30"
-              }`}
-              onClick={() => setFilterType("all")}
-            >
-              All ({counts.total})
-            </Badge>
+          {/* Search and Filters Row */}
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mt-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 flex-1">
+              {/* Search */}
+              <div className="relative w-full sm:w-80">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search packages..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60"
+                />
+              </div>
 
-            <Badge
-              variant={filterType === "active" ? "default" : "outline"}
-              className={`cursor-pointer transition-colors ${
-                filterType === "active"
-                  ? "bg-[#334AFF] hover:bg-[#334AFF]/90"
-                  : "hover:bg-green-50 hover:text-green-700 hover:border-green-300"
-              }`}
-              onClick={() => setFilterType("active")}
-            >
-              Active ({counts.active})
-            </Badge>
+              {/* Filter Badges */}
+              <div className="flex flex-wrap gap-2">
+                <Badge
+                  variant={filterType === "all" ? "secondary" : "outline"}
+                  className={`cursor-pointer transition-colors ${
+                    filterType === "all"
+                      ? "bg-white text-[#334AFF] hover:bg-white/90"
+                      : "bg-white/10 text-white hover:bg-white/20 border-white/30"
+                  }`}
+                  onClick={() => setFilterType("all")}
+                >
+                  All ({counts.total})
+                </Badge>
 
-            <Badge
-              variant={filterType === "inactive" ? "default" : "outline"}
-              className={`cursor-pointer transition-colors ${
-                filterType === "inactive"
-                  ? "bg-[#334AFF] hover:bg-[#334AFF]/90"
-                  : "hover:bg-gray-50 hover:text-gray-700 hover:border-gray-300"
-              }`}
-              onClick={() => setFilterType("inactive")}
-            >
-              Inactive ({counts.inactive})
-            </Badge>
+                <Badge
+                  variant={filterType === "active" ? "secondary" : "outline"}
+                  className={`cursor-pointer transition-colors ${
+                    filterType === "active"
+                      ? "bg-white text-[#334AFF] hover:bg-white/90"
+                      : "bg-white/10 text-white hover:bg-white/20 border-white/30"
+                  }`}
+                  onClick={() => setFilterType("active")}
+                >
+                  Active ({counts.active})
+                </Badge>
 
-            {user?.id && !isMentor && (
-              <Badge
-                variant={filterType === "mine" ? "default" : "outline"}
-                className={`cursor-pointer transition-colors ${
-                  filterType === "mine"
-                    ? "bg-[#334AFF] hover:bg-[#334AFF]/90"
-                    : "hover:bg-purple-50 hover:text-purple-700 hover:border-purple-300"
-                }`}
-                onClick={() => setFilterType("mine")}
-              >
-                My Packages ({counts.mine})
-              </Badge>
+                <Badge
+                  variant={filterType === "inactive" ? "secondary" : "outline"}
+                  className={`cursor-pointer transition-colors ${
+                    filterType === "inactive"
+                      ? "bg-white text-[#334AFF] hover:bg-white/90"
+                      : "bg-white/10 text-white hover:bg-white/20 border-white/30"
+                  }`}
+                  onClick={() => setFilterType("inactive")}
+                >
+                  Inactive ({counts.inactive})
+                </Badge>
+
+                {user?.id && !isMentor && (
+                  <Badge
+                    variant={filterType === "mine" ? "secondary" : "outline"}
+                    className={`cursor-pointer transition-colors ${
+                      filterType === "mine"
+                        ? "bg-white text-[#334AFF] hover:bg-white/90"
+                        : "bg-white/10 text-white hover:bg-white/20 border-white/30"
+                    }`}
+                    onClick={() => setFilterType("mine")}
+                  >
+                    My Packages ({counts.mine})
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            {/* Create Package Button */}
+            {isMentor && (
+              <CreatePackageModal
+                onCreatePackage={handleCreatePackage}
+                isLoading={isCreating}
+              />
             )}
           </div>
         </div>
-      </header>
+      </div>
 
+      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Loading State */}
         {isLoading && (

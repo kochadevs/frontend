@@ -27,6 +27,10 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Rocket,
+  Target,
+  Star,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -312,35 +316,63 @@ export default function BookingsPage() {
 
   return (
     <div className="min-h-[80vh] bg-gray-50 relative">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-[#334AFF]/10 rounded-lg">
-                <Calendar className="h-6 w-6 text-[#334AFF]" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  {isMentor ? "My Bookings" : "My Bookings"}
-                </h1>
-                <p className="text-sm text-gray-600">
-                  {isMentor
-                    ? "Manage booking requests from mentees"
-                    : "View and manage your mentor session bookings"}
-                </p>
+      {/* Enhanced Banner Header */}
+      <div className="sticky top-0 bg-gradient-to-r from-[#334AFF] to-[#6C47FF] text-white overflow-hidden">
+          {/* Background Pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -translate-y-16 translate-x-16"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-white rounded-full translate-y-12 -translate-x-12"></div>
+          </div>
+
+          {/* Content */}
+          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-white/20 rounded-lg">
+                    <Calendar className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-bold">
+                      {isMentor ? "My Bookings" : "My Bookings"}
+                    </h1>
+                    <p className="text-white/80 text-sm">
+                      {isMentor
+                        ? "Manage booking requests from mentees"
+                        : "View and manage your mentor session bookings"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div className="flex items-center gap-2">
+                    <Rocket className="h-4 w-4 text-white/80" />
+                    <span className="text-sm font-medium">
+                      Session Management
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Target className="h-4 w-4 text-white/80" />
+                    <span className="text-sm font-medium">
+                      Real-time Updates
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Star className="h-4 w-4 text-white/80" />
+                    <span className="text-sm font-medium">Secure Bookings</span>
+                  </div>
+                </div>
+
+                {!isLoading && (
+                  <div className="flex items-center space-x-2 text-sm text-white/90">
+                    <Calendar className="h-4 w-4" />
+                    <span>{totalItems} bookings</span>
+                  </div>
+                )}
               </div>
             </div>
-
-            {!isLoading && (
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <Calendar className="h-4 w-4" />
-                <span>{totalItems} bookings</span>
-              </div>
-            )}
           </div>
         </div>
-      </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Loading State */}
@@ -442,7 +474,9 @@ export default function BookingsPage() {
                               <>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
-                                  onClick={() => handleConfirmBooking(booking.id)}
+                                  onClick={() =>
+                                    handleConfirmBooking(booking.id)
+                                  }
                                   disabled={
                                     actionLoading?.id === booking.id &&
                                     actionLoading?.action === "confirm"
@@ -640,7 +674,9 @@ export default function BookingsPage() {
                     return (
                       <Button
                         key={pageNum}
-                        variant={currentPage === pageNum ? "default" : "outline"}
+                        variant={
+                          currentPage === pageNum ? "default" : "outline"
+                        }
                         size="sm"
                         onClick={() => goToPage(pageNum)}
                         className={`h-8 w-8 p-0 ${
