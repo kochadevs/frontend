@@ -11,7 +11,12 @@ import {
 import Link from "next/link";
 import CreateGroupModal from "@/components/modals/CreateGroupModal";
 import { Group } from "@/interface/groups";
-import { fetchAllGroups, joinGroup, fetchMyGroups, leaveGroup } from "@/utilities/groupHandler";
+import {
+  fetchAllGroups,
+  joinGroup,
+  fetchMyGroups,
+  leaveGroup,
+} from "@/utilities/groupHandler";
 import { useAuthStore } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import { toast } from "react-hot-toast";
@@ -26,7 +31,6 @@ export default function Groups() {
   const accessToken = useAuthStore((state) => state.accessToken);
 
   const handleGroupCreated = () => {
-    // You can add logic here to refresh the groups list or navigate to the new group
     // Refresh both groups lists
     loadSuggestedGroups();
     loadMyGroups();
@@ -35,40 +39,47 @@ export default function Groups() {
   const loadSuggestedGroups = useCallback(async () => {
     try {
       setIsLoadingGroups(true);
-      
+
       // Try to get token from store first, then from cookies as fallback
       let token = accessToken;
       if (!token) {
         const { accessToken: cookieToken } = tokenUtils.getTokens();
         token = cookieToken;
       }
-      
+
       if (!token) {
         return;
       }
 
       const allGroups = await fetchAllGroups(token);
+
+      // Filter out groups that user is already a member of
+      const myGroupIds = new Set(myGroups.map((group) => group.id));
+      const filteredGroups = allGroups.filter(
+        (group) => !myGroupIds.has(group.id)
+      );
+
       // Show only first 3 groups as suggestions
-      setSuggestedGroups(allGroups.slice(0, 3));
+      setSuggestedGroups(filteredGroups.slice(0, 3));
     } catch (error) {
-      console.error('Error loading suggested groups:', error);
+      console.error("Error loading suggested groups:", error);
       // Don't show toast error here as it's just suggestions
     } finally {
       setIsLoadingGroups(false);
     }
-  }, [accessToken]);
+  }, [accessToken, myGroups]); // Add myGroups to dependencies
 
   const loadMyGroups = useCallback(async () => {
     try {
       setIsLoadingMyGroups(true);
-      
+
       // Try to get token from store first, then from cookies as fallback
       let token = accessToken;
       if (!token) {
         const { accessToken: cookieToken } = tokenUtils.getTokens();
         token = cookieToken;
       }
-      
+
       if (!token) {
         return;
       }
@@ -76,10 +87,52 @@ export default function Groups() {
       const userGroups = await fetchMyGroups(token);
       setMyGroups(userGroups);
     } catch (error) {
-      console.error('Error loading my groups:', error);
+      console.error("Error loading my groups:", error);
       // Don't show toast error here as it loads in background
     } finally {
       setIsLoadingMyGroups(false);
+    }
+  }, [accessToken]);
+
+  // Load all data including filtering suggested groups
+  const loadAllData = useCallback(async () => {
+    try {
+      // Try to get token from store first, then from cookies as fallback
+      let token = accessToken;
+      if (!token) {
+        const { accessToken: cookieToken } = tokenUtils.getTokens();
+        token = cookieToken;
+      }
+
+      if (!token) {
+        return;
+      }
+
+      setIsLoadingMyGroups(true);
+      setIsLoadingGroups(true);
+
+      // Fetch both data in parallel
+      const [allGroups, userGroups] = await Promise.all([
+        fetchAllGroups(token),
+        fetchMyGroups(token),
+      ]);
+
+      // Set my groups
+      setMyGroups(userGroups);
+
+      // Filter out groups that user is already a member of
+      const myGroupIds = new Set(userGroups.map((group) => group.id));
+      const filteredGroups = allGroups.filter(
+        (group) => !myGroupIds.has(group.id)
+      );
+
+      // Show only first 3 groups as suggestions
+      setSuggestedGroups(filteredGroups.slice(0, 3));
+    } catch (error) {
+      console.error("Error loading groups data:", error);
+    } finally {
+      setIsLoadingMyGroups(false);
+      setIsLoadingGroups(false);
     }
   }, [accessToken]);
 
@@ -91,22 +144,21 @@ export default function Groups() {
         const { accessToken: cookieToken } = tokenUtils.getTokens();
         token = cookieToken;
       }
-      
+
       if (!token) {
-        toast.error('Please log in to join a group');
+        toast.error("Please log in to join a group");
         return;
       }
 
       await joinGroup(groupId, token);
       toast.success(`Successfully joined ${groupName}!`);
-      
-      // Refresh the groups lists
-      loadSuggestedGroups();
-      loadMyGroups();
+
+      // Refresh the groups lists using the optimized approach
+      loadAllData();
     } catch (error) {
-      console.error('Error joining group:', error);
+      console.error("Error joining group:", error);
       toast.error(
-        error instanceof Error ? error.message : 'Failed to join group'
+        error instanceof Error ? error.message : "Failed to join group"
       );
     }
   };
@@ -123,22 +175,21 @@ export default function Groups() {
         const { accessToken: cookieToken } = tokenUtils.getTokens();
         token = cookieToken;
       }
-      
+
       if (!token) {
-        toast.error('Please log in to leave a group');
+        toast.error("Please log in to leave a group");
         return;
       }
 
       await leaveGroup(groupId, token);
       toast.success(`Successfully left ${groupName}`);
-      
-      // Refresh the groups lists
-      loadMyGroups();
-      loadSuggestedGroups();
+
+      // Refresh the groups lists using the optimized approach
+      loadAllData();
     } catch (error) {
-      console.error('Error leaving group:', error);
+      console.error("Error leaving group:", error);
       toast.error(
-        error instanceof Error ? error.message : 'Failed to leave group'
+        error instanceof Error ? error.message : "Failed to leave group"
       );
     }
   };
@@ -153,15 +204,14 @@ export default function Groups() {
   };
 
   useEffect(() => {
-    loadSuggestedGroups();
-    loadMyGroups();
-  }, [loadSuggestedGroups, loadMyGroups]);
+    loadAllData();
+  }, [loadAllData]);
 
   return (
     <div className="p-2 pb-[1rem] container mx-auto flex flex-col gap-[1.5rem]">
       <div className="flex items-center justify-end ">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           className="w-fit"
           onClick={() => setIsCreateModalOpen(true)}
         >
@@ -200,12 +250,18 @@ export default function Groups() {
             {isLoadingMyGroups ? (
               <div className="flex items-center justify-center py-8">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#334AFF]"></div>
-                <span className="ml-2 text-sm text-gray-500">Loading your groups...</span>
+                <span className="ml-2 text-sm text-gray-500">
+                  Loading your groups...
+                </span>
               </div>
             ) : myGroups.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-gray-500 text-sm">You haven&apos;t joined any groups yet</p>
-                <p className="text-gray-400 text-xs mt-1">Join some groups to see them here!</p>
+                <p className="text-gray-500 text-sm">
+                  You haven&apos;t joined any groups yet
+                </p>
+                <p className="text-gray-400 text-xs mt-1">
+                  Join some groups to see them here!
+                </p>
               </div>
             ) : (
               myGroups.map((group) => (
@@ -227,8 +283,12 @@ export default function Groups() {
                       </Link>
                       <p className="text-gray-500 text-[15px]">
                         {group.member_count !== undefined
-                          ? `${group.member_count} member${group.member_count !== 1 ? 's' : ''}`
-                          : group.is_public ? 'Public group' : 'Private group'}
+                          ? `${group.member_count} member${
+                              group.member_count !== 1 ? "s" : ""
+                            }`
+                          : group.is_public
+                          ? "Public group"
+                          : "Private group"}
                       </p>
                     </div>
                   </div>
@@ -267,16 +327,18 @@ export default function Groups() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-48 -ml-[8rem]">
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         className="rounded-none border-l-2 hover:bg-[#DBEAFF] hover:text-[#334AFF] data-[highlighted]:bg-[#DBEAFF] data-[highlighted]:text-[#334AFF] data-[highlighted]:border-l-2 data-[highlighted]:border-l-[#334AFF]"
                         onClick={() => {
-                          navigator.clipboard.writeText(`${window.location.origin}/home/group/${group.id}`);
-                          toast.success('Group link copied to clipboard!');
+                          navigator.clipboard.writeText(
+                            `${window.location.origin}/home/group/${group.id}`
+                          );
+                          toast.success("Group link copied to clipboard!");
                         }}
                       >
                         Copy link to group
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         className="rounded-none border-l-2 text-red-500 hover:bg-[#DBEAFF] hover:text-red-600 data-[highlighted]:bg-[#DBEAFF] data-[highlighted]:text-red-600 data-[highlighted]:border-l-2 data-[highlighted]:border-l-[#334AFF]"
                         onClick={() => handleLeaveGroup(group.id, group.name)}
                       >
@@ -299,15 +361,25 @@ export default function Groups() {
             {isLoadingGroups ? (
               <div className="flex items-center justify-center py-8">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#334AFF]"></div>
-                <span className="ml-2 text-sm text-gray-500">Loading groups...</span>
+                <span className="ml-2 text-sm text-gray-500">
+                  Loading groups...
+                </span>
               </div>
             ) : suggestedGroups.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-gray-500 text-sm">No groups available</p>
+                <p className="text-gray-500 text-sm">
+                  No groups available to suggest
+                </p>
+                <p className="text-gray-400 text-xs mt-1">
+                  You may have joined all available groups!
+                </p>
               </div>
             ) : (
               suggestedGroups.map((group) => (
-                <div key={group.id} className="flex items-start border-b gap-x-1 pb-2">
+                <div
+                  key={group.id}
+                  className="flex items-start border-b gap-x-1 pb-2"
+                >
                   <div className="flex items-start  gap-4">
                     <Avatar className="w-[32px] h-[32px] object-center bg-gradient-to-br from-[#334AFF] to-[#251F99] text-white">
                       <AvatarFallback className="bg-gradient-to-br from-[#334AFF] to-[#251F99] text-white text-xs font-semibold">
@@ -320,11 +392,15 @@ export default function Groups() {
                       </h2>
                       <p className="text-gray-500 text-[14px]">
                         {group.member_count !== undefined
-                          ? `${group.member_count} member${group.member_count !== 1 ? 's' : ''}`
-                          : group.is_public ? 'Public group' : 'Private group'}
+                          ? `${group.member_count} member${
+                              group.member_count !== 1 ? "s" : ""
+                            }`
+                          : group.is_public
+                          ? "Public group"
+                          : "Private group"}
                       </p>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="w-fit"
                         onClick={() => handleJoinGroup(group.id, group.name)}
                       >
@@ -343,7 +419,7 @@ export default function Groups() {
           </Link>
         </Card>
       </div>
-      
+
       {/* Create Group Modal */}
       <CreateGroupModal
         isOpen={isCreateModalOpen}
