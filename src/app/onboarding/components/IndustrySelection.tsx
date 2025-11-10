@@ -4,7 +4,7 @@ import { clsx } from "clsx";
 import { Button } from "@/components/ui/button";
 import { StepProps, OnboardingOption } from "@/interface/onboarding";
 import { useOnboardingStore } from "@/store/onboardingStore";
-import { fetchIndustries } from "@/utilities/onboardingHandler";
+import { fetchIndustries } from "@/utilities/handlers/onboardingHandler";
 import { toast } from "react-hot-toast";
 
 const IndustrySelection: React.FC<StepProps> = ({

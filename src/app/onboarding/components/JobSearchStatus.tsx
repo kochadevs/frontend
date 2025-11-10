@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { StepProps, OnboardingOption } from "@/interface/onboarding";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useOnboardingStore } from "@/store/onboardingStore";
-import { fetchJobSearchStatus } from "@/utilities/onboardingHandler";
+import { fetchJobSearchStatus } from "@/utilities/handlers/onboardingHandler";
 import { toast } from "react-hot-toast";
 
 const JobSearchStatus: React.FC<StepProps> = ({

@@ -4,7 +4,7 @@ import { clsx } from "clsx";
 import { StepProps, RoleInterestOption } from "@/interface/onboarding";
 import { Button } from "@/components/ui/button";
 import { useOnboardingStore } from "@/store/onboardingStore";
-import { fetchRoleInterest } from "@/utilities/onboardingHandler";
+import { fetchRoleInterest } from "@/utilities/handlers/onboardingHandler";
 import { toast } from "react-hot-toast";
 
 interface CategorizedRoles {

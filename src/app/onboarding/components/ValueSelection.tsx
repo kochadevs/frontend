@@ -4,7 +4,7 @@ import { clsx } from "clsx";
 import { Button } from "@/components/ui/button";
 import { StepProps, OnboardingOption } from "@/interface/onboarding";
 import { useOnboardingStore } from "@/store/onboardingStore";
-import { fetchNewRoleValues } from "@/utilities/onboardingHandler";
+import { fetchNewRoleValues } from "@/utilities/handlers/onboardingHandler";
 import { toast } from "react-hot-toast";
 
 const ValueSelection: React.FC<StepProps> = ({ handleNext }) => {

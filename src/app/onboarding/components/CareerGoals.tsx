@@ -4,10 +4,10 @@ import { clsx } from "clsx";
 import { Button } from "@/components/ui/button";
 import { StepProps, OnboardingOption } from "@/interface/onboarding";
 import { useOnboardingStore } from "@/store/onboardingStore";
-import { fetchCareerGoals } from "@/utilities/onboardingHandler";
 import { useAuthActions } from "@/store/authStore";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { fetchCareerGoals } from "@/utilities/handlers/onboardingHandler";
 
 const CareerGoals: React.FC<StepProps> = ({ handlePrevious }) => {
   const router = useRouter();

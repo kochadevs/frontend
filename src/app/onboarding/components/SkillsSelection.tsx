@@ -5,7 +5,7 @@ import { ChevronDown, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StepProps, OnboardingOption } from "@/interface/onboarding";
 import { useOnboardingStore } from "@/store/onboardingStore";
-import { fetchSkills } from "@/utilities/onboardingHandler";
+import { fetchSkills } from "@/utilities/handlers/onboardingHandler";
 import { toast } from "react-hot-toast";
 
 const SkillsSelection: React.FC<StepProps> = ({
