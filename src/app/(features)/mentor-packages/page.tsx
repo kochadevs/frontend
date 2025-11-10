@@ -321,7 +321,7 @@ export default function MentorPackagesPage() {
   return (
     <div className="min-h-[80vh] bg-gray-50 relative">
       {/* Enhanced Banner Header */}
-      <div className=" z-20 sticky top-0 bg-gradient-to-r from-[#334AFF] to-[#6C47FF] text-white overflow-hidden">
+      <div className=" z-20 md:sticky md:top-0 bg-gradient-to-r from-[#251F99] to-[#6C47FF] text-white overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -translate-y-16 translate-x-16"></div>
@@ -329,7 +329,7 @@ export default function MentorPackagesPage() {
         </div>
 
         {/* Content */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="relative z-10  px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-4">
@@ -445,7 +445,7 @@ export default function MentorPackagesPage() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="px-4 sm:px-6 lg:px-8 py-8">
         {/* Loading State */}
         {isLoading && (
           <div className="flex items-center justify-center py-12">
@@ -458,7 +458,7 @@ export default function MentorPackagesPage() {
 
         {/* No Packages Found */}
         {!isLoading && filteredPackages.length === 0 && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+          <div className="p-12 text-center">
             <div className="max-w-md mx-auto">
               <div className="p-3 bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <Package className="h-8 w-8 text-gray-400" />
@@ -496,7 +496,7 @@ export default function MentorPackagesPage() {
 
         {/* Packages Grid */}
         {!isLoading && filteredPackages.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
             {filteredPackages.map((pkg) => (
               <PackageCard
                 key={pkg.id}

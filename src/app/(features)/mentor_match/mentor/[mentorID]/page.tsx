@@ -197,7 +197,7 @@ export default function MentorProfilePage() {
             priority
           />
         </header>
-        <div className="flex-col flex gap-y-10">
+        <div className="flex-col flex gap-y-4">
           <div className="bg-white px-6 flex flex-col gap-y-10 pb-[2rem] rounded-bl-[8px] rounded-br-[8px] border">
             <Header
               handleChangeView={handleChangeView}

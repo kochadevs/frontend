@@ -18,6 +18,7 @@ import { Post as APIPost, ApiComment } from "@/interface/posts";
 import { useUser, useAccessToken, useAuthActions } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import { toast } from "react-hot-toast";
+import SideContent from "../(components)/SideContent";
 
 // Dynamically import EmojiPicker to avoid SSR issues
 
@@ -700,90 +701,96 @@ export default function PostContent() {
   };
 
   return (
-    <div className="container mx-auto flex flex-col gap-y-[1.5rem] p-2 pb-[1rem] md:px-[2rem]">
-      {/* Post creation input */}
-      <div className="bg-white p-[16px] border rounded-[8px] flex items-center gap-[16px]">
-        <Avatar className="w-[55px] h-[55px] object-center">
-          <AvatarImage
-            src={currentUser.avatar}
-            className="w-full h-full object-cover"
-          />
-          <AvatarFallback>You</AvatarFallback>
-        </Avatar>
-        <div className="flex-1">
-          <StartAPost onPostCreated={handlePostCreated} />
+    <div className="flex items-start gap-6 relative h-[85vh] overflow-scroll p-2 pb-[1rem] md:px-[2rem]">
+      <div className="container mx-auto flex flex-col gap-y-[1.5rem]  flex-1">
+        {/* Post creation input */}
+        <div className="bg-white p-[16px] border rounded-[8px] flex items-center gap-[16px]">
+          <Avatar className="w-[55px] h-[55px] object-center">
+            <AvatarImage
+              src={currentUser.avatar}
+              className="w-full h-full object-cover"
+            />
+            <AvatarFallback>You</AvatarFallback>
+          </Avatar>
+          <div className="flex-1">
+            <StartAPost onPostCreated={handlePostCreated} />
+          </div>
         </div>
+
+        {/* Loading state */}
+        {isLoadingPosts && posts.length === 0 && (
+          <div className="flex items-center justify-center py-8">
+            <div className="flex flex-col items-center gap-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#334AFF]"></div>
+              <p className="text-gray-600 text-sm">Loading posts...</p>
+            </div>
+          </div>
+        )}
+
+        {/* No posts message */}
+        {!isLoadingPosts && posts.length === 0 && (
+          <div className="flex items-center justify-center py-8">
+            <div className="flex flex-col items-center gap-4 text-center">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                <svg
+                  className="w-8 h-8 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  No posts yet
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  Create your first post to get started!
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Posts */}
+        {posts.map((post) => (
+          <PostCard
+            key={post.id}
+            post={post}
+            currentUser={currentUser}
+            activePost={activePost}
+            newComment={newComment}
+            replyingTo={replyingTo}
+            commentMedia={commentMedia}
+            showEmojiPicker={showEmojiPicker}
+            fileInputRef={fileInputRef}
+            onToggleLikePost={toggleLikePost}
+            onToggleLikeComment={toggleLikeComment}
+            onToggleShowReplies={toggleShowReplies}
+            onSetReplyingTo={setReplyingTo}
+            onSetActivePost={handlePostClick}
+            onSetNewComment={setNewComment}
+            onSetCommentMedia={setCommentMedia}
+            onSetShowEmojiPicker={setShowEmojiPicker}
+            onHandleAddComment={handleAddComment}
+            onHandleMediaUpload={handleMediaUpload}
+            onDeletePost={handleDeletePost}
+            isLoadingComments={loadingComments.has(post.id)}
+            isAddingComment={addingComment.has(post.id)}
+            onDeleteComment={handleDeleteComment}
+          />
+        ))}
       </div>
 
-      {/* Loading state */}
-      {isLoadingPosts && posts.length === 0 && (
-        <div className="flex items-center justify-center py-8">
-          <div className="flex flex-col items-center gap-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#334AFF]"></div>
-            <p className="text-gray-600 text-sm">Loading posts...</p>
-          </div>
-        </div>
-      )}
-
-      {/* No posts message */}
-      {!isLoadingPosts && posts.length === 0 && (
-        <div className="flex items-center justify-center py-8">
-          <div className="flex flex-col items-center gap-4 text-center">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-              <svg
-                className="w-8 h-8 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
-                />
-              </svg>
-            </div>
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                No posts yet
-              </h3>
-              <p className="text-gray-600 text-sm">
-                Create your first post to get started!
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Posts */}
-      {posts.map((post) => (
-        <PostCard
-          key={post.id}
-          post={post}
-          currentUser={currentUser}
-          activePost={activePost}
-          newComment={newComment}
-          replyingTo={replyingTo}
-          commentMedia={commentMedia}
-          showEmojiPicker={showEmojiPicker}
-          fileInputRef={fileInputRef}
-          onToggleLikePost={toggleLikePost}
-          onToggleLikeComment={toggleLikeComment}
-          onToggleShowReplies={toggleShowReplies}
-          onSetReplyingTo={setReplyingTo}
-          onSetActivePost={handlePostClick}
-          onSetNewComment={setNewComment}
-          onSetCommentMedia={setCommentMedia}
-          onSetShowEmojiPicker={setShowEmojiPicker}
-          onHandleAddComment={handleAddComment}
-          onHandleMediaUpload={handleMediaUpload}
-          onDeletePost={handleDeletePost}
-          isLoadingComments={loadingComments.has(post.id)}
-          isAddingComment={addingComment.has(post.id)}
-          onDeleteComment={handleDeleteComment}
-        />
-      ))}
+      <div className="w-[30%] sticky top-0 lg:block hidden">
+        <SideContent />
+      </div>
     </div>
   );
 }

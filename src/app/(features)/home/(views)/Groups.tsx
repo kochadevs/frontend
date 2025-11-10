@@ -68,7 +68,7 @@ export default function Groups() {
     } finally {
       setIsLoadingGroups(false);
     }
-  }, [accessToken, myGroups]); // Add myGroups to dependencies
+  }, [accessToken, myGroups]);
 
   const loadMyGroups = useCallback(async () => {
     try {
@@ -199,9 +199,116 @@ export default function Groups() {
     loadAllData();
   }, [loadAllData]);
 
+  // Group Card Component
+  const GroupCard = ({
+    group,
+    isMyGroup = false,
+  }: {
+    group: Group;
+    isMyGroup?: boolean;
+  }) => (
+    <Card className="p-4 hover:shadow-md transition-shadow duration-200">
+      <div className="flex flex-col h-full">
+        <div className="flex items-start gap-3 mb-3">
+          <Avatar className="w-12 h-12 object-center bg-gradient-to-br from-[#334AFF] to-[#251F99] text-white flex-shrink-0">
+            <AvatarFallback className="bg-gradient-to-br from-[#334AFF] to-[#251F99] text-white text-sm font-semibold">
+              {getInitialsFromSingleName(group.name)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <Link href={`/home/group/${group.id}`}>
+              <h2 className="font-semibold text-[#344054] text-[16px] hover:text-[#334AFF] hover:underline truncate">
+                {group.name}
+              </h2>
+            </Link>
+            <p className="text-gray-500 text-[14px] mt-1">
+              {group.member_count !== undefined
+                ? `${group.member_count} member${
+                    group.member_count !== 1 ? "s" : ""
+                  }`
+                : group.is_public
+                ? "Public group"
+                : "Private group"}
+            </p>
+            <p className="text-gray-500 text-[14px] mt-1 line-clamp-2">{group.description}</p>
+          </div>
+        </div>
+
+        <div className="mt-auto">
+          {isMyGroup ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full">
+                  <span>Manage</span>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="ml-2"
+                  >
+                    <path
+                      d="M9.9987 10.8334C10.4589 10.8334 10.832 10.4603 10.832 10C10.832 9.53978 10.4589 9.16669 9.9987 9.16669C9.53846 9.16669 9.16536 9.53978 9.16536 10C9.16536 10.4603 9.53846 10.8334 9.9987 10.8334Z"
+                      stroke="#344054"
+                      strokeWidth="1.67"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M15.832 10.8334C16.2923 10.8334 16.6654 10.4603 16.6654 10C16.6654 9.53978 16.2923 9.16669 15.832 9.16669C15.3718 9.16669 14.9987 9.53978 14.9987 10C14.9987 10.4603 15.3718 10.8334 15.832 10.8334Z"
+                      stroke="#344054"
+                      strokeWidth="1.67"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M4.16536 10.8334C4.6256 10.8334 4.9987 10.4603 4.9987 10C4.9987 9.53978 4.6256 9.16669 4.16536 9.16669C3.70513 9.16669 3.33203 9.53978 3.33203 10C3.33203 10.4603 3.70513 10.8334 4.16536 10.8334Z"
+                      stroke="#344054"
+                      strokeWidth="1.67"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-48">
+                <DropdownMenuItem
+                  className="rounded-none border-l-2 hover:bg-[#DBEAFF] hover:text-[#334AFF] data-[highlighted]:bg-[#DBEAFF] data-[highlighted]:text-[#334AFF] data-[highlighted]:border-l-2 data-[highlighted]:border-l-[#334AFF]"
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      `${window.location.origin}/home/group/${group.id}`
+                    );
+                    toast.success("Group link copied to clipboard!");
+                  }}
+                >
+                  Copy link to group
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="rounded-none border-l-2 text-red-500 hover:bg-[#DBEAFF] hover:text-red-600 data-[highlighted]:bg-[#DBEAFF] data-[highlighted]:text-red-600 data-[highlighted]:border-l-2 data-[highlighted]:border-l-[#334AFF]"
+                  onClick={() => handleLeaveGroup(group.id, group.name)}
+                >
+                  Leave this group
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => handleJoinGroup(group.id, group.name)}
+            >
+              Join Group
+            </Button>
+          )}
+        </div>
+      </div>
+    </Card>
+  );
+
   return (
     <div className="p-2 pb-[1rem] container mx-auto flex flex-col gap-[1.5rem]">
-      <div className="flex items-center justify-end ">
+      <div className="flex items-center justify-end">
         <Button
           variant="outline"
           className="w-fit"
@@ -238,7 +345,7 @@ export default function Groups() {
               </Button>
             </div>
           </div>
-          <div className="px-[16px] flex-col flex gap-2">
+          <div className="p-4">
             {isLoadingMyGroups ? (
               <div className="flex items-center justify-center py-8">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#334AFF]"></div>
@@ -256,100 +363,21 @@ export default function Groups() {
                 </p>
               </div>
             ) : (
-              myGroups.map((group) => (
-                <div
-                  key={group.id}
-                  className="flex items-start justify-between border-b gap-x-1 py-2 group"
-                >
-                  <div className="flex items-start gap-2">
-                    <Avatar className="w-[32px] h-[32px] object-center bg-gradient-to-br from-[#334AFF] to-[#251F99] text-white">
-                      <AvatarFallback className="bg-gradient-to-br from-[#334AFF] to-[#251F99] text-white text-xs font-semibold">
-                        {getInitialsFromSingleName(group.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="cursor-pointer">
-                      <Link href={`/home/group/${group.id}`}>
-                        <h2 className="font-semibold text-[#344054] text-[16px] group-hover:text-[#334AFF] group-hover:underline">
-                          {group.name}
-                        </h2>
-                      </Link>
-                      <p className="text-gray-500 text-[15px]">
-                        {group.member_count !== undefined
-                          ? `${group.member_count} member${
-                              group.member_count !== 1 ? "s" : ""
-                            }`
-                          : group.is_public
-                          ? "Public group"
-                          : "Private group"}
-                      </p>
-                    </div>
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="w-fit">
-                        <svg
-                          width="20"
-                          height="20"
-                          viewBox="0 0 20 20"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M9.9987 10.8334C10.4589 10.8334 10.832 10.4603 10.832 10C10.832 9.53978 10.4589 9.16669 9.9987 9.16669C9.53846 9.16669 9.16536 9.53978 9.16536 10C9.16536 10.4603 9.53846 10.8334 9.9987 10.8334Z"
-                            stroke="#344054"
-                            strokeWidth="1.67"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M15.832 10.8334C16.2923 10.8334 16.6654 10.4603 16.6654 10C16.6654 9.53978 16.2923 9.16669 15.832 9.16669C15.3718 9.16669 14.9987 9.53978 14.9987 10C14.9987 10.4603 15.3718 10.8334 15.832 10.8334Z"
-                            stroke="#344054"
-                            strokeWidth="1.67"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M4.16536 10.8334C4.6256 10.8334 4.9987 10.4603 4.9987 10C4.9987 9.53978 4.6256 9.16669 4.16536 9.16669C3.70513 9.16669 3.33203 9.53978 3.33203 10C3.33203 10.4603 3.70513 10.8334 4.16536 10.8334Z"
-                            stroke="#344054"
-                            strokeWidth="1.67"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-48 -ml-[8rem]">
-                      <DropdownMenuItem
-                        className="rounded-none border-l-2 hover:bg-[#DBEAFF] hover:text-[#334AFF] data-[highlighted]:bg-[#DBEAFF] data-[highlighted]:text-[#334AFF] data-[highlighted]:border-l-2 data-[highlighted]:border-l-[#334AFF]"
-                        onClick={() => {
-                          navigator.clipboard.writeText(
-                            `${window.location.origin}/home/group/${group.id}`
-                          );
-                          toast.success("Group link copied to clipboard!");
-                        }}
-                      >
-                        Copy link to group
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="rounded-none border-l-2 text-red-500 hover:bg-[#DBEAFF] hover:text-red-600 data-[highlighted]:bg-[#DBEAFF] data-[highlighted]:text-red-600 data-[highlighted]:border-l-2 data-[highlighted]:border-l-[#334AFF]"
-                        onClick={() => handleLeaveGroup(group.id, group.name)}
-                      >
-                        Leave this group
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              ))
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {myGroups.map((group) => (
+                  <GroupCard key={group.id} group={group} isMyGroup={true} />
+                ))}
+              </div>
             )}
           </div>
         </Card>
         <Card className="w-full lg:w-[386px] gap-0 pb-0">
-          <div className="px-[8px] mb-2">
+          <div className="px-[8px] mb-2 pt-4">
             <h2 className="text-gray-700 text-[16px] font-[600]">
               Groups you might be interested in
             </h2>
           </div>
-          <div className="px-[16px] flex-col flex gap-2 mt-3">
+          <div className="p-4">
             {isLoadingGroups ? (
               <div className="flex items-center justify-center py-8">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#334AFF]"></div>
@@ -367,45 +395,15 @@ export default function Groups() {
                 </p>
               </div>
             ) : (
-              suggestedGroups.map((group) => (
-                <div
-                  key={group.id}
-                  className="flex items-start border-b gap-x-1 pb-2"
-                >
-                  <div className="flex items-start  gap-4">
-                    <Avatar className="w-[32px] h-[32px] object-center bg-gradient-to-br from-[#334AFF] to-[#251F99] text-white">
-                      <AvatarFallback className="bg-gradient-to-br from-[#334AFF] to-[#251F99] text-white text-xs font-semibold">
-                        {getInitialsFromSingleName(group.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-col flex gap-y-1">
-                      <h2 className="font-semibold text-[#344054] text-[16px] hover:text-[#334AFF] hover:underline cursor-pointer">
-                        {group.name}
-                      </h2>
-                      <p className="text-gray-500 text-[14px]">
-                        {group.member_count !== undefined
-                          ? `${group.member_count} member${
-                              group.member_count !== 1 ? "s" : ""
-                            }`
-                          : group.is_public
-                          ? "Public group"
-                          : "Private group"}
-                      </p>
-                      <Button
-                        variant="outline"
-                        className="w-fit"
-                        onClick={() => handleJoinGroup(group.id, group.name)}
-                      >
-                        Join
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))
+              <div className="grid grid-cols-1 gap-4">
+                {suggestedGroups.map((group) => (
+                  <GroupCard key={group.id} group={group} isMyGroup={false} />
+                ))}
+              </div>
             )}
           </div>
           <Link href="/groups">
-            <Button variant="outline" className="w-full h-[52px]">
+            <Button variant="outline" className="w-full h-[52px] mt-4">
               Show all
             </Button>
           </Link>

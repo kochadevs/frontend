@@ -321,7 +321,7 @@ export default function Messaging() {
       <header className="flex-shrink-0">
         <h2 className="text-[24px] font-bold text-gray-700">Messaging</h2>
         <p className="text-black-shade-900 text-[15px]">
-          Connect with other influencers, brands, and collaborate with the
+          Connect with Mentors in the
           community to drive success together.
         </p>
       </header>
