@@ -46,7 +46,7 @@ const SideNavigationBar = () => {
   return (
     <nav
       className={clsx(
-        "flex flex-col h-screen bg-gradient-to-br from-[#334AFF] from-0% via-[#251F99] via-50% to-[#251F99] transition-all duration-300",
+        "flex flex-col h-screen bg-gradient-to-br border-r border-r-white from-[#334AFF] from-0% via-[#251F99] via-50% to-[#251F99] transition-all duration-300",
         isCollapsed ? "w-[60px]" : "w-[240px]"
       )}
     >

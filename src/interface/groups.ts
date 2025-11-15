@@ -10,7 +10,7 @@ export interface Group {
   description: string;
   created_by: number;
   is_public: boolean;
-  created_at: string;
+  date_created: string;
   member_count?: number;
   // Add other group properties as needed based on your API response
 }

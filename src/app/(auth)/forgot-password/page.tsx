@@ -5,8 +5,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { z } from "zod";
-import { ForgotPasswordFormData, forgotPasswordSchema } from "../../../zodSchema/passwordResetSchema";
-import { handleForgotPassword } from "../../../utilities/authHandler";
+import {
+  ForgotPasswordFormData,
+  forgotPasswordSchema,
+} from "../../../zodSchema/passwordResetSchema";
+import { handleForgotPassword } from "../../../utilities/handlers/authHandler";
 import { toast } from "react-hot-toast";
 
 const ForgotPassword = () => {
@@ -19,9 +22,7 @@ const ForgotPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -48,28 +49,32 @@ const ForgotPassword = () => {
       // Call the forgot password API
       const response = await handleForgotPassword(validatedData);
 
-      if(response){
-      // Show success state
-      setIsSuccess(true);
-      toast.success("Reset email sent successfully!");
-      // Clear form and errors
-      setFormData({ email: "" });
-      setErrors({});
+      if (response) {
+        // Show success state
+        setIsSuccess(true);
+        toast.success("Reset email sent successfully!");
+        // Clear form and errors
+        setFormData({ email: "" });
+        setErrors({});
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
         // Handle validation errors
-        const newErrors: Partial<Record<keyof ForgotPasswordFormData, string>> = {};
+        const newErrors: Partial<Record<keyof ForgotPasswordFormData, string>> =
+          {};
         error.issues.forEach((err: z.ZodIssue) => {
           if (err.path[0]) {
-            newErrors[err.path[0] as keyof ForgotPasswordFormData] = err.message;
+            newErrors[err.path[0] as keyof ForgotPasswordFormData] =
+              err.message;
           }
         });
         setErrors(newErrors);
       } else {
         // Handle API errors
         console.error("Forgot password error:", error);
-        toast.error(error instanceof Error ? error.message : "Failed to send reset email");
+        toast.error(
+          error instanceof Error ? error.message : "Failed to send reset email"
+        );
       }
     } finally {
       setIsLoading(false);
@@ -90,15 +95,27 @@ const ForgotPassword = () => {
               />
             </div>
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-              <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <svg
+                className="w-8 h-8 text-green-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             </div>
             <h2 className="text-[30px] font-[700] tracking-tight text-[#2E3646]">
               Check your email
             </h2>
             <p className="text-[#667085] text-[14px] text-center">
-              We&apos;ve sent a password reset link to your email address. Please check your inbox and follow the instructions to reset your password.
+              We&apos;ve sent a password reset link to your email address.
+              Please check your inbox and follow the instructions to reset your
+              password.
             </p>
           </div>
 
@@ -112,7 +129,7 @@ const ForgotPassword = () => {
                   Back to log in
                 </Button>
               </Link>
-              
+
               <Button
                 variant="ghost"
                 onClick={() => setIsSuccess(false)}

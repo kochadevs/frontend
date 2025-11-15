@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { createGroupSchema, CreateGroupFormData } from "@/zodSchema/groupSchema";
-import { createGroup } from "@/utilities/groupHandler";
+import { createGroup } from "@/utilities/handlers/groupHandler";
 import { useAuthStore, useAuthActions } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 
@@ -28,7 +28,7 @@ export default function CreateGroupModal({
   isOpen,
   onClose,
   onGroupCreated,
-}: CreateGroupModalProps) {
+}: Readonly<CreateGroupModalProps>) {
   const accessToken = useAuthStore((state) => state.accessToken);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const { initializeAuth } = useAuthActions();

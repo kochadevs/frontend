@@ -1,5 +1,4 @@
 "use client";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,45 +7,11 @@ import { RefObject, useState } from "react";
 import dynamic from "next/dynamic";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
 import DeleteCommentModal from "@/components/modals/DeleteCommentModal";
+import { Comment, MediaItem, Post, User } from "@/interface/postCard";
+import { CustomAvatar } from "@/components/common/CustomAvatar";
 
 // Dynamically import EmojiPicker to avoid SSR issues
 const EmojiPicker = dynamic(() => import("emoji-picker-react"), { ssr: false });
-
-type MediaItem = {
-  type: "image" | "video";
-  url: string;
-};
-
-type User = {
-  id: string;
-  name: string;
-  avatar: string;
-  role?: string;
-};
-
-type Comment = {
-  id: string;
-  user: User;
-  text: string;
-  media?: string;
-  timestamp: string;
-  likes: number;
-  likedByUser: boolean;
-  replies: Comment[];
-  showReplies: boolean;
-};
-
-type Post = {
-  id: string;
-  user: User;
-  content: string;
-  media: MediaItem[];
-  likes: number;
-  likedByUser: boolean;
-  comments: Comment[];
-  reposts: number;
-  timestamp: string;
-};
 
 type PostCardProps = {
   post: Post;
@@ -107,7 +72,11 @@ export default function PostCard({
   const [showDropdown, setShowDropdown] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDeleteCommentModal, setShowDeleteCommentModal] = useState(false);
-  const [commentToDelete, setCommentToDelete] = useState<{id: string, postId: string, author: string} | null>(null);
+  const [commentToDelete, setCommentToDelete] = useState<{
+    id: string;
+    postId: string;
+    author: string;
+  } | null>(null);
   const [isDeletingComment, setIsDeletingComment] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -122,7 +91,7 @@ export default function PostCard({
 
   const handleDeleteCommentConfirm = async () => {
     if (!commentToDelete || !onDeleteComment) return;
-    
+
     setIsDeletingComment(true);
     try {
       await onDeleteComment(commentToDelete.id, commentToDelete.postId);
@@ -210,19 +179,11 @@ export default function PostCard({
         key={comment.id}
         className={`flex gap-3 mb-4 ${isReply ? "ml-10" : ""}`}
       >
-        <Avatar>
-          <AvatarImage src={comment.user.avatar} />
-          <AvatarFallback>{comment.user.name[0]}</AvatarFallback>
-        </Avatar>
+        <CustomAvatar src={comment.user.avatar} name={comment.user.name} />
         <div className="flex-1">
           <div className="bg-gray-100 p-3 rounded-lg">
             <div className="flex items-center gap-2 mb-1">
               <p className="font-medium text-[14px]">{comment.user.name}</p>
-              {comment.user.role && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#334AFF]/10 text-[#334AFF] border border-[#334AFF]/20">
-                  {comment.user.role}
-                </span>
-              )}
             </div>
             <p className="text-[14px] text-gray-800">{comment.text}</p>
             {comment.media && (
@@ -286,7 +247,7 @@ export default function PostCard({
                   setCommentToDelete({
                     id: comment.id,
                     postId: post.id,
-                    author: comment.user.name
+                    author: comment.user.name,
                   });
                   setShowDeleteCommentModal(true);
                 }}
@@ -306,10 +267,7 @@ export default function PostCard({
           {/* Reply input */}
           {replyingTo?.commentId === comment.id && (
             <div className="flex gap-3 mt-4">
-              <Avatar>
-                <AvatarImage src={currentUser.avatar} />
-                <AvatarFallback>You</AvatarFallback>
-              </Avatar>
+              <CustomAvatar src={currentUser.avatar} name={currentUser.name} />
               <div className="flex-1 relative">
                 <Input
                   value={newComment}
@@ -376,25 +334,13 @@ export default function PostCard({
     <Card className="p-0 gap-1 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 border-gray-200 bg-white">
       <header className="p-[16px] flex items-start justify-between">
         <div className="flex items-start gap-[12px]">
-          <Avatar className="w-[48px] h-[48px] object-center ring-2 ring-gray-100">
-            <AvatarImage
-              src={post.user.avatar}
-              className="w-full h-full object-cover"
-            />
-            <AvatarFallback className="bg-[#334AFF] text-white font-semibold">
-              {post.user.name?.charAt(0) || "U"}
-            </AvatarFallback>
-          </Avatar>
+          <CustomAvatar src={post.user.avatar} name={post.user.name} />
+
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="font-semibold text-[#1a1a1a] text-[16px] hover:text-[#334AFF] cursor-pointer transition-colors">
                 {post.user.name}
               </h2>
-              {post.user.role && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#334AFF]/10 text-[#334AFF] border border-[#334AFF]/20">
-                  {post.user.role}
-                </span>
-              )}
             </div>
             <div className="flex items-center gap-1 mt-1">
               <span className="text-gray-600 text-[13px]">
@@ -645,28 +591,30 @@ export default function PostCard({
             <div className="flex items-center justify-center py-4">
               <div className="flex items-center gap-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#334AFF]"></div>
-                <span className="text-gray-600 text-sm">Loading comments...</span>
+                <span className="text-gray-600 text-sm">
+                  Loading comments...
+                </span>
               </div>
             </div>
           )}
-          
+
           {/* Existing comments */}
-          {!isLoadingComments && post.comments.map((comment) => renderComment(comment))}
-          
+          {!isLoadingComments &&
+            post.comments.map((comment) => renderComment(comment))}
+
           {/* No comments message */}
           {!isLoadingComments && post.comments.length === 0 && (
             <div className="text-center py-4">
-              <p className="text-gray-500 text-sm">No comments yet. Be the first to comment!</p>
+              <p className="text-gray-500 text-sm">
+                No comments yet. Be the first to comment!
+              </p>
             </div>
           )}
 
           {/* New comment input */}
           {!replyingTo && (
             <div className="flex gap-3 mt-4">
-              <Avatar>
-                <AvatarImage src={currentUser.avatar} />
-                <AvatarFallback>You</AvatarFallback>
-              </Avatar>
+              <CustomAvatar src={currentUser.avatar} name={currentUser.name} />
               <div className="flex-1 relative">
                 <Input
                   value={newComment}
@@ -725,7 +673,9 @@ export default function PostCard({
                 <Button
                   className="mt-2"
                   onClick={() => onHandleAddComment(post.id)}
-                  disabled={(!newComment.trim() && !commentMedia) || isAddingComment}
+                  disabled={
+                    (!newComment.trim() && !commentMedia) || isAddingComment
+                  }
                 >
                   {isAddingComment ? (
                     <div className="flex items-center gap-2">
@@ -741,7 +691,7 @@ export default function PostCard({
           )}
         </div>
       )}
-      
+
       {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal
         isOpen={showDeleteModal}
@@ -749,7 +699,7 @@ export default function PostCard({
         onConfirm={handleDeleteConfirm}
         isLoading={isDeleting}
       />
-      
+
       {/* Delete Comment Modal */}
       <DeleteCommentModal
         isOpen={showDeleteCommentModal}

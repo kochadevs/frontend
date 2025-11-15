@@ -1,14 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import {
-  submitNewRoleValues,
-  submitJobSearchStatus,
-  submitRoleInterest,
-  submitIndustries,
-  submitSkills,
-  submitCareerGoals,
-} from "../utilities/onboardingHandler";
 import { useAuthStore } from "./authStore";
+import { submitNewRoleValues, submitJobSearchStatus, submitRoleInterest, submitIndustries, submitSkills, submitCareerGoals } from "@/utilities/handlers/onboardingHandler";
 
 interface OnboardingState {
   // Value Selection (Step 1)

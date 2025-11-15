@@ -1,9 +1,16 @@
 "use client";
 
 import React from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Modal } from "antd";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, User, FileText, CheckCircle, XCircle } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  User,
+  FileText,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
 import { BookingDetailsModalProps } from "@/interface/bookings";
 
 const getStatusColor = (status: string) => {
@@ -40,7 +47,7 @@ export default function BookingDetailsModal({
   booking,
   isOpen,
   onClose,
-}: BookingDetailsModalProps) {
+}: Readonly<BookingDetailsModalProps>) {
   if (!booking) return null;
 
   const formatDate = (dateString: string) => {
@@ -75,110 +82,131 @@ export default function BookingDetailsModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-[#475467] flex items-center gap-2">
-            <Calendar className="h-6 w-6 text-[#334AFF]" />
+    <Modal
+      title={
+        <div className="flex items-center gap-2">
+          <Calendar className="h-6 w-6 text-[#334AFF]" />
+          <span className="text-2xl font-bold text-[#475467]">
             Booking Details
-          </DialogTitle>
-        </DialogHeader>
+          </span>
+        </div>
+      }
+      open={isOpen}
+      onCancel={onClose}
+      footer={null}
+      width={500}
+      className="booking-details-modal"
+      styles={{
+        body: {
+          padding: "24px 0",
+        },
+        content: {
+          borderRadius: "12px",
+        },
+      }}
+    >
+      <div className="space-y-6">
+        {/* Status */}
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-gray-600">Status</span>
+          <Badge
+            variant="outline"
+            className={`${getStatusColor(
+              booking.status
+            )} flex items-center gap-1`}
+          >
+            {getStatusIcon(booking.status)}
+            {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+          </Badge>
+        </div>
 
-        <div className="space-y-6">
-          {/* Status */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-600">Status</span>
-            <Badge
-              variant="outline"
-              className={`${getStatusColor(booking.status)} flex items-center gap-1`}
-            >
-              {getStatusIcon(booking.status)}
-              {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-            </Badge>
+        {/* Booking ID */}
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-gray-600">Booking ID</span>
+          <span className="text-sm font-mono text-gray-900">#{booking.id}</span>
+        </div>
+
+        {/* Session Date & Time */}
+        <div className="bg-[#F8FAFC] rounded-lg p-4 border">
+          <div className="flex items-center gap-2 mb-2">
+            <Calendar className="h-5 w-5 text-[#334AFF]" />
+            <span className="font-semibold text-[#344054]">
+              Session Details
+            </span>
           </div>
 
-          {/* Booking ID */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-600">Booking ID</span>
-            <span className="text-sm font-mono text-gray-900">#{booking.id}</span>
-          </div>
-
-          {/* Session Date & Time */}
-          <div className="bg-[#F8FAFC] rounded-lg p-4 border">
-            <div className="flex items-center gap-2 mb-2">
-              <Calendar className="h-5 w-5 text-[#334AFF]" />
-              <span className="font-semibold text-[#344054]">Session Details</span>
+          <div className="space-y-2 ml-7">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Date</span>
+              <span className="text-sm font-medium text-gray-900">
+                {formatDate(booking.booking_date)}
+              </span>
             </div>
-            
-            <div className="space-y-2 ml-7">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Date</span>
-                <span className="text-sm font-medium text-gray-900">
-                  {formatDate(booking.booking_date)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Time</span>
-                <span className="text-sm font-medium text-gray-900">
-                  {formatTime(booking.booking_date)}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Mentor & Package Info */}
-          <div className="bg-[#F8FAFC] rounded-lg p-4 border">
-            <div className="flex items-center gap-2 mb-2">
-              <User className="h-5 w-5 text-[#334AFF]" />
-              <span className="font-semibold text-[#344054]">Session Information</span>
-            </div>
-            
-            <div className="space-y-2 ml-7">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Mentor ID</span>
-                <span className="text-sm font-medium text-gray-900">
-                  #{booking.mentor_id}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Package ID</span>
-                <span className="text-sm font-medium text-gray-900">
-                  #{booking.mentor_package_id}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Notes */}
-          {booking.notes && (
-            <div className="bg-[#F8FAFC] rounded-lg p-4 border">
-              <div className="flex items-center gap-2 mb-2">
-                <FileText className="h-5 w-5 text-[#334AFF]" />
-                <span className="font-semibold text-[#344054]">Session Notes</span>
-              </div>
-              <p className="text-sm text-gray-700 ml-7 leading-relaxed">
-                {booking.notes}
-              </p>
-            </div>
-          )}
-
-          {/* Timestamps */}
-          <div className="border-t pt-4">
-            <div className="space-y-2 text-xs text-gray-500">
-              <div className="flex justify-between">
-                <span>Created:</span>
-                <span>{formatDateTime(booking.date_created)}</span>
-              </div>
-              {booking.last_modified !== booking.date_created && (
-                <div className="flex justify-between">
-                  <span>Last Modified:</span>
-                  <span>{formatDateTime(booking.last_modified)}</span>
-                </div>
-              )}
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Time</span>
+              <span className="text-sm font-medium text-gray-900">
+                {formatTime(booking.booking_date)}
+              </span>
             </div>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+
+        {/* Mentor & Package Info */}
+        <div className="bg-[#F8FAFC] rounded-lg p-4 border">
+          <div className="flex items-center gap-2 mb-2">
+            <User className="h-5 w-5 text-[#334AFF]" />
+            <span className="font-semibold text-[#344054]">
+              Session Information
+            </span>
+          </div>
+
+          <div className="space-y-2 ml-7">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Mentor ID</span>
+              <span className="text-sm font-medium text-gray-900">
+                #{booking.mentor_id}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Package ID</span>
+              <span className="text-sm font-medium text-gray-900">
+                #{booking.mentor_package_id}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Notes */}
+        {booking.notes && (
+          <div className="bg-[#F8FAFC] rounded-lg p-4 border">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="h-5 w-5 text-[#334AFF]" />
+              <span className="font-semibold text-[#344054]">
+                Session Notes
+              </span>
+            </div>
+            <p className="text-sm text-gray-700 ml-7 leading-relaxed">
+              {booking.notes}
+            </p>
+          </div>
+        )}
+
+        {/* Timestamps */}
+        <div className="border-t pt-4">
+          <div className="space-y-2 text-xs text-gray-500">
+            <div className="flex justify-between">
+              <span>Created:</span>
+              <span>{formatDateTime(booking.date_created)}</span>
+            </div>
+            {booking.last_modified !== booking.date_created && (
+              <div className="flex justify-between">
+                <span>Last Modified:</span>
+                <span>{formatDateTime(booking.last_modified)}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </Modal>
   );
 }

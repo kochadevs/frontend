@@ -3,11 +3,10 @@ import Certification from "@/components/common/(components)/Certification";
 import Education from "@/components/common/(components)/Education";
 import Experience from "@/components/common/(components)/Experience";
 import Header from "@/components/common/(components)/Header";
-import Language from "@/components/common/(components)/Language";
+import Language from "@/components/common/(components)/CareerGoals";
 import Posts from "@/components/common/(components)/Posts";
 import Skill from "@/components/common/(components)/Skill";
 import Image from "next/image";
-
 
 export default function GroupMemberProfile() {
   return (

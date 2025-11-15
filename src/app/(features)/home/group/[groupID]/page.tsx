@@ -8,7 +8,10 @@ import MembersView from "./components/MembersView";
 import { useParams } from "next/navigation";
 import { GroupMember } from "@/interface/groupMembers";
 import type { Group } from "@/interface/groups";
-import { fetchGroupMembers, fetchGroupDetails } from "@/utilities/groupHandler";
+import {
+  fetchGroupMembers,
+  fetchGroupDetails,
+} from "@/utilities/handlers/groupHandler";
 import { useAuthStore } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import { toast } from "react-hot-toast";
@@ -28,14 +31,14 @@ export default function Group() {
       try {
         setIsLoadingGroup(true);
         setIsLoadingPreview(true);
-        
+
         // Try to get token from store first, then from cookies as fallback
         let token = accessToken;
         if (!token) {
           const { accessToken: cookieToken } = tokenUtils.getTokens();
           token = cookieToken;
         }
-        
+
         if (!token) {
           return;
         }
@@ -45,8 +48,8 @@ export default function Group() {
           const groupData = await fetchGroupDetails(groupId, token);
           setGroupDetails(groupData);
         } catch (error) {
-          console.error('Error fetching group details:', error);
-          toast.error('Failed to load group details');
+          console.error("Error fetching group details:", error);
+          toast.error("Failed to load group details");
         } finally {
           setIsLoadingGroup(false);
         }
@@ -59,12 +62,12 @@ export default function Group() {
             setPreviewMember(membersData[0]);
           }
         } catch (error) {
-          console.error('Error fetching preview member:', error);
+          console.error("Error fetching preview member:", error);
         } finally {
           setIsLoadingPreview(false);
         }
       } catch (error) {
-        console.error('Error in loadGroupData:', error);
+        console.error("Error in loadGroupData:", error);
         setIsLoadingGroup(false);
         setIsLoadingPreview(false);
       }
@@ -76,7 +79,7 @@ export default function Group() {
   }, [groupId, accessToken]);
   return (
     <div className="flex-col flex gap-y-4">
-      <header className="flex items-center justify-center 2xl:h-[232px] h-[180px] bg-linear-65 from-[#8E2DE2] to-[#4A00E0]">
+      <header className="z-20 md:sticky md:top-0 flex items-center justify-center 2xl:h-[232px] h-[180px] bg-gradient-to-r from-[#251F99] to-[#6C47FF]">
         <div className="h-[129px] flex items-center justify-center">
           {isLoadingGroup ? (
             <div className="flex items-center gap-4">
@@ -85,9 +88,14 @@ export default function Group() {
             </div>
           ) : (
             <h1 className="text-[30px] font-[600] text-white text-center">
-              {groupDetails?.name || 'Group'}
+              {groupDetails?.name || "Group"}
             </h1>
           )}
+        </div>
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -translate-y-16 translate-x-16"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white rounded-full translate-y-12 -translate-x-12"></div>
         </div>
       </header>
 
@@ -100,7 +108,7 @@ export default function Group() {
                 <span>Loading...</span>
               </div>
             ) : (
-              groupDetails?.name || 'Group'
+              groupDetails?.name || "Group"
             )}
           </h2>
           <div className="w-[186px] bg-[#F2F4F7] rounded-[8px] h-[44px] flex justify-between">
@@ -149,7 +157,8 @@ export default function Group() {
                         <span>Loading description...</span>
                       </div>
                     ) : (
-                      groupDetails?.description || 'No description available for this group.'
+                      groupDetails?.description ||
+                      "No description available for this group."
                     )}
                   </p>
                 </div>
@@ -168,7 +177,10 @@ export default function Group() {
                     View all
                   </Button>
                 </div>
-                <MemberCard member={previewMember || undefined} isLoading={isLoadingPreview} />
+                <MemberCard
+                  member={previewMember || undefined}
+                  isLoading={isLoadingPreview}
+                />
               </div>
             </div>
           </div>

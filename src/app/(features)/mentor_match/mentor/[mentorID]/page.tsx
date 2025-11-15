@@ -2,9 +2,9 @@
 import Image from "next/image";
 import Breadcrumb from "@/components/common/Breadcrumbs/Breadcrumb";
 import Header from "@/components/common/(components)/Header";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getMentorById } from "@/utilities/mentorHandler";
+import { getMentorById } from "@/utilities/handlers/mentorHandler";
 import { Mentor } from "@/interface/mentors";
 import { useAccessToken, useUser } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
@@ -20,7 +20,7 @@ export default function MentorProfilePage() {
   const [mentor, setMentor] = useState<Mentor | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const params = useParams();
   const router = useRouter();
   const accessToken = useAccessToken();
@@ -31,7 +31,9 @@ export default function MentorProfilePage() {
   // Redirect mentors away from mentor match pages
   useEffect(() => {
     if (user && isMentor) {
-      toast.error("Mentors cannot access mentor profiles through Mentor Match.");
+      toast.error(
+        "Mentors cannot access mentor profiles through Mentor Match."
+      );
       router.push("/home");
     }
   }, [user, isMentor, router]);
@@ -40,9 +42,9 @@ export default function MentorProfilePage() {
     setCurrentView(view);
   };
 
-  const loadMentor = async () => {
+  const loadMentor = useCallback(async () => {
     if (!mentorId) return;
-    
+
     setIsLoading(true);
     setError(null);
     try {
@@ -52,7 +54,7 @@ export default function MentorProfilePage() {
         const { accessToken: cookieToken } = tokenUtils.getTokens();
         token = cookieToken;
       }
-      
+
       if (!token) {
         setError("Please sign in to view mentor profile.");
         return;
@@ -60,19 +62,21 @@ export default function MentorProfilePage() {
 
       const mentorData = await getMentorById(token, mentorId);
       setMentor(mentorData);
-      
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to load mentor profile";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to load mentor profile";
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [mentorId, accessToken]);
 
   useEffect(() => {
     loadMentor();
-  }, [mentorId, accessToken]);
+  }, [loadMentor]);
 
   // Show loading while checking user type
   if (!user) {
@@ -151,7 +155,7 @@ export default function MentorProfilePage() {
         <div className="flex items-center justify-center min-h-[50vh]">
           <div className="text-center">
             <p className="text-red-600 mb-4">{error || "Mentor not found"}</p>
-            <button 
+            <button
               onClick={loadMentor}
               className="px-4 py-2 bg-[#334AFF] text-white rounded-md hover:bg-[#251F99]"
             >
@@ -174,7 +178,7 @@ export default function MentorProfilePage() {
           }}
           steps={[
             {
-              name: `${mentor.first_name} ${mentor.last_name || ''}`.trim(),
+              name: `${mentor.first_name} ${mentor.last_name || ""}`.trim(),
               href: `#`,
               current: true,
             },
@@ -193,12 +197,20 @@ export default function MentorProfilePage() {
             priority
           />
         </header>
-        <div className="flex-col flex gap-y-10">
+        <div className="flex-col flex gap-y-4">
           <div className="bg-white px-6 flex flex-col gap-y-10 pb-[2rem] rounded-bl-[8px] rounded-br-[8px] border">
-            <Header handleChangeView={handleChangeView} currentView={currentView} mentor={mentor} />
+            <Header
+              handleChangeView={handleChangeView}
+              currentView={currentView}
+              mentor={mentor}
+            />
           </div>
 
-          {currentView == "mentor_view" ? <MentorProfileView mentor={mentor} /> : <BookSessionView mentor={mentor} />}
+          {currentView == "mentor_view" ? (
+            <MentorProfileView mentor={mentor} />
+          ) : (
+            <BookSessionView mentor={mentor} />
+          )}
         </div>
       </main>
     </div>

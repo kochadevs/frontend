@@ -1,12 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SignupPayload } from "../interface/auth/signup";
-import { LoginPayload, LoginResponse, UserProfile } from "../interface/auth/login";
-import { 
-  ForgotPasswordPayload, 
-  ForgotPasswordResponse, 
-  ResetPasswordPayload, 
-  ResetPasswordResponse 
-} from "../interface/auth/passwordReset";
+import { SignupPayload } from "../../interface/auth/signup";
+import {
+  LoginPayload,
+  LoginResponse,
+  UserProfile,
+} from "../../interface/auth/login";
+import {
+  ForgotPasswordPayload,
+  ForgotPasswordResponse,
+  ResetPasswordPayload,
+  ResetPasswordResponse,
+} from "../../interface/auth/passwordReset";
 import axios from "axios";
 
 export const handleSignup = async (payload: SignupPayload): Promise<any> => {
@@ -51,7 +55,9 @@ export const handleSignup = async (payload: SignupPayload): Promise<any> => {
   }
 };
 
-export const handleLogin = async (payload: LoginPayload): Promise<LoginResponse> => {
+export const handleLogin = async (
+  payload: LoginPayload
+): Promise<LoginResponse> => {
   try {
     const baseURL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
 
@@ -62,10 +68,10 @@ export const handleLogin = async (payload: LoginPayload): Promise<LoginResponse>
     }
 
     const payloadData = {
-        ...payload,
-        grant_type: "password",
-        scope: ""
-    }
+      ...payload,
+      grant_type: "password",
+      scope: "",
+    };
 
     const response = await axios.post(`${baseURL}/users/login`, payloadData, {
       headers: {
@@ -110,18 +116,26 @@ export const handleLogout = async (accessToken: string): Promise<void> => {
       );
     }
 
-    await axios.post(`${baseURL}/users/logout`, {}, {
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${accessToken}`,
-      },
-      timeout: 10000,
-    });
+    await axios.post(
+      `${baseURL}/users/logout`,
+      {},
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        timeout: 10000,
+      }
+    );
   } catch (error: any) {
     // Even if logout API fails, we'll still clear local data
     console.warn("Logout API call failed, but clearing local data:", error);
     if (error.response) {
-      console.error("Server error:", error.response.status, error.response.data);
+      console.error(
+        "Server error:",
+        error.response.status,
+        error.response.data
+      );
     } else if (error.request) {
       console.error("Network error:", error.request);
     } else {
@@ -130,7 +144,9 @@ export const handleLogout = async (accessToken: string): Promise<void> => {
   }
 };
 
-export const handleForgotPassword = async (payload: ForgotPasswordPayload): Promise<ForgotPasswordResponse> => {
+export const handleForgotPassword = async (
+  payload: ForgotPasswordPayload
+): Promise<ForgotPasswordResponse> => {
   try {
     const baseURL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
 
@@ -140,12 +156,16 @@ export const handleForgotPassword = async (payload: ForgotPasswordPayload): Prom
       );
     }
 
-    const response = await axios.post(`${baseURL}/users/forgot-password`, payload, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      timeout: 10000,
-    });
+    const response = await axios.post(
+      `${baseURL}/users/forgot-password`,
+      payload,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        timeout: 10000,
+      }
+    );
 
     const { data } = response;
 
@@ -173,7 +193,9 @@ export const handleForgotPassword = async (payload: ForgotPasswordPayload): Prom
   }
 };
 
-export const handleResetPassword = async (payload: ResetPasswordPayload): Promise<ResetPasswordResponse> => {
+export const handleResetPassword = async (
+  payload: ResetPasswordPayload
+): Promise<ResetPasswordResponse> => {
   try {
     const baseURL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
 
@@ -183,12 +205,16 @@ export const handleResetPassword = async (payload: ResetPasswordPayload): Promis
       );
     }
 
-    const response = await axios.post(`${baseURL}/users/reset-password`, payload, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      timeout: 10000,
-    });
+    const response = await axios.post(
+      `${baseURL}/users/reset-password`,
+      payload,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        timeout: 10000,
+      }
+    );
 
     const { data } = response;
 
@@ -217,7 +243,9 @@ export const handleResetPassword = async (payload: ResetPasswordPayload): Promis
 };
 
 // Fetch updated user profile after onboarding completion
-export const fetchUserProfile = async (accessToken: string): Promise<UserProfile> => {
+export const fetchUserProfile = async (
+  accessToken: string
+): Promise<UserProfile> => {
   try {
     const baseURL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
 
@@ -230,7 +258,7 @@ export const fetchUserProfile = async (accessToken: string): Promise<UserProfile
     const response = await axios.get(`${baseURL}/users/me`, {
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
       },
       timeout: 10000,
     });

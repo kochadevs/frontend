@@ -1,58 +1,10 @@
+import { UserProfile } from "./auth/login";
+
 export interface CreatePostPayload {
   content: string;
   group_id?: number;
 }
 
-// API Response interfaces
-export interface ApiUser {
-  id: number;
-  first_name: string;
-  last_name: string;
-  email: string;
-  gender: string;
-  nationality: string;
-  location: string;
-  is_active: boolean;
-  profile_pic: string;
-  user_type: string;
-  new_role_values: Array<{
-    id: number;
-    date_created: string;
-    last_modified: string;
-    name: string;
-  }>;
-  job_search_status: Array<{
-    id: number;
-    date_created: string;
-    last_modified: string;
-    name: string;
-  }>;
-  role_of_interest: Array<{
-    id: number;
-    date_created: string;
-    last_modified: string;
-    name: string;
-    category: string;
-  }>;
-  industry: Array<{
-    id: number;
-    date_created: string;
-    last_modified: string;
-    name: string;
-  }>;
-  skills: Array<{
-    id: number;
-    date_created: string;
-    last_modified: string;
-    name: string;
-  }>;
-  career_goals: Array<{
-    id: number;
-    date_created: string;
-    last_modified: string;
-    name: string;
-  }>;
-}
 
 export interface ApiGroup {
   id: number;
@@ -66,7 +18,7 @@ export interface ApiGroup {
 
 export interface Post {
   id: number;
-  user: ApiUser;
+  user: UserProfile;
   group: ApiGroup | null;
   content: string;
   date_created: string;
@@ -95,7 +47,7 @@ export interface CreateCommentPayload {
 
 export interface ApiComment {
   id: number;
-  user: ApiUser;
+  user: UserProfile;
   content: string;
   date_created: string;
   last_modified: string;

@@ -1,32 +1,36 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import HorizontalPostScroller from "./HorizontalPostScroller";
 import { Card } from "@/components/ui/card";
-import { fetchFeed } from "@/utilities/postHandler";
+import { fetchFeed } from "@/utilities/handlers/postHandler";
 import { Post as ApiPost } from "@/interface/posts";
 import { useAccessToken } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import { toast } from "react-hot-toast";
 import { Loader2 } from "lucide-react";
+
 // Transform API post to card format
 const transformApiPostToCard = (apiPost: ApiPost) => {
-  const timeAgo = new Date(apiPost.date_created).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric'
+  const timeAgo = new Date(apiPost.date_created).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
   });
-  
+
   return {
     id: apiPost.id.toString(),
     author: {
-      name: `${apiPost.user.first_name} ${apiPost.user.last_name || ''}`.trim(),
+      name: `${apiPost.user.first_name} ${apiPost.user.last_name || ""}`.trim(),
       role: apiPost.user.new_role_values?.[0]?.name || "Professional",
-      avatar: apiPost.user.profile_pic || "https://images.unsplash.com/photo-1637722598283-65ba2bb46734?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      avatar:
+        apiPost.user.profile_pic ||
+        "https://images.unsplash.com/photo-1637722598283-65ba2bb46734?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
     timeAgo,
     content: apiPost.content,
-    image: "https://plus.unsplash.com/premium_photo-1675791727728-f829fde51f70?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3xxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", // Default image since API might not have images
+    image:
+      "https://plus.unsplash.com/premium_photo-1675791727728-f829fde51f70?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3xxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", // Default image since API might not have images
     likes: {
       count: apiPost.reactions_count || 0,
       avatars: [
@@ -37,17 +41,19 @@ const transformApiPostToCard = (apiPost: ApiPost) => {
     },
     comments: apiPost.comments_count || 0,
     reposts: 0, // API doesn't seem to have repost count
-    user_reaction: apiPost.user_reaction
+    user_reaction: apiPost.user_reaction,
   };
 };
 
 export default function Posts() {
-  const [posts, setPosts] = useState<ReturnType<typeof transformApiPostToCard>[]>([]);
+  const [posts, setPosts] = useState<
+    ReturnType<typeof transformApiPostToCard>[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const accessToken = useAccessToken();
 
-  const loadPosts = async () => {
+  const loadPosts = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -57,7 +63,7 @@ export default function Posts() {
         const { accessToken: cookieToken } = tokenUtils.getTokens();
         token = cookieToken;
       }
-      
+
       if (!token) {
         setError("Please sign in to view posts.");
         return;
@@ -65,26 +71,26 @@ export default function Posts() {
 
       // Fetch posts from API - limit to 10 for the profile view
       const feedResponse = await fetchFeed({ limit: 10 }, token);
-      
+
       // Transform API posts to card format
       const transformedPosts = feedResponse.items.map(transformApiPostToCard);
-      
+
       // If we're on a mentor profile, filter posts by that mentor (optional)
       // For now, we'll show all posts but you could filter by mentor.id if needed
       setPosts(transformedPosts);
-      
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to load posts";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to load posts";
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [accessToken]);
 
   useEffect(() => {
     loadPosts();
-  }, [accessToken]);
+  }, [loadPosts]);
 
   return (
     <Card className="gap-0 p-0">
@@ -107,7 +113,7 @@ export default function Posts() {
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <p className="text-red-600 mb-4">{error}</p>
-            <Button 
+            <Button
               onClick={loadPosts}
               variant="outline"
               className="border-[#334AFF] text-[#334AFF] hover:bg-[#334AFF] hover:text-white"
@@ -123,7 +129,9 @@ export default function Posts() {
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <p className="text-gray-600 mb-4">No posts available.</p>
-            <p className="text-sm text-gray-500">Check back later for new posts!</p>
+            <p className="text-sm text-gray-500">
+              Check back later for new posts!
+            </p>
           </div>
         </div>
       )}

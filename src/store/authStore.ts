@@ -2,7 +2,10 @@ import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import { AuthState, UserProfile, LoginResponse } from "../interface/auth/login";
 import { tokenUtils } from "../utilities/cookies";
-import { handleLogout, fetchUserProfile } from "../utilities/authHandler";
+import {
+  handleLogout,
+  fetchUserProfile,
+} from "../utilities/handlers/authHandler";
 
 interface AuthActions {
   // Actions
@@ -33,8 +36,9 @@ export const useAuthStore = create<AuthStore>()(
 
         // Login action
         login: (loginResponse: LoginResponse) => {
-          const { access_token, refresh_token, token_type, user_profile } = loginResponse;
-          
+          const { access_token, refresh_token, token_type, user_profile } =
+            loginResponse;
+
           // Store tokens in cookies
           tokenUtils.storeTokens(
             access_token,
@@ -55,7 +59,7 @@ export const useAuthStore = create<AuthStore>()(
         // Logout action
         logout: async () => {
           const currentState = get();
-          
+
           // Call logout API if we have an access token
           if (currentState.accessToken) {
             try {
@@ -77,10 +81,10 @@ export const useAuthStore = create<AuthStore>()(
         updateUser: (updatedUser: Partial<UserProfile>) => {
           const currentState = get();
           const currentUser = currentState.user;
-          
+
           if (currentUser) {
             const newUser = { ...currentUser, ...updatedUser };
-            
+
             // Update user data in cookies
             if (currentState.accessToken && currentState.refreshToken) {
               tokenUtils.storeTokens(
@@ -97,14 +101,16 @@ export const useAuthStore = create<AuthStore>()(
         // Refresh user profile from API
         refreshUserProfile: async () => {
           const currentState = get();
-          
+
           if (!currentState.accessToken) {
             throw new Error("No access token available");
           }
 
           try {
-            const updatedUser = await fetchUserProfile(currentState.accessToken);
-            
+            const updatedUser = await fetchUserProfile(
+              currentState.accessToken
+            );
+
             // Update user data in cookies
             if (currentState.refreshToken) {
               tokenUtils.storeTokens(
@@ -124,13 +130,14 @@ export const useAuthStore = create<AuthStore>()(
         // Initialize auth from cookies
         initializeAuth: () => {
           const currentState = get();
-          
+
           // Only run in browser
-          if (typeof window === 'undefined') {
+          if (typeof window === "undefined") {
             return;
           }
 
-          const { accessToken, refreshToken, userData } = tokenUtils.getTokens();
+          const { accessToken, refreshToken, userData } =
+            tokenUtils.getTokens();
 
           // If we have tokens but store is not authenticated, update the store
           if (accessToken && refreshToken && userData) {
@@ -156,7 +163,7 @@ export const useAuthStore = create<AuthStore>()(
         // Refresh access token
         refreshAuth: (newAccessToken: string) => {
           const currentState = get();
-          
+
           if (currentState.refreshToken && currentState.user) {
             tokenUtils.storeTokens(
               newAccessToken,
@@ -179,7 +186,7 @@ export const useAuthStore = create<AuthStore>()(
         // Handle hydration properly
         onRehydrateStorage: () => (state) => {
           // Initialize auth from cookies after rehydration
-          if (state && typeof window !== 'undefined') {
+          if (state && typeof window !== "undefined") {
             state.initializeAuth?.();
           }
         },
@@ -195,7 +202,7 @@ export const useAuth = () => {
   const user = useAuthStore((state) => state.user);
   const accessToken = useAuthStore((state) => state.accessToken);
   const refreshToken = useAuthStore((state) => state.refreshToken);
-  
+
   return { isAuthenticated, user, accessToken, refreshToken };
 };
 
@@ -207,11 +214,19 @@ export const useAuthActions = () => {
   const refreshUserProfile = useAuthStore((state) => state.refreshUserProfile);
   const initializeAuth = useAuthStore((state) => state.initializeAuth);
   const refreshAuth = useAuthStore((state) => state.refreshAuth);
-  
-  return { login, logout, updateUser, refreshUserProfile, initializeAuth, refreshAuth };
+
+  return {
+    login,
+    logout,
+    updateUser,
+    refreshUserProfile,
+    initializeAuth,
+    refreshAuth,
+  };
 };
 
 // Individual selectors
-export const useIsAuthenticated = () => useAuthStore((state) => state.isAuthenticated);
+export const useIsAuthenticated = () =>
+  useAuthStore((state) => state.isAuthenticated);
 export const useUser = () => useAuthStore((state) => state.user);
 export const useAccessToken = () => useAuthStore((state) => state.accessToken);

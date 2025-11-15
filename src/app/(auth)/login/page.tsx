@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useState, useEffect, Suspense } from "react";
 import { z } from "zod";
 import { LoginFormData, loginSchema } from "../../../zodSchema/loginSchema";
-import { handleLogin } from "../../../utilities/authHandler";
+import { handleLogin } from "../../../utilities/handlers/authHandler";
 import { useAuthStore } from "../../../store/authStore";
 import { toast } from "react-hot-toast";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -16,12 +16,12 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/home";
-  
+
   // Get state and actions from store
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const user = useAuthStore((state) => state.user);
   const login = useAuthStore((state) => state.login);
-  
+
   const [formData, setFormData] = useState<LoginFormData>({
     username: "",
     password: "",
@@ -40,9 +40,7 @@ function LoginContent() {
     }
   }, [isAuthenticated, user, router, redirectTo]);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -68,7 +66,7 @@ function LoginContent() {
 
       // Call the login API
       const loginResponse = await handleLogin(validatedData);
-      
+
       // Update auth store with login response
       login(loginResponse);
 
@@ -81,14 +79,13 @@ function LoginContent() {
 
       // Show success toast
       toast.success("Login successful!");
-      
+
       // Determine redirect destination based on user's role values
       const userProfile = loginResponse.user_profile;
       const redirectDestination = getRedirectPath(userProfile, redirectTo);
-      
+
       // Redirect to determined destination
       router.push(redirectDestination);
-      
     } catch (error) {
       if (error instanceof z.ZodError) {
         // Handle validation errors
@@ -151,7 +148,9 @@ function LoginContent() {
                     placeholder="Enter email"
                   />
                   {errors.username && (
-                    <p className="mt-1 text-sm text-red-600">{errors.username}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.username}
+                    </p>
                   )}
                 </div>
               </div>
@@ -178,7 +177,9 @@ function LoginContent() {
                     placeholder="Enter password"
                   />
                   {errors.password && (
-                    <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.password}
+                    </p>
                   )}
                 </div>
               </div>
@@ -189,7 +190,7 @@ function LoginContent() {
                     htmlFor="remember-me"
                     className="text-sm/6 text-gray-900 flex items-center gap-2 text-[16px]"
                   >
-                    <input 
+                    <input
                       id="remember-me"
                       type="checkbox"
                       checked={rememberMe}
@@ -232,7 +233,7 @@ function LoginContent() {
             </div>
           </div>
 
-          <div className="mt-10">
+          <div className="mt-10 hidden">
             <div className="relative">
               <div
                 aria-hidden="true"
@@ -284,11 +285,13 @@ function LoginContent() {
 
 export default function Login() {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#334AFF]"></div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#334AFF]"></div>
+        </div>
+      }
+    >
       <LoginContent />
     </Suspense>
   );

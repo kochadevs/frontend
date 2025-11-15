@@ -4,58 +4,64 @@ import { clsx } from "clsx";
 import { StepProps, RoleInterestOption } from "@/interface/onboarding";
 import { Button } from "@/components/ui/button";
 import { useOnboardingStore } from "@/store/onboardingStore";
-import { fetchRoleInterest } from "@/utilities/onboardingHandler";
+import { fetchRoleInterest } from "@/utilities/handlers/onboardingHandler";
 import { toast } from "react-hot-toast";
 
 interface CategorizedRoles {
   [category: string]: RoleInterestOption[];
 }
 
-
 const RoleSelection: React.FC<StepProps> = ({ handleNext, handlePrevious }) => {
   const { selectedRoles, toggleRole, submitRoleInterest, isSubmitting } =
     useOnboardingStore();
-  
-  const [categorizedRoles, setCategorizedRoles] = useState<CategorizedRoles>({});
+
+  const [categorizedRoles, setCategorizedRoles] = useState<CategorizedRoles>(
+    {}
+  );
   const [isLoading, setIsLoading] = useState(true);
-  
+
   useEffect(() => {
     const loadRoles = async () => {
       try {
         const data = await fetchRoleInterest();
-        
+
         // Group roles by category
-        const grouped = data.reduce((acc: CategorizedRoles, role) => {
-          if (!acc[role.category]) {
-            acc[role.category] = [];
-          }
-          acc[role.category].push(role);
-          return acc;
-        }, {});
-        
+        const grouped = data.reduce(
+          (acc: CategorizedRoles, role: RoleInterestOption) => {
+            if (!acc[role.category]) {
+              acc[role.category] = [];
+            }
+            acc[role.category].push(role);
+            return acc;
+          },
+          {}
+        );
+
         setCategorizedRoles(grouped);
       } catch (error) {
-        console.error('Error fetching role interests:', error);
-        toast.error('Failed to load role interests');
+        console.error("Error fetching role interests:", error);
+        toast.error("Failed to load role interests");
       } finally {
         setIsLoading(false);
       }
     };
-    
+
     loadRoles();
   }, []);
 
   const handleSaveAndContinue = async () => {
     try {
       await submitRoleInterest();
-      toast.success('Role interests saved successfully!');
+      toast.success("Role interests saved successfully!");
       handleNext();
     } catch (error) {
-      console.error('Error submitting role interests:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to save role interests');
+      console.error("Error submitting role interests:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to save role interests"
+      );
     }
   };
-  
+
   if (isLoading) {
     return (
       <div className="w-full mx-auto px-4 text-center flex flex-col items-center justify-center h-full">
@@ -77,29 +83,31 @@ const RoleSelection: React.FC<StepProps> = ({ handleNext, handlePrevious }) => {
       </div>
 
       <div className="space-y-8">
-        {Object.entries(categorizedRoles).map(([categoryName, categoryRoles]) => (
-          <div key={categoryName}>
-            <h2 className="text-sm font-medium text-[#111827] mb-3">
-              {categoryName}
-            </h2>
-            <div className="flex flex-wrap gap-2">
-              {categoryRoles.map((role) => (
-                <button
-                  key={role.id}
-                  onClick={() => toggleRole(role.id)}
-                  className={clsx(
-                    "px-4 py-2 rounded-md border text-sm transition-colors duration-200 cursor-pointer",
-                    selectedRoles.includes(role.id)
-                      ? "bg-[#EEF4FF] border-[#251F99] text-[#251F99]"
-                      : "border-[#E5E7EB] text-[#374151] hover:border-[#D1D5DB]"
-                  )}
-                >
-                  {role.name}
-                </button>
-              ))}
+        {Object.entries(categorizedRoles).map(
+          ([categoryName, categoryRoles]) => (
+            <div key={categoryName}>
+              <h2 className="text-sm font-medium text-[#111827] mb-3">
+                {categoryName}
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {categoryRoles.map((role) => (
+                  <button
+                    key={role.id}
+                    onClick={() => toggleRole(role.id)}
+                    className={clsx(
+                      "px-4 py-2 rounded-md border text-sm transition-colors duration-200 cursor-pointer",
+                      selectedRoles.includes(role.id)
+                        ? "bg-[#EEF4FF] border-[#251F99] text-[#251F99]"
+                        : "border-[#E5E7EB] text-[#374151] hover:border-[#D1D5DB]"
+                    )}
+                  >
+                    {role.name}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        )}
       </div>
 
       <div className="flex items-center justify-end w-full gap-6 mt-40">

@@ -1,7 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,10 +15,11 @@ import { Calendar, Clock, DollarSign, User, Loader2 } from "lucide-react";
 import { MentorPackage } from "@/interface/mentorPackages";
 import { Mentor } from "@/interface/mentors";
 import { CreateBookingRequest } from "@/interface/bookings";
-import { createBooking } from "@/utilities/bookingHandler";
+import { createBooking } from "@/utilities/handlers/bookingHandler";
 import { useAccessToken } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import { toast } from "react-hot-toast";
+import Image from "next/image";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -37,21 +43,26 @@ export default function BookingModal({
   const accessToken = useAccessToken();
 
   // Generate minimum date (today) and time slots
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().split("T")[0];
   const minDateTime = new Date();
   minDateTime.setHours(minDateTime.getHours() + 1); // At least 1 hour from now
-  
+
   // Generate available time slots (9 AM to 6 PM)
   const timeSlots = [];
   for (let hour = 9; hour <= 18; hour++) {
-    const time24 = hour.toString().padStart(2, '0') + ':00';
-    const time12 = hour > 12 ? `${hour - 12}:00 PM` : hour === 12 ? '12:00 PM' : `${hour}:00 AM`;
+    const time24 = hour.toString().padStart(2, "0") + ":00";
+    const time12 =
+      hour > 12
+        ? `${hour - 12}:00 PM`
+        : hour === 12
+        ? "12:00 PM"
+        : `${hour}:00 AM`;
     timeSlots.push({ value: time24, label: time12 });
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!bookingDate || !bookingTime) {
       toast.error("Please select both date and time for your session.");
       return;
@@ -59,7 +70,7 @@ export default function BookingModal({
 
     // Combine date and time into ISO string
     const bookingDateTime = new Date(`${bookingDate}T${bookingTime}`);
-    
+
     // Check if booking is in the future
     if (bookingDateTime <= new Date()) {
       toast.error("Please select a future date and time for your session.");
@@ -75,7 +86,7 @@ export default function BookingModal({
         const { accessToken: cookieToken } = tokenUtils.getTokens();
         token = cookieToken;
       }
-      
+
       if (!token) {
         toast.error("Please sign in to book a session.");
         return;
@@ -89,21 +100,23 @@ export default function BookingModal({
       };
 
       const booking = await createBooking(mentor.id, bookingRequest, token);
-      
-      toast.success("Booking created successfully! The mentor will be notified.");
-      
+
+      toast.success(
+        "Booking created successfully! The mentor will be notified."
+      );
+
       if (onBookingSuccess) {
         onBookingSuccess(booking.id);
       }
-      
+
       // Reset form and close modal
       setBookingDate("");
       setBookingTime("");
       setNotes("");
       onClose();
-      
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to create booking";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to create booking";
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -132,30 +145,36 @@ export default function BookingModal({
         {/* Package & Mentor Info */}
         <div className="bg-[#F8FAFC] rounded-lg p-4 border">
           <div className="flex items-start gap-4">
-            <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-200">
-              <img
-                src={mentor.profile_pic || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"}
+            <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-200 relative">
+              <Image
+                src={
+                  mentor.profile_pic ||
+                  "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
+                }
                 alt={`${mentor.first_name} ${mentor.last_name}`.trim()}
                 className="w-full h-full object-cover"
+                width={64}
+                height={64}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
-                  target.src = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face";
+                  target.src =
+                    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face";
                 }}
               />
             </div>
-            
+
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
                 <User className="h-4 w-4 text-gray-500" />
                 <span className="font-semibold text-[#344054]">
-                  {mentor.first_name} {mentor.last_name || ''}
+                  {mentor.first_name} {mentor.last_name || ""}
                 </span>
               </div>
-              
+
               <h3 className="text-lg font-semibold text-[#475467] mb-2">
                 {mentorPackage.name}
               </h3>
-              
+
               <div className="flex items-center gap-4 text-sm text-gray-600">
                 <div className="flex items-center gap-1">
                   <Clock className="h-4 w-4" />
@@ -163,10 +182,12 @@ export default function BookingModal({
                 </div>
                 <div className="flex items-center gap-1">
                   <DollarSign className="h-4 w-4" />
-                  <span className="font-semibold text-[#334AFF]">${mentorPackage.price}</span>
+                  <span className="font-semibold text-[#334AFF]">
+                    ${mentorPackage.price}
+                  </span>
                 </div>
               </div>
-              
+
               {mentorPackage.description && (
                 <p className="text-sm text-gray-600 mt-2">
                   {mentorPackage.description}
@@ -181,7 +202,10 @@ export default function BookingModal({
           {/* Date & Time Selection */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="booking-date" className="text-sm font-medium text-[#344054]">
+              <Label
+                htmlFor="booking-date"
+                className="text-sm font-medium text-[#344054]"
+              >
                 Select Date *
               </Label>
               <Input
@@ -194,9 +218,12 @@ export default function BookingModal({
                 className="w-full"
               />
             </div>
-            
+
             <div className="space-y-2">
-              <Label htmlFor="booking-time" className="text-sm font-medium text-[#344054]">
+              <Label
+                htmlFor="booking-time"
+                className="text-sm font-medium text-[#344054]"
+              >
                 Select Time *
               </Label>
               <select
@@ -218,7 +245,10 @@ export default function BookingModal({
 
           {/* Notes */}
           <div className="space-y-2">
-            <Label htmlFor="notes" className="text-sm font-medium text-[#344054]">
+            <Label
+              htmlFor="notes"
+              className="text-sm font-medium text-[#344054]"
+            >
               Notes (Optional)
             </Label>
             <Textarea
@@ -230,7 +260,8 @@ export default function BookingModal({
               className="w-full resize-none"
             />
             <p className="text-xs text-gray-500">
-              Let your mentor know what you&apos;d like to focus on during the session.
+              Let your mentor know what you&apos;d like to focus on during the
+              session.
             </p>
           </div>
 

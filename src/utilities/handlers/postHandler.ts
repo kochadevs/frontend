@@ -1,5 +1,16 @@
 import axios from "axios";
-import { CreatePostPayload, FeedResponse, FeedParams, Post, CreateCommentPayload, ApiComment, CommentsResponse, CommentParams, CreateReactionPayload, ReactionParams } from "../interface/posts";
+import {
+  CreatePostPayload,
+  FeedResponse,
+  FeedParams,
+  Post,
+  CreateCommentPayload,
+  ApiComment,
+  CommentsResponse,
+  CommentParams,
+  CreateReactionPayload,
+  ReactionParams,
+} from "../../interface/posts";
 
 export const createPost = async (
   payload: CreatePostPayload,
@@ -13,11 +24,11 @@ export const createPost = async (
         "API base URL is not configured in environment variables"
       );
     }
-    
+
     const response = await axios.post(`${baseURL}/feed/posts`, payload, {
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
       },
       timeout: 10000,
     });
@@ -40,9 +51,11 @@ export const createPost = async (
         throw new Error("Network error - please check your connection");
       }
     }
-    
+
     console.error("Error:", error);
-    throw new Error(error instanceof Error ? error.message : "An unexpected error occurred");
+    throw new Error(
+      error instanceof Error ? error.message : "An unexpected error occurred"
+    );
   }
 };
 
@@ -62,20 +75,20 @@ export const fetchFeed = async (
     // Build query parameters
     const queryParams = new URLSearchParams();
     if (params.limit) {
-      queryParams.append('limit', params.limit.toString());
+      queryParams.append("limit", params.limit.toString());
     }
     if (params.group_id) {
-      queryParams.append('group_id', params.group_id.toString());
+      queryParams.append("group_id", params.group_id.toString());
     }
     if (params.cursor) {
-      queryParams.append('cursor', params.cursor);
+      queryParams.append("cursor", params.cursor);
     }
 
     const url = `${baseURL}/feed/posts?${queryParams.toString()}`;
-    
+
     const response = await axios.get(url, {
       headers: {
-        "Authorization": `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
       },
       timeout: 10000,
     });
@@ -97,9 +110,11 @@ export const fetchFeed = async (
         throw new Error("Network error - please check your connection");
       }
     }
-    
+
     console.error("Error:", error);
-    throw new Error(error instanceof Error ? error.message : "An unexpected error occurred");
+    throw new Error(
+      error instanceof Error ? error.message : "An unexpected error occurred"
+    );
   }
 };
 
@@ -117,14 +132,13 @@ export const deletePost = async (
     }
 
     const url = `${baseURL}/feed/posts/${postId}`;
-    
+
     await axios.delete(url, {
       headers: {
-        "Authorization": `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
       },
       timeout: 10000,
     });
-
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       if (error.response) {
@@ -140,9 +154,11 @@ export const deletePost = async (
         throw new Error("Network error - please check your connection");
       }
     }
-    
+
     console.error("Error:", error);
-    throw new Error(error instanceof Error ? error.message : "An unexpected error occurred");
+    throw new Error(
+      error instanceof Error ? error.message : "An unexpected error occurred"
+    );
   }
 };
 
@@ -162,11 +178,11 @@ export const addComment = async (
     }
 
     const url = `${baseURL}/feed/posts/${postId}/comments`;
-    
+
     const response = await axios.post(url, payload, {
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
       },
       timeout: 10000,
     });
@@ -188,9 +204,11 @@ export const addComment = async (
         throw new Error("Network error - please check your connection");
       }
     }
-    
+
     console.error("Error:", error);
-    throw new Error(error instanceof Error ? error.message : "An unexpected error occurred");
+    throw new Error(
+      error instanceof Error ? error.message : "An unexpected error occurred"
+    );
   }
 };
 
@@ -211,17 +229,17 @@ export const fetchComments = async (
     // Build query parameters
     const queryParams = new URLSearchParams();
     if (params.limit) {
-      queryParams.append('limit', params.limit.toString());
+      queryParams.append("limit", params.limit.toString());
     }
     if (params.cursor) {
-      queryParams.append('cursor', params.cursor);
+      queryParams.append("cursor", params.cursor);
     }
 
     const url = `${baseURL}/feed/posts/${postId}/comments?${queryParams.toString()}`;
-    
+
     const response = await axios.get(url, {
       headers: {
-        "Authorization": `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
       },
       timeout: 10000,
     });
@@ -243,9 +261,11 @@ export const fetchComments = async (
         throw new Error("Network error - please check your connection");
       }
     }
-    
+
     console.error("Error:", error);
-    throw new Error(error instanceof Error ? error.message : "An unexpected error occurred");
+    throw new Error(
+      error instanceof Error ? error.message : "An unexpected error occurred"
+    );
   }
 };
 
@@ -263,14 +283,13 @@ export const deleteComment = async (
     }
 
     const url = `${baseURL}/feed/comments/${commentId}`;
-    
+
     await axios.delete(url, {
       headers: {
-        "Authorization": `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
       },
       timeout: 10000,
     });
-
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       if (error.response) {
@@ -286,9 +305,11 @@ export const deleteComment = async (
         throw new Error("Network error - please check your connection");
       }
     }
-    
+
     console.error("Error:", error);
-    throw new Error(error instanceof Error ? error.message : "An unexpected error occurred");
+    throw new Error(
+      error instanceof Error ? error.message : "An unexpected error occurred"
+    );
   }
 };
 
@@ -308,15 +329,14 @@ export const reactToPost = async (
     }
 
     const url = `${baseURL}/feed/posts/${postId}/reactions`;
-    
+
     await axios.put(url, payload, {
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
       },
       timeout: 10000,
     });
-
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       if (error.response) {
@@ -332,9 +352,11 @@ export const reactToPost = async (
         throw new Error("Network error - please check your connection");
       }
     }
-    
+
     console.error("Error:", error);
-    throw new Error(error instanceof Error ? error.message : "An unexpected error occurred");
+    throw new Error(
+      error instanceof Error ? error.message : "An unexpected error occurred"
+    );
   }
 };
 
@@ -353,17 +375,16 @@ export const unreactToPost = async (
     }
 
     const queryParams = new URLSearchParams();
-    queryParams.append('type', params.type);
+    queryParams.append("type", params.type);
 
     const url = `${baseURL}/feed/posts/${postId}/reactions?${queryParams.toString()}`;
-    
+
     await axios.delete(url, {
       headers: {
-        "Authorization": `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
       },
       timeout: 10000,
     });
-
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       if (error.response) {
@@ -379,9 +400,11 @@ export const unreactToPost = async (
         throw new Error("Network error - please check your connection");
       }
     }
-    
+
     console.error("Error:", error);
-    throw new Error(error instanceof Error ? error.message : "An unexpected error occurred");
+    throw new Error(
+      error instanceof Error ? error.message : "An unexpected error occurred"
+    );
   }
 };
 
@@ -400,15 +423,14 @@ export const reactToComment = async (
     }
 
     const url = `${baseURL}/feed/comments/${commentId}/reactions`;
-    
+
     await axios.put(url, payload, {
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
       },
       timeout: 10000,
     });
-
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       if (error.response) {
@@ -424,9 +446,11 @@ export const reactToComment = async (
         throw new Error("Network error - please check your connection");
       }
     }
-    
+
     console.error("Error:", error);
-    throw new Error(error instanceof Error ? error.message : "An unexpected error occurred");
+    throw new Error(
+      error instanceof Error ? error.message : "An unexpected error occurred"
+    );
   }
 };
 
@@ -445,17 +469,16 @@ export const unreactToComment = async (
     }
 
     const queryParams = new URLSearchParams();
-    queryParams.append('type', params.type);
+    queryParams.append("type", params.type);
 
     const url = `${baseURL}/feed/comments/${commentId}/reactions?${queryParams.toString()}`;
-    
+
     await axios.delete(url, {
       headers: {
-        "Authorization": `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
       },
       timeout: 10000,
     });
-
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       if (error.response) {
@@ -471,9 +494,11 @@ export const unreactToComment = async (
         throw new Error("Network error - please check your connection");
       }
     }
-    
+
     console.error("Error:", error);
-    throw new Error(error instanceof Error ? error.message : "An unexpected error occurred");
+    throw new Error(
+      error instanceof Error ? error.message : "An unexpected error occurred"
+    );
   }
 };
 
