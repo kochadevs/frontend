@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { getMentorPackagesForMentees } from "@/utilities/handlers/mentorPackageHandler";
 import { MentorPackage } from "@/interface/mentorPackages";
@@ -28,7 +28,7 @@ export default function BookSessionView({
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const accessToken = useAccessToken();
 
-  const loadMentorPackages = async () => {
+  const loadMentorPackages = useCallback(async () => {
     if (!mentor?.id) {
       setError("Mentor information not available");
       setIsLoading(false);
@@ -70,7 +70,7 @@ export default function BookSessionView({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [mentor?.id, accessToken]);
 
   const handleBookNow = (pkg: MentorPackage) => {
     setSelectedPackage(pkg);
@@ -87,7 +87,7 @@ export default function BookSessionView({
 
   useEffect(() => {
     loadMentorPackages();
-  }, [mentor?.id, accessToken]);
+  }, [loadMentorPackages]);
 
   return (
     <div className="flex flex-col space-y-6">

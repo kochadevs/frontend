@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import HorizontalPostScroller from "./HorizontalPostScroller";
 import { Card } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { useAccessToken } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import { toast } from "react-hot-toast";
 import { Loader2 } from "lucide-react";
+
 // Transform API post to card format
 const transformApiPostToCard = (apiPost: ApiPost) => {
   const timeAgo = new Date(apiPost.date_created).toLocaleDateString("en-US", {
@@ -52,7 +53,7 @@ export default function Posts() {
   const [error, setError] = useState<string | null>(null);
   const accessToken = useAccessToken();
 
-  const loadPosts = async () => {
+  const loadPosts = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -85,11 +86,11 @@ export default function Posts() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [accessToken]);
 
   useEffect(() => {
     loadPosts();
-  }, [accessToken, loadPosts]);
+  }, [loadPosts]);
 
   return (
     <Card className="gap-0 p-0">

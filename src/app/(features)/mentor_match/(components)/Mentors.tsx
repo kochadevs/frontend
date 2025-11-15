@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Search } from "lucide-react";
@@ -28,7 +28,7 @@ export default function Mentors() {
   const [selectedIndustry, setSelectedIndustry] = useState("all");
   const accessToken = useAccessToken();
 
-  const loadMentors = async () => {
+  const loadMentors = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -57,7 +57,7 @@ export default function Mentors() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [accessToken]);
 
   // Get unique industries for filter
   const industries = useMemo(() => {
@@ -96,8 +96,7 @@ export default function Mentors() {
 
   useEffect(() => {
     loadMentors();
-  }, [accessToken, loadMentors]);
-
+  }, [loadMentors]);
 
   return (
     <div className="bg-transparent">

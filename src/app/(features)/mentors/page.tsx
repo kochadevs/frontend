@@ -1,20 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Mentor } from "@/interface/mentors";
 import { getMentors } from "@/utilities/handlers/mentorHandler";
 import { useAccessToken } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import { toast } from "react-hot-toast";
-import {
-  Search,
-  Users,
-  Loader2,
-  X,
-  Target,
-  Star,
-  MapPin,
-} from "lucide-react";
+import { Search, Users, Loader2, X, Target, Star, MapPin } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -37,7 +29,7 @@ export default function MentorsPage() {
 
   const accessToken = useAccessToken();
 
-  const loadMentors = async () => {
+  const loadMentors = useCallback(async () => {
     setIsLoading(true);
     try {
       let token = accessToken;
@@ -75,11 +67,11 @@ export default function MentorsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [accessToken]);
 
   useEffect(() => {
     loadMentors();
-  }, [accessToken, loadMentors]);
+  }, [loadMentors]);
 
   // Filter mentors based on search query and selected industry
   useEffect(() => {

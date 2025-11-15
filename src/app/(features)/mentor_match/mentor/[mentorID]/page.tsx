@@ -2,7 +2,7 @@
 import Image from "next/image";
 import Breadcrumb from "@/components/common/Breadcrumbs/Breadcrumb";
 import Header from "@/components/common/(components)/Header";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getMentorById } from "@/utilities/handlers/mentorHandler";
 import { Mentor } from "@/interface/mentors";
@@ -42,7 +42,7 @@ export default function MentorProfilePage() {
     setCurrentView(view);
   };
 
-  const loadMentor = async () => {
+  const loadMentor = useCallback(async () => {
     if (!mentorId) return;
 
     setIsLoading(true);
@@ -72,11 +72,11 @@ export default function MentorProfilePage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [mentorId, accessToken]);
 
   useEffect(() => {
     loadMentor();
-  }, [mentorId, accessToken, loadMentor]);
+  }, [loadMentor]);
 
   // Show loading while checking user type
   if (!user) {

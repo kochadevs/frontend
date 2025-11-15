@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   MentorPackage,
   CreateMentorPackageRequest,
@@ -48,7 +48,7 @@ export default function MentorPackagesPage() {
   const user = useUser();
   const isMentor = user?.user_type === "mentor";
 
-  const loadPackages = async () => {
+  const loadPackages = useCallback(async () => {
     setIsLoading(true);
     try {
       // Check if user data is available
@@ -93,7 +93,7 @@ export default function MentorPackagesPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [accessToken, user]);
 
   const handleCreatePackage = async (
     packageData: CreateMentorPackageRequest
@@ -213,7 +213,7 @@ export default function MentorPackagesPage() {
     if (user && accessToken) {
       loadPackages();
     }
-  }, [accessToken, user?.id, user?.user_type]);
+  }, [accessToken, user, loadPackages]);
 
   // Filter packages based on search query and filter type
   useEffect(() => {
@@ -241,7 +241,7 @@ export default function MentorPackagesPage() {
     }
 
     setFilteredPackages(filtered);
-  }, [packages, searchQuery, filterType, user?.id]);
+  }, [packages, searchQuery, filterType, user?.id, isMentor]);
 
   const handleEditPackage = (pkg: MentorPackage) => {
     setEditingPackage(pkg);

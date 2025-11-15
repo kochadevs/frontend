@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAccessToken, useUser } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import { toast } from "react-hot-toast";
@@ -29,7 +29,7 @@ import {
   ChevronsRight,
   Rocket,
   Target,
-  Star
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -122,7 +122,7 @@ export default function BookingsPage() {
     }
   };
 
-  const loadBookings = async () => {
+  const loadBookings = useCallback(async () => {
     if (!user) return;
 
     setIsLoading(true);
@@ -161,7 +161,7 @@ export default function BookingsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [accessToken, user, isMentor]);
 
   const handleConfirmBooking = async (bookingId: number) => {
     setActionLoading({ id: bookingId, action: "confirm" });
@@ -299,7 +299,7 @@ export default function BookingsPage() {
     if (user && accessToken) {
       loadBookings();
     }
-  }, [user, accessToken]);
+  }, [user, accessToken, loadBookings]);
 
   // Show loading while user data is being fetched
   if (!user) {

@@ -1,6 +1,7 @@
+import { GroupMember } from "@/interface/groupMembers";
+import { CreateGroupPayload, CreateGroupResponse, Group } from "@/interface/groups";
 import axios from "axios";
-import { CreateGroupPayload, CreateGroupResponse, Group } from "../interface/groups";
-import { GroupMember } from "../interface/groupMembers";
+
 
 export const createGroup = async (
   payload: CreateGroupPayload,
