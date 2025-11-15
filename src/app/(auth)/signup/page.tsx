@@ -412,7 +412,7 @@ export default function Signup() {
             </div>
           </div>
 
-          <div className="mt-10">
+          <div className="mt-10 hidden">
             <div className="relative">
               <div
                 aria-hidden="true"
