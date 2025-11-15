@@ -76,7 +76,7 @@ export default function MentorProfilePage() {
 
   useEffect(() => {
     loadMentor();
-  }, [mentorId, accessToken]);
+  }, [mentorId, accessToken, loadMentor]);
 
   // Show loading while checking user type
   if (!user) {

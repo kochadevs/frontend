@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Mentor } from "@/interface/mentors";
-import { Target, User } from "lucide-react";
+import {  User } from "lucide-react";
 
 type AboutProps = {
   mentor?: Mentor | null;

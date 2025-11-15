@@ -79,7 +79,7 @@ export default function MentorsPage() {
 
   useEffect(() => {
     loadMentors();
-  }, [accessToken]);
+  }, [accessToken, loadMentors]);
 
   // Filter mentors based on search query and selected industry
   useEffect(() => {

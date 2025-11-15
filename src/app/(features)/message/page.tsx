@@ -8,11 +8,16 @@ import { Button } from "@/components/ui/button";
 import Divider from "@/components/common/Divider";
 import { useAuth } from "@/store/authStore";
 import { useChatWS, ActionMessage } from "@/utilities/chat/chatWS";
-import { listChatRooms, listUserRoomMessages, ChatRoom, getRoomHistory, ChatMessage } from "@/utilities/chat/chatApi";
+import {
+  listChatRooms,
+  listUserRoomMessages,
+  ChatRoom,
+  getRoomHistory,
+  ChatMessage,
+} from "@/utilities/chat/chatApi";
 import CreateRoomModal from "@/components/CreateRoomModal";
 import toast from "react-hot-toast";
 import { Conversation, Message } from "@/interface/messageChat";
-
 
 export default function Messaging() {
   const { accessToken, user } = useAuth();
@@ -24,170 +29,15 @@ export default function Messaging() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const recipientId = 3// Default recipient ID
-  const [rooms, setRooms] = useState<ChatRoom[]>([]);
+  const recipientId = 3; // Default recipient ID
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   // Scroll only the messages container to avoid page jump that hides nav
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  const handleIncomingMessage = useCallback((message: ActionMessage) => {
-    if (message.action === "message" && message.message?.content) {
-      const newMessage: Message = {
-        id: message.message.id || Date.now().toString(),
-        sender: message.message.sender_id === user?.id ? "You" : `User ${message.message.sender_id}`,
-        senderId: message.message.sender_id?.toString() || "unknown",
-        content: message.message.content,
-        timestamp:
-          message.message.timestamp ?
-          new Date(message.message.timestamp).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }) :
-          new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        avatar: message.message.sender_id === user?.id ? "" : getAvatarForUser(`User ${message.message.sender_id}`),
-        type: message.message.sender_id === user?.id ? "sent" : "received",
-      };
-
-      setMessages((prev) => [...prev, newMessage]);
-
-      // Update conversation last message
-      if (message.room_id) {
-        setConversations((prev) =>
-          prev.map((conv) =>
-            conv.id === message.room_id?.toString()
-              ? {
-                  ...conv,
-                  lastMessage: message.message?.content,
-                  lastMessageTime: newMessage.timestamp,
-                  unread: conv.id !== selectedConversation,
-                }
-              : conv
-          )
-        );
-      }
-    }
-  }, [user?.id, selectedConversation]);
-
-  const { isConnected, roomId: _, sendMessage: wsSendMessage } = useChatWS({
-    accessToken,
-    recipientId,
-    currentUserId: user?.id,
-    onMessage: handleIncomingMessage,
-  });
-
-  // Load rooms from API
-  const loadRooms = async () => {
-    if (!accessToken) return;
-    
-    try {
-      const roomsData = await listChatRooms(accessToken);
-      setRooms(roomsData);
-      
-      // Fetch all user room messages once and compute latest per room
-    const allMessages = await listUserRoomMessages(accessToken);
-      const latestByRoom = new Map<number, ChatMessage>();
-      for (const msg of allMessages) {
-        const rid = msg.chat_room?.id;
-        if (typeof rid !== 'number') continue;
-        const existing = latestByRoom.get(rid);
-        if (!existing || new Date(msg.date_created).getTime() > new Date(existing.date_created).getTime()) {
-          latestByRoom.set(rid, msg);
-        }
-      }
-      
-      // Convert rooms to conversations format for existing UI using latest message per room
-      const roomConversations: Conversation[] = roomsData.map((room) => {
-        const latest = latestByRoom.get(room.id);
-        const lastMessage = latest ? latest.content : "No messages yet";
-        const lastMessageTime = latest ? new Date(latest.date_created).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
-        return {
-          id: room.id.toString(),
-          name: room.name,
-          participants: [user?.id?.toString() || "1", room.created_by.toString()],
-          lastMessage,
-          lastMessageTime,
-          avatar: "",
-          unread: false,
-        };
-      });
-      
-      setConversations(roomConversations);
-    } catch (error) {
-      console.error("Failed to load rooms:", error);
-      toast.error("Failed to load chat rooms");
-    }
-  };
-
-  const handleRoomCreated = (room: ChatRoom) => {
-    setRooms((prev) => [...prev, room]);
-    
-    // Add to conversations
-    const newConversation: Conversation = {
-      id: room.id.toString(),
-      name: room.name,
-      participants: [user?.id?.toString() || "1", room.created_by.toString()],
-      lastMessage: "Room created",
-      lastMessageTime: new Date(room.date_created).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      avatar: "",
-      unread: false,
-    };
-    
-    setConversations((prev) => [newConversation, ...prev]);
-  };
-
-  // Load messages for a specific room
-  const loadRoomMessages = async (roomId: number) => {
-    if (!accessToken) return;
-    
-    try {
-      const messagesData = await getRoomHistory(roomId, accessToken);
-
-      // Ensure ascending order (oldest -> newest) so newest is at the bottom
-      const sorted = [...messagesData].sort(
-        (a, b) => new Date(a.date_created).getTime() - new Date(b.date_created).getTime()
-      );
-      
-      // Convert API messages to UI format
-      const formattedMessages: Message[] = sorted.map((msg) => ({
-        id: msg.id.toString(),
-        sender: msg.sender_id === user?.id ? "You" : `User ${msg.sender_id}`,
-        senderId: msg.sender_id.toString(),
-        content: msg.content,
-        timestamp: new Date(msg.date_created).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        avatar: msg.sender_id === user?.id ? "" : getAvatarForUser(`User ${msg.sender_id}`),
-        type: msg.sender_id === user?.id ? "sent" : "received",
-      }));
-      
-      setMessages(formattedMessages);
-      
-      // Update sidebar conversation with the latest message/time
-      setConversations((prev) => prev.map((conv) => {
-        if (conv.id !== roomId.toString()) return conv;
-        if (formattedMessages.length === 0) {
-          return { ...conv, lastMessage: "No messages yet", lastMessageTime: "" };
-        }
-        const last = formattedMessages[formattedMessages.length - 1];
-        return { ...conv, lastMessage: last.content, lastMessageTime: last.timestamp };
-      }));
-    } catch (error) {
-      console.error("Failed to load room messages:", error);
-      toast.error("Failed to load messages");
-    }
-  };
-
   // Helper function to get avatar (you can replace this with actual user data)
-  const getAvatarForUser = (username: string): string => {
+  const getAvatarForUser = useCallback((username: string): string => {
     const avatarMap: { [key: string]: string } = {
       "Phoenix Baker":
         "https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?q=80&w=871&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
@@ -195,8 +45,199 @@ export default function Messaging() {
         "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     };
     return avatarMap[username] || "";
-  };
+  }, []);
 
+  const handleIncomingMessage = useCallback(
+    (message: ActionMessage) => {
+      if (message.action === "message" && message.message?.content) {
+        const newMessage: Message = {
+          id: message.message.id || Date.now().toString(),
+          sender:
+            message.message.sender_id === user?.id
+              ? "You"
+              : `User ${message.message.sender_id}`,
+          senderId: message.message.sender_id?.toString() || "unknown",
+          content: message.message.content,
+          timestamp: message.message.timestamp
+            ? new Date(message.message.timestamp).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            : new Date().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+          avatar:
+            message.message.sender_id === user?.id
+              ? ""
+              : getAvatarForUser(`User ${message.message.sender_id}`),
+          type: message.message.sender_id === user?.id ? "sent" : "received",
+        };
+
+        setMessages((prev) => [...prev, newMessage]);
+
+        // Update conversation last message
+        if (message.room_id) {
+          setConversations((prev) =>
+            prev.map((conv) =>
+              conv.id === message.room_id?.toString()
+                ? {
+                    ...conv,
+                    lastMessage: message.message?.content,
+                    lastMessageTime: newMessage.timestamp,
+                    unread: conv.id !== selectedConversation,
+                  }
+                : conv
+            )
+          );
+        }
+      }
+    },
+    [user?.id, selectedConversation, getAvatarForUser]
+  );
+
+  const { isConnected, sendMessage: wsSendMessage } = useChatWS({
+    accessToken,
+    recipientId,
+    currentUserId: user?.id,
+    onMessage: handleIncomingMessage,
+  });
+
+  // Load messages for a specific room
+  const loadRoomMessages = useCallback(
+    async (roomId: number) => {
+      if (!accessToken) return;
+
+      try {
+        const messagesData = await getRoomHistory(roomId, accessToken);
+
+        // Ensure ascending order (oldest -> newest) so newest is at the bottom
+        const sorted = [...messagesData].sort(
+          (a, b) =>
+            new Date(a.date_created).getTime() -
+            new Date(b.date_created).getTime()
+        );
+
+        // Convert API messages to UI format
+        const formattedMessages: Message[] = sorted.map((msg) => ({
+          id: msg.id.toString(),
+          sender: msg.sender_id === user?.id ? "You" : `User ${msg.sender_id}`,
+          senderId: msg.sender_id.toString(),
+          content: msg.content,
+          timestamp: new Date(msg.date_created).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          avatar:
+            msg.sender_id === user?.id
+              ? ""
+              : getAvatarForUser(`User ${msg.sender_id}`),
+          type: msg.sender_id === user?.id ? "sent" : "received",
+        }));
+
+        setMessages(formattedMessages);
+
+        // Update sidebar conversation with the latest message/time
+        setConversations((prev) =>
+          prev.map((conv) => {
+            if (conv.id !== roomId.toString()) return conv;
+            if (formattedMessages.length === 0) {
+              return {
+                ...conv,
+                lastMessage: "No messages yet",
+                lastMessageTime: "",
+              };
+            }
+            const last = formattedMessages[formattedMessages.length - 1];
+            return {
+              ...conv,
+              lastMessage: last.content,
+              lastMessageTime: last.timestamp,
+            };
+          })
+        );
+      } catch (error) {
+        console.error("Failed to load room messages:", error);
+        toast.error("Failed to load messages");
+      }
+    },
+    [accessToken, user?.id, getAvatarForUser]
+  );
+
+  // Load rooms from API
+  const loadRooms = useCallback(async () => {
+    if (!accessToken) return;
+
+    try {
+      const roomsData = await listChatRooms(accessToken);
+
+      // Fetch all user room messages once and compute latest per room
+      const allMessages = await listUserRoomMessages(accessToken);
+      const latestByRoom = new Map<number, ChatMessage>();
+      for (const msg of allMessages) {
+        const rid = msg.chat_room?.id;
+        if (typeof rid !== "number") continue;
+        const existing = latestByRoom.get(rid);
+        if (
+          !existing ||
+          new Date(msg.date_created).getTime() >
+            new Date(existing.date_created).getTime()
+        ) {
+          latestByRoom.set(rid, msg);
+        }
+      }
+
+      // Convert rooms to conversations format for existing UI using latest message per room
+      const roomConversations: Conversation[] = roomsData.map((room) => {
+        const latest = latestByRoom.get(room.id);
+        const lastMessage = latest ? latest.content : "No messages yet";
+        const lastMessageTime = latest
+          ? new Date(latest.date_created).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "";
+        return {
+          id: room.id.toString(),
+          name: room.name,
+          participants: [
+            user?.id?.toString() || "1",
+            room.created_by.toString(),
+          ],
+          lastMessage,
+          lastMessageTime,
+          avatar: "",
+          unread: false,
+        };
+      });
+
+      setConversations(roomConversations);
+    } catch (error) {
+      console.error("Failed to load rooms:", error);
+      toast.error("Failed to load chat rooms");
+    }
+  }, [accessToken, user?.id]);
+
+  const handleRoomCreated = useCallback(
+    (room: ChatRoom) => {
+      // Add to conversations
+      const newConversation: Conversation = {
+        id: room.id.toString(),
+        name: room.name,
+        participants: [user?.id?.toString() || "1", room.created_by.toString()],
+        lastMessage: "Room created",
+        lastMessageTime: new Date(room.date_created).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        avatar: "",
+        unread: false,
+      };
+
+      setConversations((prev) => [newConversation, ...prev]);
+    },
+    [user?.id]
+  );
 
   const filteredConversations = conversations.filter(
     (conv) =>
@@ -207,7 +248,7 @@ export default function Messaging() {
   const handleSendMessage = () => {
     if (messageContent.trim() && isConnected && selectedConversation) {
       setIsLoading(true);
-      
+
       const selectedRoomId = parseInt(selectedConversation);
 
       // Add message to UI immediately (optimistic update)
@@ -291,7 +332,7 @@ export default function Messaging() {
   useEffect(() => {
     if (selectedConversation) {
       setMessages([]); // Clear current messages
-      
+
       // Mark conversation as read
       setConversations((prev) =>
         prev.map((conv) =>
@@ -305,12 +346,12 @@ export default function Messaging() {
         loadRoomMessages(roomId);
       }
     }
-  }, [selectedConversation, accessToken]);
+  }, [selectedConversation, loadRoomMessages]);
 
   // Load rooms on component mount
   useEffect(() => {
     loadRooms();
-  }, [accessToken]);
+  }, [loadRooms]);
 
   const selectedConversationData = conversations.find(
     (c) => c.id === selectedConversation
@@ -321,8 +362,7 @@ export default function Messaging() {
       <header className="flex-shrink-0">
         <h2 className="text-[24px] font-bold text-gray-700">Messaging</h2>
         <p className="text-black-shade-900 text-[15px]">
-          Connect with Mentors in the
-          community to drive success together.
+          Connect with Mentors in the community to drive success together.
         </p>
       </header>
 
@@ -424,7 +464,10 @@ export default function Messaging() {
               <Divider text="Today" />
 
               {/* Messages Container */}
-              <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-6 space-y-6 min-h-0">
+              <div
+                ref={messagesContainerRef}
+                className="flex-1 overflow-y-auto p-6 space-y-6 min-h-0"
+              >
                 {messages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-32 text-gray-500">
                     <p>No messages yet. Start a conversation!</p>
@@ -568,7 +611,10 @@ export default function Messaging() {
                     <Button
                       onClick={handleSendMessage}
                       disabled={
-                        !messageContent.trim() || !isConnected || isLoading || !selectedConversation
+                        !messageContent.trim() ||
+                        !isConnected ||
+                        isLoading ||
+                        !selectedConversation
                       }
                       className="bg-[#00A498] hover:bg-[#00857a] text-white"
                     >

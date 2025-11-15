@@ -96,7 +96,7 @@ export default function Mentors() {
 
   useEffect(() => {
     loadMentors();
-  }, [accessToken]);
+  }, [accessToken, loadMentors]);
 
 
   return (

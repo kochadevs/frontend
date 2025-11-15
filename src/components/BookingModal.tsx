@@ -19,6 +19,7 @@ import { createBooking } from "@/utilities/handlers/bookingHandler";
 import { useAccessToken } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import { toast } from "react-hot-toast";
+import Image from "next/image";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -144,14 +145,16 @@ export default function BookingModal({
         {/* Package & Mentor Info */}
         <div className="bg-[#F8FAFC] rounded-lg p-4 border">
           <div className="flex items-start gap-4">
-            <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-200">
-              <img
+            <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-200 relative">
+              <Image
                 src={
                   mentor.profile_pic ||
                   "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
                 }
                 alt={`${mentor.first_name} ${mentor.last_name}`.trim()}
                 className="w-full h-full object-cover"
+                width={64}
+                height={64}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src =

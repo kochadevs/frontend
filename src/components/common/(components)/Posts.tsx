@@ -89,7 +89,7 @@ export default function Posts() {
 
   useEffect(() => {
     loadPosts();
-  }, [accessToken]);
+  }, [accessToken, loadPosts]);
 
   return (
     <Card className="gap-0 p-0">
