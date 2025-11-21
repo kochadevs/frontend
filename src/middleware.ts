@@ -7,7 +7,7 @@ export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const isAuthenticated = middlewareCookieUtils.isAuthenticated(request);
 
-  const publicRoutes = ["/login", "/signup", "/forgot-password", "/reset-password"];
+  const publicRoutes = ["/login", "/signup", "/forgot-password", "/reset-password", "/onboarding"];
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
 
   // Helper function to get user data

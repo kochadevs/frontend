@@ -54,3 +54,14 @@ export interface OnboardingSubmissionResponse {
   message: string;
   success?: boolean;
 }
+
+export interface ProfessionalBackground {
+  currentRole: string;
+  company: string;
+  yearsOfExperience: string;
+}
+
+export interface CareerGoalsData {
+  shortTermGoal: string;
+  longTermGoal: string;
+}

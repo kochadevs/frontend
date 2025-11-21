@@ -12,6 +12,7 @@ import {
 } from "../../../zodSchema/passwordResetSchema";
 import { handleResetPassword } from "../../../utilities/handlers/authHandler";
 import { toast } from "react-hot-toast";
+import NavigationBar from "@/components/common/NavigationBar";
 
 const ResetPasswordContent = () => {
   const router = useRouter();
@@ -108,16 +109,11 @@ const ResetPasswordContent = () => {
   if (tokenError) {
     return (
       <div className="flex items-center justify-center min-h-screen">
+        <div className="fixed top-0 w-full z-50">
+          <NavigationBar />
+        </div>
         <div className="md:w-[499px] w-full md:px-2 px-4">
           <div className="flex flex-col items-center justify-center gap-4">
-            <div className="relative h-[38px] w-[144.66px]">
-              <Image
-                alt="kocha_logo"
-                src="/asset/kocha_logo.png"
-                className="h-10 w-auto"
-                fill
-              />
-            </div>
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
               <svg
                 className="w-8 h-8 text-red-500"

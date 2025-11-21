@@ -1,3 +1,4 @@
+// zodSchema/signupSchema.ts
 import { z } from "zod";
 
 // Base field definitions (reusable)
@@ -16,9 +17,12 @@ const baseFields = {
   location: z.string().min(1, "Location is required"),
   user_type: z
     .string()
-    .refine((val) => val === "mentee" || val === "mentor", {
-      message: "User type must be either mentee or mentor",
-    }),
+    .refine(
+      (val) => val === "mentee" || val === "mentor" || val === "basic_user",
+      {
+        message: "User type must be either mentee, mentor, or basic_user",
+      }
+    ),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")
@@ -30,9 +34,10 @@ const baseFields = {
       "Password must contain at least one special character"
     ),
   password_confirmation: z.string(),
+  about: z.string().max(500, "Bio must be less than 500 characters").optional(), // Added bio field
 };
 
-// Schema for signup form (without profile fields)
+// Rest of the schema remains the same...
 export const signupFormSchema = z
   .object(baseFields)
   .refine((data) => data.password === data.password_confirmation, {
@@ -40,7 +45,6 @@ export const signupFormSchema = z
     path: ["password_confirmation"],
   });
 
-// Complete schema for API payload (includes profile fields)
 export const signupSchema = z
   .object({
     ...baseFields,

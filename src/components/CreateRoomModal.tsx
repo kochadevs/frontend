@@ -80,7 +80,7 @@ export default function CreateRoomModal({
   };
 
   const defaultTrigger = (
-    <Button size="sm" className="bg-[#00A498] hover:bg-[#00857a] text-white">
+    <Button size="sm" className="bg-[#251F99] hover:bg-[#251F99]/90 text-white">
       <Plus className="h-4 w-4 mr-1" />
       Create Room
     </Button>
@@ -157,7 +157,7 @@ export default function CreateRoomModal({
             </Button>
             <Button
               type="submit"
-              className="bg-[#00A498] hover:bg-[#00857a]"
+              className="bg-[#251F99] hover:bg-[#251F99]/90"
               disabled={isLoading || !formData.name.trim()}
             >
               {isLoading ? "Creating..." : "Create Room"}

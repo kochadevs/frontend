@@ -133,6 +133,13 @@ export const fetchCareerGoals = async (): Promise<CareerGoalsResponse> => {
 
 // POST API functions (authentication required)
 
+export const submitProfessionalBackground = async (
+  data: { professional_background: any},
+  accessToken: string
+): Promise<void> => {
+  // Your API call implementation
+};
+
 export const submitNewRoleValues = async (
   payload: NewRoleValuesRequest,
   accessToken: string

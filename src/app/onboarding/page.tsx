@@ -1,12 +1,12 @@
 "use client";
 import React, { useState } from "react";
-import ValueSelection from "./components/ValueSelection";
 import JobSearchStatus from "./components/JobSearchStatus";
 import RoleSelection from "./components/RoleSelection";
 import IndustrySelection from "./components/IndustrySelection";
 import SkillsSelection from "./components/SkillsSelection";
 import CareerGoals from "./components/CareerGoals";
 import NavigationBar from "@/components/common/NavigationBar";
+import ProfessionalBackground from "./components/ProfessionalBackground";
 
 const Onboarding = () => {
   const [step, setStep] = useState(1);
@@ -39,14 +39,14 @@ const Onboarding = () => {
         </header>
 
         {step == 1 && (
-          <ValueSelection
+          <ProfessionalBackground
             handleNext={handleNext}
             handlePrevious={handlePrevious}
           />
         )}
 
         {step == 2 && (
-          <JobSearchStatus
+          <CareerGoals
             handleNext={handleNext}
             handlePrevious={handlePrevious}
           />
@@ -74,7 +74,7 @@ const Onboarding = () => {
         )}
 
         {step == 6 && (
-          <CareerGoals
+          <JobSearchStatus
             handleNext={handleNext}
             handlePrevious={handlePrevious}
           />

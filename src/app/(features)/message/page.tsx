@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -5,7 +6,6 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import SearchField from "@/components/common/SearchField";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import Divider from "@/components/common/Divider";
 import { useAuth } from "@/store/authStore";
 import { useChatWS, ActionMessage } from "@/utilities/chat/chatWS";
 import {
@@ -18,6 +18,7 @@ import {
 import CreateRoomModal from "@/components/CreateRoomModal";
 import toast from "react-hot-toast";
 import { Conversation, Message } from "@/interface/messageChat";
+import { ChevronLeft, Info, X, MessageSquare } from "lucide-react";
 
 export default function Messaging() {
   const { accessToken, user } = useAuth();
@@ -29,20 +30,138 @@ export default function Messaging() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Responsive state
+  const [windowSize, setWindowSize] = useState({
+    width: typeof window !== "undefined" ? window.innerWidth : 1024,
+    height: typeof window !== "undefined" ? window.innerHeight : 768,
+  });
+  const [showChat, setShowChat] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
+
   const recipientId = 3; // Default recipient ID
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  // Scroll only the messages container to avoid page jump that hides nav
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  // Helper function to get avatar (you can replace this with actual user data)
+  // Screen size detection
+  const isMobile = windowSize.width < 768;
+  const isTablet = windowSize.width >= 768 && windowSize.width < 1024;
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Mock data for the design layout
+  const mockConversations = [
+    {
+      id: "1",
+      name: "Supardi_Kencur",
+      lastMessage: "12",
+      lastMessageTime: "",
+      avatar: "",
+      participants: [],
+      unread: false,
+    },
+    {
+      id: "2",
+      name: "Pestutmahakami2",
+      lastMessage: "4",
+      lastMessageTime: "",
+      avatar: "",
+      participants: [],
+      unread: false,
+      platform: "Instagram",
+    },
+    {
+      id: "3",
+      name: "+621234567890",
+      lastMessage: "132",
+      lastMessageTime: "",
+      avatar: "",
+      participants: [],
+      unread: false,
+      platform: "Whatsapp",
+    },
+    {
+      id: "4",
+      name: "Hursein Saddam",
+      lastMessage: "2",
+      lastMessageTime: "",
+      avatar: "",
+      participants: [],
+      unread: false,
+      platform: "LinkedIn",
+    },
+    {
+      id: "5",
+      name: "Vladimir.basuki",
+      lastMessage: "16",
+      lastMessageTime: "",
+      avatar: "",
+      participants: [],
+      unread: false,
+      platform: "Tiktok",
+    },
+  ];
+
+  const mockDirectMessages = [
+    { id: "6", name: "Alfredo Workman", preview: "H. I noticed a squ..." },
+    { id: "7", name: "Kisma George", preview: "H. I noticed a squ..." },
+    { id: "8", name: "Ann Schleifer", preview: "H. I noticed a squ..." },
+    { id: "9", name: "Craig Culhane", preview: "H. I noticed a squ..." },
+  ];
+
+  const mockMessages = [
+    {
+      id: "1",
+      sender: "You",
+      senderId: "1",
+      content:
+        "Hey! Did you check out that new café downtown? I heard they have the best lattes.",
+      timestamp: "10:00",
+      avatar: "",
+      type: "sent" as const,
+    },
+    {
+      id: "2",
+      sender: "Ann Schleifer",
+      senderId: "8",
+      content:
+        "I actually went there yesterday. The lattes are amazing, and the ambience is super cozy.",
+      timestamp: "10:05",
+      avatar: "",
+      type: "received" as const,
+    },
+    {
+      id: "3",
+      sender: "You",
+      senderId: "1",
+      content:
+        "I've been wanting to try their pastries too. Were they any good?",
+      timestamp: "10:06",
+      avatar: "",
+      type: "sent" as const,
+    },
+  ];
+
   const getAvatarForUser = useCallback((username: string): string => {
     const avatarMap: { [key: string]: string } = {
       "Phoenix Baker":
         "https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?q=80&w=871&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       "Alex Johnson":
         "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "Ann Schleifer":
+        "https://images.unsplash.com/photo-1494790108755-2616b612b786?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     };
     return avatarMap[username] || "";
   }, []);
@@ -76,7 +195,6 @@ export default function Messaging() {
 
         setMessages((prev) => [...prev, newMessage]);
 
-        // Update conversation last message
         if (message.room_id) {
           setConversations((prev) =>
             prev.map((conv) =>
@@ -103,7 +221,6 @@ export default function Messaging() {
     onMessage: handleIncomingMessage,
   });
 
-  // Load messages for a specific room
   const loadRoomMessages = useCallback(
     async (roomId: number) => {
       if (!accessToken) return;
@@ -111,14 +228,12 @@ export default function Messaging() {
       try {
         const messagesData = await getRoomHistory(roomId, accessToken);
 
-        // Ensure ascending order (oldest -> newest) so newest is at the bottom
         const sorted = [...messagesData].sort(
           (a, b) =>
             new Date(a.date_created).getTime() -
             new Date(b.date_created).getTime()
         );
 
-        // Convert API messages to UI format
         const formattedMessages: Message[] = sorted.map((msg) => ({
           id: msg.id.toString(),
           sender: msg.sender_id === user?.id ? "You" : `User ${msg.sender_id}`,
@@ -137,7 +252,6 @@ export default function Messaging() {
 
         setMessages(formattedMessages);
 
-        // Update sidebar conversation with the latest message/time
         setConversations((prev) =>
           prev.map((conv) => {
             if (conv.id !== roomId.toString()) return conv;
@@ -164,16 +278,14 @@ export default function Messaging() {
     [accessToken, user?.id, getAvatarForUser]
   );
 
-  // Load rooms from API
   const loadRooms = useCallback(async () => {
     if (!accessToken) return;
 
     try {
       const roomsData = await listChatRooms(accessToken);
-
-      // Fetch all user room messages once and compute latest per room
       const allMessages = await listUserRoomMessages(accessToken);
       const latestByRoom = new Map<number, ChatMessage>();
+
       for (const msg of allMessages) {
         const rid = msg.chat_room?.id;
         if (typeof rid !== "number") continue;
@@ -187,7 +299,6 @@ export default function Messaging() {
         }
       }
 
-      // Convert rooms to conversations format for existing UI using latest message per room
       const roomConversations: Conversation[] = roomsData.map((room) => {
         const latest = latestByRoom.get(room.id);
         const lastMessage = latest ? latest.content : "No messages yet";
@@ -211,16 +322,17 @@ export default function Messaging() {
         };
       });
 
-      setConversations(roomConversations);
+      // Use mock data for demonstration
+      setConversations([...mockConversations, ...roomConversations]);
     } catch (error) {
       console.error("Failed to load rooms:", error);
-      toast.error("Failed to load chat rooms");
+      // Use mock data as fallback
+      setConversations(mockConversations);
     }
   }, [accessToken, user?.id]);
 
   const handleRoomCreated = useCallback(
     (room: ChatRoom) => {
-      // Add to conversations
       const newConversation: Conversation = {
         id: room.id.toString(),
         name: room.name,
@@ -239,6 +351,42 @@ export default function Messaging() {
     [user?.id]
   );
 
+  // Handle conversation selection with responsive behavior
+  const handleSelectConversation = (conversationId: string) => {
+    setSelectedConversation(conversationId);
+
+    if (isMobile) {
+      setShowChat(true);
+    }
+
+    // For mock conversations, use mock messages
+    if (conversationId === "8") {
+      // Ann Schleifer
+      setMessages(mockMessages);
+    } else {
+      setMessages([]);
+      const roomId = parseInt(conversationId);
+      if (!isNaN(roomId)) {
+        loadRoomMessages(roomId);
+      }
+    }
+  };
+
+  // Handle back to conversations on mobile
+  const handleBackToConversations = () => {
+    setShowChat(false);
+    setSelectedConversation(null);
+  };
+
+  // Toggle info panel based on screen size
+  const toggleInfoPanel = () => {
+    if (isMobile) {
+      setShowInfo(!showInfo);
+    } else {
+      setShowInfo(!showInfo);
+    }
+  };
+
   const filteredConversations = conversations.filter(
     (conv) =>
       conv.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -251,7 +399,6 @@ export default function Messaging() {
 
       const selectedRoomId = parseInt(selectedConversation);
 
-      // Add message to UI immediately (optimistic update)
       const tempMessage: Message = {
         id: `temp-${Date.now()}`,
         sender: user?.first_name || "You",
@@ -267,7 +414,6 @@ export default function Messaging() {
 
       setMessages((prev) => [...prev, tempMessage]);
 
-      // Update conversation last message optimistically
       setConversations((prev) =>
         prev.map((conv) =>
           conv.id === selectedConversation
@@ -280,11 +426,9 @@ export default function Messaging() {
         )
       );
 
-      // Send via WebSocket with the selected room ID
       const success = wsSendMessage(messageContent, selectedRoomId);
 
       if (!success) {
-        // If sending fails, mark message as failed
         setMessages((prev) =>
           prev.map((msg) =>
             msg.id === tempMessage.id
@@ -311,7 +455,6 @@ export default function Messaging() {
     }
   };
 
-  // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
@@ -320,7 +463,6 @@ export default function Messaging() {
     }
   }, [messageContent]);
 
-  // Scroll to bottom of the messages container (not the page) when messages change
   useEffect(() => {
     const el = messagesContainerRef.current;
     if (el) {
@@ -328,27 +470,29 @@ export default function Messaging() {
     }
   }, [messages]);
 
-  // Load messages when conversation changes
   useEffect(() => {
     if (selectedConversation) {
-      setMessages([]); // Clear current messages
+      setMessages([]);
 
-      // Mark conversation as read
       setConversations((prev) =>
         prev.map((conv) =>
           conv.id === selectedConversation ? { ...conv, unread: false } : conv
         )
       );
 
-      // Load messages for this room
-      const roomId = parseInt(selectedConversation);
-      if (!isNaN(roomId)) {
-        loadRoomMessages(roomId);
+      // For mock conversations, use mock messages
+      if (selectedConversation === "8") {
+        // Ann Schleifer
+        setMessages(mockMessages);
+      } else {
+        const roomId = parseInt(selectedConversation);
+        if (!isNaN(roomId)) {
+          loadRoomMessages(roomId);
+        }
       }
     }
   }, [selectedConversation, loadRoomMessages]);
 
-  // Load rooms on component mount
   useEffect(() => {
     loadRooms();
   }, [loadRooms]);
@@ -357,116 +501,255 @@ export default function Messaging() {
     (c) => c.id === selectedConversation
   );
 
+  // Responsive layout classes
+  const getLeftPanelClass = () => {
+    if (isMobile) return showChat ? "hidden" : "flex w-full";
+    if (isTablet) return "flex w-[280px]";
+    return "flex w-[280px]";
+  };
+
+  const getChatPanelClass = () => {
+    if (isMobile) return showChat ? "flex w-full" : "hidden";
+    if (isTablet) return showInfo ? "flex flex-1" : "flex flex-1";
+    return showInfo ? "flex flex-1" : "flex flex-1";
+  };
+
+  const getInfoPanelClass = () => {
+    if (isMobile) return "hidden"; // Always hidden on mobile (shown as modal)
+    if (isTablet) return showInfo ? "flex w-[300px]" : "hidden";
+    return showInfo ? "flex w-[300px]" : "hidden";
+  };
+
   return (
-    <div className="flex flex-col gap-y-[1.5rem] p-4 h-[90vh] max-h-screen">
+    <div className="flex flex-col gap-y-[1.5rem] p-4 h-[87vh] max-h-screen">
+      {/* Header */}
       <header className="flex-shrink-0">
-        <h2 className="text-[24px] font-bold text-gray-700">Messaging</h2>
-        <p className="text-black-shade-900 text-[15px]">
-          Connect with Mentors in the community to drive success together.
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-[24px] font-bold text-gray-700">Messaging</h2>
+            <p className="text-black-shade-900 text-[15px]">
+              Connect with Mentors in the community to drive success together.
+            </p>
+          </div>
+
+          {/* Mobile header controls */}
+          {isMobile && showChat && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleInfoPanel}
+                className="flex items-center gap-2"
+              >
+                <Info size={16} />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBackToConversations}
+                className="flex items-center gap-2"
+              >
+                <ChevronLeft size={16} />
+                <MessageSquare size={16} />
+              </Button>
+            </div>
+          )}
+        </div>
       </header>
 
       <main className="border rounded-[8px] bg-white flex items-stretch w-full flex-1 min-h-0 overflow-hidden">
-        {/* Conversations Sidebar */}
-        <aside className="border-r w-full md:w-[458px] flex flex-col min-h-0">
-          <header className="p-[8px] border-b space-y-2 flex-shrink-0">
-            <SearchField
-              clsName="md:!w-full"
-              value={searchQuery}
-              onChange={setSearchQuery}
-              placeholder="Search conversations..."
-            />
-            <div className="flex justify-end">
-              <CreateRoomModal onRoomCreated={handleRoomCreated} />
-            </div>
-          </header>
+        {/* Left Sidebar - Categories */}
+        <aside
+          className={`border-r flex flex-col min-h-0 flex-shrink-0 ${getLeftPanelClass()}`}
+        >
+          <div className="p-4 border-b">
+            <h3 className="font-semibold text-gray-700">Message category</h3>
+            <p className="text-sm text-gray-500 truncate">
+              {user?.email || "husselin.saidiam@gmail.com"}
+            </p>
+          </div>
 
           <div className="flex-1 overflow-y-auto">
-            {filteredConversations.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-32 text-gray-500">
-                <p>
-                  {isConnected ? "No conversations found" : "Connecting..."}
-                </p>
+            {/* Search */}
+            <div className="p-3 border-b space-y-2">
+              <SearchField
+                clsName="w-full"
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="Search Message..."
+              />
+              <div className="flex justify-end">
+                <CreateRoomModal onRoomCreated={handleRoomCreated} />
               </div>
-            ) : (
-              filteredConversations.map((conversation) => (
+            </div>
+
+            {/* Conversations List */}
+            <div className="py-2">
+              {filteredConversations.map((conversation) => (
                 <div
                   key={conversation.id}
-                  className={`h-[125px] cursor-pointer py-[10px] px-[24px] flex items-center gap-4 w-full hover:bg-[#F2F4F7] border-l-[3px] ${
-                    selectedConversation === conversation.id
-                      ? "border-l-[#00A498] bg-[#F0FAF9]"
-                      : "border-l-transparent"
+                  className={`px-4 py-3 cursor-pointer flex items-center justify-between hover:bg-gray-50 ${
+                    selectedConversation === conversation.id ? "bg-blue-50" : ""
                   }`}
-                  onClick={() => setSelectedConversation(conversation.id)}
+                  onClick={() => handleSelectConversation(conversation.id)}
                 >
-                  <Avatar className="w-[64px] h-[64px] object-center flex-shrink-0">
-                    <AvatarImage
-                      src={conversation.avatar}
-                      className="w-full h-full object-cover"
-                    />
-                    <AvatarFallback>
-                      {conversation.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </AvatarFallback>
-                  </Avatar>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <h2 className="font-bold text-[#344054] text-[17px] truncate">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Avatar className="w-8 h-8 flex-shrink-0">
+                      <AvatarImage src={conversation.avatar} />
+                      <AvatarFallback className="text-xs">
+                        {conversation.name
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-medium text-gray-900 text-sm truncate">
                         {conversation.name}
-                      </h2>
-                      <span className="text-[#667085] text-[14px] whitespace-nowrap ml-2">
-                        {conversation.lastMessageTime}
-                      </span>
+                      </h4>
+                      {(conversation as any).platform && (
+                        <p className="text-xs text-gray-500">
+                          {(conversation as any).platform}
+                        </p>
+                      )}
                     </div>
-                    <p className="text-black-shade-900 text-[15px] truncate">
-                      {conversation.lastMessage || "No messages yet"}
-                    </p>
-                    {conversation.unread && (
-                      <div className="w-2 h-2 bg-[#00A498] rounded-full mt-2"></div>
-                    )}
                   </div>
+                  <span className="text-xs font-medium text-gray-900 bg-gray-100 px-2 py-1 rounded-full flex-shrink-0">
+                    {conversation.lastMessage}
+                  </span>
                 </div>
-              ))
-            )}
+              ))}
+            </div>
+
+            {/* Direct Messages Section */}
+            <div className="border-t pt-3">
+              <h4 className="px-4 text-sm font-semibold text-gray-700 mb-2">
+                Direct Message
+              </h4>
+              {mockDirectMessages.map((dm) => (
+                <div
+                  key={dm.id}
+                  className={`px-4 py-2 cursor-pointer hover:bg-gray-50 ${
+                    selectedConversation === dm.id ? "bg-blue-50" : ""
+                  }`}
+                  onClick={() => handleSelectConversation(dm.id)}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-900">
+                      {dm.name}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 truncate">{dm.preview}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </aside>
 
-        {/* Chat Area */}
-        <aside className="flex-1 flex flex-col min-h-0">
+        {/* Middle Column - Chat Area */}
+        <aside
+          className={`flex flex-col min-h-0 border-r ${getChatPanelClass()}`}
+        >
           {selectedConversation ? (
             <>
-              {/* Header */}
+              {/* Chat Header */}
               <div className="p-4 border-b flex-shrink-0">
-                <div className="flex items-center gap-3">
-                  <Avatar className="w-[40px] h-[40px]">
-                    <AvatarImage src={selectedConversationData?.avatar} />
-                    <AvatarFallback>
-                      {selectedConversationData?.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h3 className="font-semibold text-[#344054]">
-                      {selectedConversationData?.name}
-                    </h3>
-                    <p className="text-[#667085] text-sm">
-                      {isConnected ? "Online" : "Offline"}
-                    </p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {/* Mobile back button */}
+                    {isMobile && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleBackToConversations}
+                        className="mr-2"
+                      >
+                        <ChevronLeft size={20} />
+                      </Button>
+                    )}
+
+                    <Avatar className="w-10 h-10">
+                      <AvatarImage
+                        src={
+                          selectedConversationData?.avatar ||
+                          getAvatarForUser(selectedConversationData?.name || "")
+                        }
+                      />
+                      <AvatarFallback>
+                        {selectedConversationData?.name
+                          ?.split(" ")
+                          .map((n) => n[0])
+                          .join("")}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">
+                        {selectedConversationData?.name}
+                      </h3>
+                      <p className="text-sm text-green-600">Online</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <div className="text-right">
+                      <p className="text-sm text-gray-500">Today</p>
+                      <p className="text-sm text-gray-500">10:05</p>
+                    </div>
+
+                    {/* Info toggle button for tablet/desktop */}
+                    {!isMobile && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={toggleInfoPanel}
+                        className={`ml-2 ${showInfo ? "bg-gray-100" : ""}`}
+                      >
+                        <Info size={16} />
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
 
-              <Divider text="Today" />
+              {/* User Info Bar - Hidden on mobile when info modal is available */}
+              {!isMobile && (
+                <>
+                  <div className="px-4 py-2 border-b bg-gray-50 flex-shrink-0">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="w-6 h-6">
+                        <AvatarImage src={getAvatarForUser("Ann Schleifer")} />
+                        <AvatarFallback>AS</AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm font-medium text-gray-900">
+                        Anna Schleifer
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        ann_Schleifer22
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Shared Items */}
+                  <div className="px-4 py-2 border-b bg-gray-50 flex-shrink-0">
+                    <div className="flex gap-4 text-sm">
+                      <button className="text-gray-700 hover:text-gray-900">
+                        Shared Document
+                      </button>
+                      <button className="text-gray-700 hover:text-gray-900">
+                        Shared Media
+                      </button>
+                      <button className="text-gray-700 hover:text-gray-900">
+                        Shared Post
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* Messages Container */}
               <div
                 ref={messagesContainerRef}
-                className="flex-1 overflow-y-auto p-6 space-y-6 min-h-0"
+                className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0 bg-gray-50"
               >
                 {messages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-32 text-gray-500">
@@ -481,9 +764,13 @@ export default function Messaging() {
                       }`}
                     >
                       {message.type === "received" && (
-                        <Avatar className="w-[34px] h-[34px] flex-shrink-0">
-                          <AvatarImage src={message.avatar} />
-                          <AvatarFallback>
+                        <Avatar className="w-8 h-8 flex-shrink-0">
+                          <AvatarImage
+                            src={
+                              message.avatar || getAvatarForUser(message.sender)
+                            }
+                          />
+                          <AvatarFallback className="text-xs">
                             {message.sender
                               .split(" ")
                               .map((n) => n[0])
@@ -498,22 +785,24 @@ export default function Messaging() {
                         }`}
                       >
                         <div
-                          className={`flex items-center gap-x-[6px] mb-1 ${
+                          className={`flex items-center gap-2 mb-1 ${
                             message.type === "sent" ? "justify-end" : ""
                           }`}
                         >
-                          <h2 className="font-semibold text-[#344054] text-[16px]">
-                            {message.sender}
-                          </h2>
-                          <span className="font-medium text-[#667085] text-[14px]">
+                          {message.type === "received" && (
+                            <h4 className="font-semibold text-gray-900 text-sm">
+                              {message.sender}
+                            </h4>
+                          )}
+                          <span className="text-xs text-gray-500">
                             {message.timestamp}
                           </span>
                         </div>
                         <div
-                          className={`inline-block px-4 py-2 rounded-2xl text-[15px] ${
+                          className={`inline-block px-4 py-2 rounded-2xl text-sm ${
                             message.type === "sent"
-                              ? "bg-[#00A498] text-white"
-                              : "bg-gray-100 text-gray-700"
+                              ? "bg-[#251F99] text-white"
+                              : "bg-white text-gray-700 border"
                           }`}
                         >
                           {message.content}
@@ -526,8 +815,8 @@ export default function Messaging() {
               </div>
 
               {/* Message Input */}
-              <div className="p-4 bg-gray-50 border-t flex-shrink-0">
-                <div className="flex flex-col gap-2 border rounded-[8px] p-3 bg-white">
+              <div className="p-4 bg-white border-t flex-shrink-0">
+                <div className="flex flex-col gap-2 border rounded-lg p-3 bg-white">
                   <Textarea
                     ref={textareaRef}
                     placeholder="Type your message here..."
@@ -544,12 +833,12 @@ export default function Messaging() {
                       <Button
                         type="button"
                         variant="ghost"
-                        className="bg-transparent hover:bg-gray-100 w-[32px] h-[32px] p-0"
+                        className="bg-transparent hover:bg-gray-100 w-8 h-8 p-0"
                         disabled={!isConnected}
                       >
                         <svg
-                          width="24"
-                          height="24"
+                          width="20"
+                          height="20"
                           viewBox="0 0 24 24"
                           fill="none"
                         >
@@ -566,12 +855,12 @@ export default function Messaging() {
                       <Button
                         type="button"
                         variant="ghost"
-                        className="bg-transparent hover:bg-gray-100 w-[32px] h-[32px] p-0"
+                        className="bg-transparent hover:bg-gray-100 w-8 h-8 p-0"
                         disabled={!isConnected}
                       >
                         <svg
-                          width="24"
-                          height="24"
+                          width="20"
+                          height="20"
                           viewBox="0 0 24 24"
                           fill="none"
                         >
@@ -588,12 +877,12 @@ export default function Messaging() {
                       <Button
                         type="button"
                         variant="ghost"
-                        className="bg-transparent hover:bg-gray-100 w-[32px] h-[32px] p-0"
+                        className="bg-transparent hover:bg-gray-100 w-8 h-8 p-0"
                         disabled={!isConnected}
                       >
                         <svg
-                          width="24"
-                          height="24"
+                          width="20"
+                          height="20"
                           viewBox="0 0 24 24"
                           fill="none"
                         >
@@ -616,16 +905,15 @@ export default function Messaging() {
                         isLoading ||
                         !selectedConversation
                       }
-                      className="bg-[#00A498] hover:bg-[#00857a] text-white"
+                      className="bg-[#251F99] hover:bg-[#251F99]/90 text-white px-6"
                     >
-                      {isLoading ? "Sending..." : "Send"}
+                      Send
                     </Button>
                   </div>
                 </div>
               </div>
             </>
           ) : (
-            // No conversation selected state
             <div className="flex-1 flex flex-col items-center justify-center text-gray-500">
               <div className="text-center">
                 <h3 className="text-lg font-semibold mb-2">
@@ -636,7 +924,121 @@ export default function Messaging() {
             </div>
           )}
         </aside>
+
+        {/* Right Sidebar - Additional Info */}
+        <aside
+          className={`flex flex-col min-h-0 flex-shrink-0 bg-white ${getInfoPanelClass()}`}
+        >
+          <div className="p-4 border-b flex items-center justify-between">
+            <h3 className="font-semibold text-gray-900">Shareable</h3>
+            <Button variant="ghost" size="sm" onClick={toggleInfoPanel}>
+              <X size={16} />
+            </Button>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="bg-gray-50 rounded-lg p-4 mb-4">
+              <h4 className="font-medium text-gray-900 text-sm mb-2">
+                Casual hangout in the centre of the residential area of
+                kortegede
+              </h4>
+              <p className="text-xs text-gray-600">
+                Hey! Did you check out that new café downtown? I heard they have
+                the best lattes.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <div className="text-sm">
+                <span className="font-medium text-gray-900">New (Yan) |</span>
+                <span className="text-gray-600">
+                  {" "}
+                  actually went there yesterday. The lattes are amazing, and the
+                  ambience is super cozy.
+                </span>
+              </div>
+
+              <div className="text-sm">
+                <span className="font-medium text-gray-900">You |</span>
+                <span className="text-gray-600">
+                  {" "}
+                  I&apos;ve been wanting to try their pastries too. Were they
+                  any good?
+                </span>
+              </div>
+            </div>
+          </div>
+        </aside>
       </main>
+
+      {/* Mobile Info Modal */}
+      {isMobile && showInfo && (
+        <div className="fixed inset-0 bg-[#000000a6] bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg w-full max-w-md max-h-[80vh] overflow-hidden">
+            <div className="p-4 border-b flex items-center justify-between">
+              <h3 className="font-semibold text-gray-900">Conversation Info</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowInfo(false)}
+              >
+                <X size={16} />
+              </Button>
+            </div>
+
+            <div className="p-4 overflow-y-auto max-h-[60vh]">
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">
+                    Shared Content
+                  </h4>
+                  <div className="space-y-2">
+                    <button className="w-full text-left text-sm text-gray-600 hover:text-gray-900 py-1">
+                      Shared Documents
+                    </button>
+                    <button className="w-full text-left text-sm text-gray-600 hover:text-gray-900 py-1">
+                      Shared Media
+                    </button>
+                    <button className="w-full text-left text-sm text-gray-600 hover:text-gray-900 py-1">
+                      Shared Posts
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <h4 className="font-medium text-gray-900 text-sm mb-2">
+                    Casual hangout in the centre of the residential area of
+                    kortegede
+                  </h4>
+                  <p className="text-xs text-gray-600">
+                    Hey! Did you check out that new café downtown? I heard they
+                    have the best lattes.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="text-sm">
+                    <span className="font-medium text-gray-900">
+                      New (Yan) |
+                    </span>
+                    <span className="text-gray-600">
+                      {" "}
+                      actually went there yesterday. The lattes are amazing...
+                    </span>
+                  </div>
+
+                  <div className="text-sm">
+                    <span className="font-medium text-gray-900">You |</span>
+                    <span className="text-gray-600">
+                      {" "}
+                      I&apos;ve been wanting to try their pastries too...
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
