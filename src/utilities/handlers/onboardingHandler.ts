@@ -13,6 +13,7 @@ import {
   IndustryRequest,
   SkillsRequest,
   CareerGoalsRequest,
+  MentoringPreferences,
 } from "@/interface/onboarding";
 import axios from "axios";
 
@@ -134,10 +135,41 @@ export const fetchCareerGoals = async (): Promise<CareerGoalsResponse> => {
 // POST API functions (authentication required)
 
 export const submitProfessionalBackground = async (
-  data: { professional_background: any},
+  data: { professional_background: any },
   accessToken: string
 ): Promise<void> => {
-  // Your API call implementation
+  const baseURL = getBaseURL();
+  const response = await fetch(`${baseURL}/onboarding/professional-background`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to submit professional background");
+  }
+};
+
+export const submitMentoringPreferences = async (
+  data: { mentoring_preferences: MentoringPreferences },
+  accessToken: string
+): Promise<void> => {
+  const baseURL = getBaseURL();
+  const response = await fetch(`${baseURL}/onboarding/mentoring-preferences`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to submit mentoring preferences");
+  }
 };
 
 export const submitNewRoleValues = async (

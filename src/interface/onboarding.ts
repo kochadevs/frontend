@@ -65,3 +65,10 @@ export interface CareerGoalsData {
   shortTermGoal: string;
   longTermGoal: string;
 }
+
+export interface MentoringPreferences {
+  frequency: "weekly" | "bi_weekly" | "monthly"
+  language: string;
+  skills: number[];
+  industries: number[];
+}
