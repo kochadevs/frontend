@@ -12,23 +12,11 @@ import {
 } from "@/utilities/handlers/onboardingHandler";
 import { toast } from "react-hot-toast";
 
-interface ProfessionalBackgroundData {
-  currentRole: string;
-  company: string;
-  yearsOfExperience: string;
-}
-
 const ProfessionalBackground: React.FC<StepProps> = ({
   handleNext,
   handlePrevious,
 }) => {
   const {
-    selectedIndustries,
-    toggleIndustry,
-    submitIndustries,
-    selectedSkills,
-    toggleSkill,
-    submitSkills,
     professionalBackground,
     updateProfessionalBackground,
     submitProfessionalBackground,
@@ -38,11 +26,10 @@ const ProfessionalBackground: React.FC<StepProps> = ({
   const [industries, setIndustries] = useState<OnboardingOption[]>([]);
   const [skills, setSkills] = useState<OnboardingOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [formData, setFormData] = useState<ProfessionalBackgroundData>({
-    currentRole: professionalBackground?.currentRole || "",
-    company: professionalBackground?.company || "",
-    yearsOfExperience: professionalBackground?.yearsOfExperience || "",
-  });
+
+  // Ensure arrays are always defined
+  const currentIndustries = professionalBackground.industries || [];
+  const currentSkills = professionalBackground.skills || [];
 
   // Load industries and skills
   useEffect(() => {
@@ -67,34 +54,42 @@ const ProfessionalBackground: React.FC<StepProps> = ({
   }, []);
 
   const handleInputChange = (
-    field: keyof ProfessionalBackgroundData,
+    field: keyof typeof professionalBackground,
     value: string
   ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
     updateProfessionalBackground({ [field]: value });
+  };
+
+  const toggleIndustry = (industryId: number) => {
+    const newIndustries = currentIndustries.includes(industryId)
+      ? currentIndustries.filter((id) => id !== industryId)
+      : [...currentIndustries, industryId];
+
+    updateProfessionalBackground({ industries: newIndustries });
+  };
+
+  const toggleSkill = (skillId: number) => {
+    const newSkills = currentSkills.includes(skillId)
+      ? currentSkills.filter((id) => id !== skillId)
+      : [...currentSkills, skillId];
+
+    updateProfessionalBackground({ skills: newSkills });
   };
 
   const handleSaveAndContinue = async () => {
     // Validate required fields
     if (
-      !formData.currentRole.trim() ||
-      !formData.yearsOfExperience.trim() ||
-      selectedIndustries.length === 0
+      !professionalBackground.currentRole.trim() ||
+      !professionalBackground.yearsOfExperience.trim() ||
+      currentIndustries.length === 0
     ) {
       toast.error("Please fill in all required fields");
       return;
     }
 
     try {
-      // Submit all data
-      await Promise.all([
-        submitProfessionalBackground(),
-        submitIndustries(),
-        submitSkills(),
-      ]);
+      // Submit all professional background data together
+      await submitProfessionalBackground();
 
       toast.success("Professional background saved successfully!");
       handleNext();
@@ -137,7 +132,7 @@ const ProfessionalBackground: React.FC<StepProps> = ({
         </label>
         <Input
           type="text"
-          value={formData.currentRole}
+          value={professionalBackground.currentRole}
           onChange={(e) => handleInputChange("currentRole", e.target.value)}
           placeholder="e.g. Software Engineer, Product Manager"
           className="w-full px-3 py-2 border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#251F99] focus:border-transparent"
@@ -151,7 +146,7 @@ const ProfessionalBackground: React.FC<StepProps> = ({
         </label>
         <Input
           type="text"
-          value={formData.company}
+          value={professionalBackground.company}
           onChange={(e) => handleInputChange("company", e.target.value)}
           placeholder="e.g. Google, Microsoft"
           className="w-full px-3 py-2 border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#251F99] focus:border-transparent"
@@ -165,7 +160,7 @@ const ProfessionalBackground: React.FC<StepProps> = ({
         </label>
         <Input
           type="text"
-          value={formData.yearsOfExperience}
+          value={professionalBackground.yearsOfExperience}
           onChange={(e) =>
             handleInputChange("yearsOfExperience", e.target.value)
           }
@@ -186,13 +181,13 @@ const ProfessionalBackground: React.FC<StepProps> = ({
               key={industry.id}
               className={clsx(
                 "w-full text-left text-[14px] px-4 py-3 rounded-lg border transition-colors duration-200 flex items-center cursor-pointer",
-                selectedIndustries.includes(industry.id)
+                currentIndustries.includes(industry.id)
                   ? "bg-[#EEF4FF] border-[#251F99] text-[#251F99] font-semibold"
                   : "border-[#E5E7EB] hover:border-[#D1D5DB]"
               )}
             >
               <Checkbox
-                checked={selectedIndustries.includes(industry.id)}
+                checked={currentIndustries.includes(industry.id)}
                 onCheckedChange={() => toggleIndustry(industry.id)}
                 className="mr-3 data-[state=checked]:bg-[#251F99] data-[state=checked]:border-[#251F99]"
               />
@@ -209,7 +204,7 @@ const ProfessionalBackground: React.FC<StepProps> = ({
         </label>
         <p className="text-sm text-[#6B7280] mb-3">Select relevant skills</p>
         <div className="flex flex-wrap gap-2 mb-3">
-          {selectedSkills.map((skillId) => {
+          {currentSkills.map((skillId) => {
             const skill = skills.find((s) => s.id === skillId);
             return skill ? (
               <div
@@ -230,7 +225,7 @@ const ProfessionalBackground: React.FC<StepProps> = ({
         </div>
         <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
           {skills
-            .filter((skill) => !selectedSkills.includes(skill.id))
+            .filter((skill) => !currentSkills.includes(skill.id))
             .map((skill) => (
               <button
                 key={skill.id}
@@ -260,9 +255,9 @@ const ProfessionalBackground: React.FC<StepProps> = ({
           className="flex w-[153px] justify-center rounded-md bg-[#334AFF] px-3 py-1.5 text-[16px] font-semibold text-white hover:text-[#fff]/70 shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px]"
           onClick={handleSaveAndContinue}
           disabled={
-            !formData.currentRole.trim() ||
-            !formData.yearsOfExperience.trim() ||
-            selectedIndustries.length === 0 ||
+            !professionalBackground.currentRole.trim() ||
+            !professionalBackground.yearsOfExperience.trim() ||
+            currentIndustries.length === 0 ||
             isSubmitting
           }
         >

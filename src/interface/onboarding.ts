@@ -67,7 +67,7 @@ export interface CareerGoalsData {
 }
 
 export interface MentoringPreferences {
-  frequency: "weekly" | "bi_weekly" | "monthly"
+  frequency: string; // "weekly" | "bi_weekly" | "monthly"
   language: string;
   skills: number[];
   industries: number[];

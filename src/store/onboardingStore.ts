@@ -12,6 +12,8 @@ interface ProfessionalBackground {
   currentRole: string;
   company: string;
   yearsOfExperience: string;
+  industries: number[];
+  skills: number[];
 }
 
 interface CareerGoalsData {
@@ -64,6 +66,8 @@ export const useOnboardingStore = create<OnboardingState>()(
         currentRole: "",
         company: "",
         yearsOfExperience: "",
+        industries: [],
+        skills: [],
       },
 
       updateProfessionalBackground: (data) => {
@@ -85,6 +89,8 @@ export const useOnboardingStore = create<OnboardingState>()(
             currentRole: "",
             company: "",
             yearsOfExperience: "",
+            industries: [],
+            skills: [],
           },
         });
       },
@@ -219,6 +225,8 @@ export const useOnboardingStore = create<OnboardingState>()(
             currentRole: "",
             company: "",
             yearsOfExperience: "",
+            industries: [],
+            skills: [],
           },
           careerGoals: {
             shortTermGoal: "",
@@ -236,15 +244,16 @@ export const useOnboardingStore = create<OnboardingState>()(
     }),
     {
       name: "onboarding-values",
-      version: 1, // Reset version since we're simplifying
+      version: 1,
       migrate: (persistedState: any, version: number) => {
         if (version < 1) {
-          // Return clean state with only the three steps we need
           return {
             professionalBackground: {
               currentRole: "",
               company: "",
               yearsOfExperience: "",
+              industries: [],
+              skills: [],
             },
             careerGoals: {
               shortTermGoal: "",

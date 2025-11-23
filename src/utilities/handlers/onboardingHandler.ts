@@ -1,19 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
-  NewRoleValuesResponse,
-  JobSearchStatusResponse,
-  RoleInterestResponse,
   IndustryResponse,
   SkillsResponse,
-  CareerGoalsResponse,
-  NewRoleValuesRequest,
-  OnboardingSubmissionResponse,
-  JobSearchStatusRequest,
-  RoleInterestRequest,
-  IndustryRequest,
-  SkillsRequest,
-  CareerGoalsRequest,
   MentoringPreferences,
+  CareerGoalsData,
+  ProfessionalBackground,
 } from "@/interface/onboarding";
 import axios from "axios";
 
@@ -33,59 +24,6 @@ const getAuthHeaders = (accessToken: string) => ({
 });
 
 // GET API functions (no authentication required)
-
-export const fetchNewRoleValues = async (): Promise<NewRoleValuesResponse> => {
-  try {
-    const baseURL = getBaseURL();
-    const response = await axios.get(`${baseURL}/onbarding/new-role-values`, {
-      headers: { "Content-Type": "application/json" },
-      timeout: 10000,
-    });
-    return response.data as NewRoleValuesResponse;
-  } catch (error: any) {
-    console.error("Error fetching new role values:", error);
-    throw new Error(
-      error.response?.data?.message || "Failed to fetch new role values"
-    );
-  }
-};
-
-export const fetchJobSearchStatus =
-  async (): Promise<JobSearchStatusResponse> => {
-    try {
-      const baseURL = getBaseURL();
-      const response = await axios.get(
-        `${baseURL}/onbarding/job-search-status`,
-        {
-          headers: { "Content-Type": "application/json" },
-          timeout: 10000,
-        }
-      );
-      return response.data as JobSearchStatusResponse;
-    } catch (error: any) {
-      console.error("Error fetching job search status:", error);
-      throw new Error(
-        error.response?.data?.message || "Failed to fetch job search status"
-      );
-    }
-  };
-
-export const fetchRoleInterest = async (): Promise<RoleInterestResponse> => {
-  try {
-    const baseURL = getBaseURL();
-    const response = await axios.get(`${baseURL}/onbarding/role-interest`, {
-      headers: { "Content-Type": "application/json" },
-      timeout: 10000,
-    });
-    return response.data as RoleInterestResponse;
-  } catch (error: any) {
-    console.error("Error fetching role interest:", error);
-    throw new Error(
-      error.response?.data?.message || "Failed to fetch role interest"
-    );
-  }
-};
-
 export const fetchIndustries = async (): Promise<IndustryResponse> => {
   try {
     const baseURL = getBaseURL();
@@ -116,40 +54,28 @@ export const fetchSkills = async (): Promise<SkillsResponse> => {
   }
 };
 
-export const fetchCareerGoals = async (): Promise<CareerGoalsResponse> => {
-  try {
-    const baseURL = getBaseURL();
-    const response = await axios.get(`${baseURL}/onbarding/career-goals`, {
-      headers: { "Content-Type": "application/json" },
-      timeout: 10000,
-    });
-    return response.data as CareerGoalsResponse;
-  } catch (error: any) {
-    console.error("Error fetching career goals:", error);
-    throw new Error(
-      error.response?.data?.message || "Failed to fetch career goals"
-    );
-  }
-};
-
 // POST API functions (authentication required)
-
 export const submitProfessionalBackground = async (
-  data: { professional_background: any },
+  data: { professional_background: ProfessionalBackground },
   accessToken: string
 ): Promise<void> => {
-  const baseURL = getBaseURL();
-  const response = await fetch(`${baseURL}/onboarding/professional-background`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to submit professional background");
+  try {
+    const baseURL = getBaseURL();
+    const response = await axios.post(
+      `${baseURL}/onboarding/professional-background`,
+      data,
+      {
+        headers: getAuthHeaders(accessToken),
+        timeout: 10000,
+      }
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("Error submitting professional background:", error);
+    throw new Error(
+      error.response?.data?.message ||
+        "Failed to submit professional background"
+    );
   }
 };
 
@@ -157,141 +83,40 @@ export const submitMentoringPreferences = async (
   data: { mentoring_preferences: MentoringPreferences },
   accessToken: string
 ): Promise<void> => {
-  const baseURL = getBaseURL();
-  const response = await fetch(`${baseURL}/onboarding/mentoring-preferences`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to submit mentoring preferences");
-  }
-};
-
-export const submitNewRoleValues = async (
-  payload: NewRoleValuesRequest,
-  accessToken: string
-): Promise<OnboardingSubmissionResponse> => {
   try {
     const baseURL = getBaseURL();
     const response = await axios.post(
-      `${baseURL}/users/new-role-values`,
-      payload,
+      `${baseURL}/onboarding/mentoring-preferences`,
+      data,
       {
         headers: getAuthHeaders(accessToken),
         timeout: 10000,
       }
     );
-    return response.data as OnboardingSubmissionResponse;
+    return response.data;
   } catch (error: any) {
-    console.error("Error submitting new role values:", error);
+    console.error("Error submitting mentoring preferences:", error);
     throw new Error(
-      error.response?.data?.message || "Failed to submit new role values"
+      error.response?.data?.message || "Failed to submit mentoring preferences"
     );
-  }
-};
-
-export const submitJobSearchStatus = async (
-  payload: JobSearchStatusRequest,
-  accessToken: string
-): Promise<OnboardingSubmissionResponse> => {
-  try {
-    const baseURL = getBaseURL();
-    const response = await axios.post(
-      `${baseURL}/users/job-search-status`,
-      payload,
-      {
-        headers: getAuthHeaders(accessToken),
-        timeout: 10000,
-      }
-    );
-    return response.data as OnboardingSubmissionResponse;
-  } catch (error: any) {
-    console.error("Error submitting job search status:", error);
-    throw new Error(
-      error.response?.data?.message || "Failed to submit job search status"
-    );
-  }
-};
-
-export const submitRoleInterest = async (
-  payload: RoleInterestRequest,
-  accessToken: string
-): Promise<OnboardingSubmissionResponse> => {
-  try {
-    const baseURL = getBaseURL();
-    const response = await axios.post(
-      `${baseURL}/users/role-of-interest`,
-      payload,
-      {
-        headers: getAuthHeaders(accessToken),
-        timeout: 10000,
-      }
-    );
-    return response.data as OnboardingSubmissionResponse;
-  } catch (error: any) {
-    console.error("Error submitting role interest:", error);
-    throw new Error(
-      error.response?.data?.message || "Failed to submit role interest"
-    );
-  }
-};
-
-export const submitIndustries = async (
-  payload: IndustryRequest,
-  accessToken: string
-): Promise<OnboardingSubmissionResponse> => {
-  try {
-    const baseURL = getBaseURL();
-    const response = await axios.post(`${baseURL}/users/industry`, payload, {
-      headers: getAuthHeaders(accessToken),
-      timeout: 10000,
-    });
-    return response.data as OnboardingSubmissionResponse;
-  } catch (error: any) {
-    console.error("Error submitting industries:", error);
-    throw new Error(
-      error.response?.data?.message || "Failed to submit industries"
-    );
-  }
-};
-
-export const submitSkills = async (
-  payload: SkillsRequest,
-  accessToken: string
-): Promise<OnboardingSubmissionResponse> => {
-  try {
-    const baseURL = getBaseURL();
-    const response = await axios.post(`${baseURL}/users/skills`, payload, {
-      headers: getAuthHeaders(accessToken),
-      timeout: 10000,
-    });
-    return response.data as OnboardingSubmissionResponse;
-  } catch (error: any) {
-    console.error("Error submitting skills:", error);
-    throw new Error(error.response?.data?.message || "Failed to submit skills");
   }
 };
 
 export const submitCareerGoals = async (
-  payload: CareerGoalsRequest,
+  data: { career_goals: CareerGoalsData },
   accessToken: string
-): Promise<OnboardingSubmissionResponse> => {
+): Promise<void> => {
   try {
     const baseURL = getBaseURL();
     const response = await axios.post(
-      `${baseURL}/users/career-goals`,
-      payload,
+      `${baseURL}/onboarding/career-goals`,
+      data,
       {
         headers: getAuthHeaders(accessToken),
         timeout: 10000,
       }
     );
-    return response.data as OnboardingSubmissionResponse;
+    return response.data;
   } catch (error: any) {
     console.error("Error submitting career goals:", error);
     throw new Error(
