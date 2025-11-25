@@ -1,4 +1,3 @@
-// zodSchema/signupSchema.ts
 import { z } from "zod";
 
 // Base field definitions (reusable)
@@ -15,10 +14,11 @@ const baseFields = {
   gender: z.string().min(1, "Gender is required"),
   nationality: z.string().min(1, "Nationality is required"),
   location: z.string().min(1, "Location is required"),
+  phone: z.string().default(""), // Change from optional() to default("")
   user_type: z
     .string()
     .refine(
-      (val) => val === "mentee" || val === "mentor" || val === "basic_user",
+      (val) => val === "mentee" || val === "mentor" || val === "regular",
       {
         message: "User type must be either mentee, mentor, or basic_user",
       }
@@ -34,10 +34,13 @@ const baseFields = {
       "Password must contain at least one special character"
     ),
   password_confirmation: z.string(),
-  about: z.string().max(500, "Bio must be less than 500 characters").optional(), // Added bio field
+  about: z
+    .string()
+    .max(500, "Bio must be less than 500 characters")
+    .default(""),
 };
 
-// Rest of the schema remains the same...
+// Form schema for client-side validation
 export const signupFormSchema = z
   .object(baseFields)
   .refine((data) => data.password === data.password_confirmation, {
@@ -45,12 +48,36 @@ export const signupFormSchema = z
     path: ["password_confirmation"],
   });
 
+// Complete payload schema for API
 export const signupSchema = z
   .object({
     ...baseFields,
     is_active: z.boolean().default(true),
+    email_verified: z.boolean().default(false),
     profile_pic: z.string().default(""),
-    about: z.string().default(""),
+    cover_photo: z.string().default(""),
+    social_links: z
+      .object({
+        linkedin: z.string().default(""),
+        twitter: z.string().default(""),
+        website: z.string().default(""),
+        portfolio: z.string().default(""),
+      })
+      .default({
+        linkedin: "",
+        twitter: "",
+        website: "",
+        portfolio: "",
+      }),
+    availability: z
+      .object({
+        days: z.array(z.string()).default([]),
+        times: z.array(z.string()).default([]),
+      })
+      .default({
+        days: [],
+        times: [],
+      }),
   })
   .refine((data) => data.password === data.password_confirmation, {
     message: "Passwords don't match",

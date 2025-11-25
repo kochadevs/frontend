@@ -1,4 +1,3 @@
-// app/signup/(signup_views)/Signup.tsx
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -15,16 +14,24 @@ import { z } from "zod";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { handleSignup } from "@/utilities/handlers/authHandler";
-import { SignupFormData, signupFormSchema } from "@/zodSchema/signupSchema";
+import {
+  SignupFormData,
+  signupFormSchema,
+  SignupPayload,
+} from "@/zodSchema/signupSchema";
 
 interface SignupProps {
   userType: string;
   onBack: () => void;
 }
 
-export default function SignupForm({ userType, onBack }: Readonly<SignupProps>) {
+export default function SignupForm({
+  userType,
+  onBack,
+}: Readonly<SignupProps>) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [formData, setFormData] = useState<SignupFormData>({
     first_name: "",
     last_name: "",
@@ -32,11 +39,13 @@ export default function SignupForm({ userType, onBack }: Readonly<SignupProps>) 
     gender: "",
     nationality: "",
     location: "",
+    phone: "",
     user_type: userType,
     password: "",
     password_confirmation: "",
     about: "",
   });
+
   const [imagePreview, setImagePreview] = useState<string>("");
   const [errors, setErrors] = useState<
     Partial<Record<keyof SignupFormData, string>>
@@ -69,7 +78,6 @@ export default function SignupForm({ userType, onBack }: Readonly<SignupProps>) 
       gender,
     }));
 
-    // Clear error when gender is selected
     if (errors.gender) {
       setErrors((prev) => ({
         ...prev,
@@ -81,7 +89,6 @@ export default function SignupForm({ userType, onBack }: Readonly<SignupProps>) 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file type
       const validTypes = [
         "image/jpeg",
         "image/jpg",
@@ -94,13 +101,11 @@ export default function SignupForm({ userType, onBack }: Readonly<SignupProps>) 
         return;
       }
 
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         toast.error("Image size should be less than 5MB");
         return;
       }
 
-      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -133,49 +138,62 @@ export default function SignupForm({ userType, onBack }: Readonly<SignupProps>) 
     }
   };
 
+  const preparePayload = (validatedData: SignupFormData): SignupPayload => {
+    return {
+      ...validatedData,
+      is_active: true,
+      email_verified: false,
+      profile_pic: imagePreview || "",
+      cover_photo: "",
+      about: validatedData.about || "",
+      social_links: {
+        linkedin: "",
+        twitter: "",
+        website: "",
+        portfolio: "",
+      },
+      availability: {
+        days: [],
+        times: [],
+      },
+    };
+  };
+
+  const resetForm = () => {
+    setFormData({
+      first_name: "",
+      last_name: "",
+      email: "",
+      gender: "",
+      nationality: "",
+      location: "",
+      phone: "",
+      user_type: userType,
+      password: "",
+      password_confirmation: "",
+      about: "",
+    });
+    setImagePreview("");
+    setErrors({});
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // Validate form data
       const validatedData = signupFormSchema.parse(formData);
+      const payload = preparePayload(validatedData);
 
-      // Prepare payload for API
-      const payload = {
-        ...validatedData,
-        is_active: true,
-        profile_pic: imagePreview || "", // Use imagePreview if available
-        about: validatedData.about || "",
-      };
-
-      // Call the signup function
       const result = await handleSignup(payload);
 
-      // Reset form and errors on success
-      setFormData({
-        first_name: "",
-        last_name: "",
-        email: "",
-        gender: "",
-        nationality: "",
-        location: "",
-        user_type: userType,
-        password: "",
-        password_confirmation: "",
-        about: "",
-      });
-      setImagePreview("");
-      setErrors({});
-
       if (result) {
-        // Redirect or show success message
+        resetForm();
         router.push("/login");
         toast.success("Account created successfully!");
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
-        // Handle validation errors
         const newErrors: Partial<Record<keyof SignupFormData, string>> = {};
         error.issues.forEach((err: z.ZodIssue) => {
           if (err.path[0]) {
@@ -184,7 +202,6 @@ export default function SignupForm({ userType, onBack }: Readonly<SignupProps>) 
         });
         setErrors(newErrors);
       } else {
-        // Handle API errors
         console.error("Signup error:", error);
         toast.error(error instanceof Error ? error.message : "Signup failed");
       }
@@ -194,10 +211,9 @@ export default function SignupForm({ userType, onBack }: Readonly<SignupProps>) 
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen overflow-y-scroll py-8">
+    <div className="flex items-center justify-center min-h-screen overflow-y-scroll py-20">
       <div className="md:w-[599px] w-full md:px-2 px-4">
         <div className="flex flex-col items-center justify-center gap-3">
-         
           <h2 className="text-[30px] font-[700] tracking-tight text-[#2E3646]">
             Sign up as {getUserTypeDisplay(userType)}
           </h2>
@@ -207,13 +223,13 @@ export default function SignupForm({ userType, onBack }: Readonly<SignupProps>) 
           <div>
             <form onSubmit={handleSubmit}>
               {/* Photo Upload Section */}
-              <div className="mb-3">
+              <div className="mb-6">
                 <label className="block text-sm/6 font-medium text-[#344054] mb-4">
                   Photo (optional)
                 </label>
                 <div className="flex items-center gap-4">
                   <div
-                    className="relative w-30 h-30 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-gray-400 transition-colors overflow-hidden"
+                    className="relative w-24 h-24 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-gray-400 transition-colors overflow-hidden"
                     onClick={handleImageClick}
                   >
                     {imagePreview ? (
@@ -224,7 +240,6 @@ export default function SignupForm({ userType, onBack }: Readonly<SignupProps>) 
                           alt="Profile preview"
                           className="w-full h-full object-cover rounded-full"
                         />
-                       
                       </>
                     ) : (
                       <div className="flex flex-col items-center justify-center text-gray-400">
@@ -278,7 +293,7 @@ export default function SignupForm({ userType, onBack }: Readonly<SignupProps>) 
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
                 {/* First Name */}
                 <div>
                   <label
@@ -294,7 +309,7 @@ export default function SignupForm({ userType, onBack }: Readonly<SignupProps>) 
                       type="text"
                       value={formData.first_name}
                       onChange={handleInputChange}
-                      className={`block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
+                      className={`block w-full rounded-md bg-white px-3 py-2.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
                         errors.first_name ? "outline-red-500" : ""
                       }`}
                       placeholder="Enter first name"
@@ -322,7 +337,7 @@ export default function SignupForm({ userType, onBack }: Readonly<SignupProps>) 
                       type="text"
                       value={formData.last_name}
                       onChange={handleInputChange}
-                      className={`block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
+                      className={`block w-full rounded-md bg-white px-3 py-2.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
                         errors.last_name ? "outline-red-500" : ""
                       }`}
                       placeholder="Enter last name"
@@ -351,7 +366,7 @@ export default function SignupForm({ userType, onBack }: Readonly<SignupProps>) 
                       required
                       value={formData.email}
                       onChange={handleInputChange}
-                      className={`block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
+                      className={`block w-full rounded-md bg-white px-3 py-2.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
                         errors.email ? "outline-red-500" : ""
                       }`}
                       placeholder="Enter email"
@@ -364,7 +379,35 @@ export default function SignupForm({ userType, onBack }: Readonly<SignupProps>) 
                   </div>
                 </div>
 
-                {/* Gender - Using shadcn Dropdown */}
+                {/* Phone */}
+                <div>
+                  <label
+                    htmlFor="phone"
+                    className="block text-sm/6 font-medium text-[#344054]"
+                  >
+                    Phone (optional)
+                  </label>
+                  <div className="mt-2">
+                    <input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      className={`block w-full rounded-md bg-white px-3 py-2.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
+                        errors.phone ? "outline-red-500" : ""
+                      }`}
+                      placeholder="Enter phone number"
+                    />
+                    {errors.phone && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.phone}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Gender */}
                 <div>
                   <label
                     htmlFor="gender"
@@ -377,7 +420,7 @@ export default function SignupForm({ userType, onBack }: Readonly<SignupProps>) 
                       <DropdownMenuTrigger asChild>
                         <button
                           type="button"
-                          className={`flex w-full justify-between items-center rounded-md bg-white px-3 py-1.5 text-base text-left text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
+                          className={`flex w-full justify-between items-center rounded-md bg-white px-3 py-2.5 text-base text-left outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
                             errors.gender ? "outline-red-500" : ""
                           } ${
                             !formData.gender ? "text-gray-400" : "text-gray-900"
@@ -418,7 +461,7 @@ export default function SignupForm({ userType, onBack }: Readonly<SignupProps>) 
                         >
                           Female
                         </DropdownMenuItem>
-                      </DropdownMenuContent>
+                        </DropdownMenuContent>
                     </DropdownMenu>
                     {errors.gender && (
                       <p className="mt-1 text-sm text-red-600">
@@ -443,7 +486,7 @@ export default function SignupForm({ userType, onBack }: Readonly<SignupProps>) 
                       type="text"
                       value={formData.nationality}
                       onChange={handleInputChange}
-                      className={`block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
+                      className={`block w-full rounded-md bg-white px-3 py-2.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
                         errors.nationality ? "outline-red-500" : ""
                       }`}
                       placeholder="Enter nationality"
@@ -471,7 +514,7 @@ export default function SignupForm({ userType, onBack }: Readonly<SignupProps>) 
                       type="text"
                       value={formData.location}
                       onChange={handleInputChange}
-                      className={`block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
+                      className={`block w-full rounded-md bg-white px-3 py-2.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
                         errors.location ? "outline-red-500" : ""
                       }`}
                       placeholder="Enter location"
@@ -500,7 +543,7 @@ export default function SignupForm({ userType, onBack }: Readonly<SignupProps>) 
                       required
                       value={formData.password}
                       onChange={handleInputChange}
-                      className={`block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
+                      className={`block w-full rounded-md bg-white px-3 py-2.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
                         errors.password ? "outline-red-500" : ""
                       }`}
                       placeholder="Enter password"
@@ -529,7 +572,7 @@ export default function SignupForm({ userType, onBack }: Readonly<SignupProps>) 
                       required
                       value={formData.password_confirmation}
                       onChange={handleInputChange}
-                      className={`block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
+                      className={`block w-full rounded-md bg-white px-3 py-2.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
                         errors.password_confirmation ? "outline-red-500" : ""
                       }`}
                       placeholder="Re-enter password"
@@ -543,7 +586,7 @@ export default function SignupForm({ userType, onBack }: Readonly<SignupProps>) 
                 </div>
               </div>
 
-              {/* Short Bio - Full width */}
+              {/* Short Bio */}
               <div className="mt-6">
                 <label
                   htmlFor="about"
@@ -558,7 +601,7 @@ export default function SignupForm({ userType, onBack }: Readonly<SignupProps>) 
                     rows={4}
                     value={formData.about}
                     onChange={handleInputChange}
-                    className={`block w-full rounded-md resize-none bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
+                    className={`block w-full rounded-md resize-none bg-white px-3 py-2.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
                       errors.about ? "outline-red-500" : ""
                     }`}
                     placeholder="Tell us a little about yourself..."

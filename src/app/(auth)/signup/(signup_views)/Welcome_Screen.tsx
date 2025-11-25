@@ -21,7 +21,7 @@ export default function WelcomeScreen({ onNext }: Readonly<WelcomeScreenProps>) 
       description: "Get personalized guidance from experienced mentors",
     },
     {
-      id: "basic_user",
+      id: "regular",
       title: "Join Community",
       description: "Connect with like-minded individuals and grow together",
     },
