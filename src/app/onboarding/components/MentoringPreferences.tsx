@@ -82,7 +82,7 @@ const MentoringPreferences: React.FC<StepProps> = ({
   const toggleSkill = (skillId: number) => {
     const currentSkills = mentoringPreferences.skills || [];
     const newSkills = currentSkills.includes(skillId)
-      ? currentSkills.filter((id:number) => id !== skillId)
+      ? currentSkills.filter((id: number) => id !== skillId)
       : [...currentSkills, skillId];
 
     updateMentoringPreferences({ skills: newSkills });
@@ -91,7 +91,7 @@ const MentoringPreferences: React.FC<StepProps> = ({
   const toggleIndustry = (industryId: number) => {
     const currentIndustries = mentoringPreferences.industries || [];
     const newIndustries = currentIndustries.includes(industryId)
-      ? currentIndustries.filter((id:number) => id !== industryId)
+      ? currentIndustries.filter((id: number) => id !== industryId)
       : [...currentIndustries, industryId];
 
     updateMentoringPreferences({ industries: newIndustries });
@@ -130,9 +130,6 @@ const MentoringPreferences: React.FC<StepProps> = ({
   return (
     <div className="max-w-[600px] mx-auto px-4">
       <div className="text-center mb-8">
-        <h1 className="text-[32px] font-bold text-[#2E3646] mb-2">
-          Mentoring Preferences
-        </h1>
         <p className="text-[#344054] text-[16px] font-semibold">
           Tell us about your preferred mentoring style
         </p>

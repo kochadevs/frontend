@@ -14,13 +14,13 @@ const baseFields = {
   gender: z.string().min(1, "Gender is required"),
   nationality: z.string().min(1, "Nationality is required"),
   location: z.string().min(1, "Location is required"),
-  phone: z.string().default(""), // Change from optional() to default("")
+  phone: z.string().default(""),
   user_type: z
     .string()
     .refine(
       (val) => val === "mentee" || val === "mentor" || val === "regular",
       {
-        message: "User type must be either mentee, mentor, or basic_user",
+        message: "User type must be either mentee, mentor, or regular",
       }
     ),
   password: z
@@ -48,41 +48,21 @@ export const signupFormSchema = z
     path: ["password_confirmation"],
   });
 
-// Complete payload schema for API
-export const signupSchema = z
-  .object({
-    ...baseFields,
-    is_active: z.boolean().default(true),
-    email_verified: z.boolean().default(false),
-    profile_pic: z.string().default(""),
-    cover_photo: z.string().default(""),
-    social_links: z
-      .object({
-        linkedin: z.string().default(""),
-        twitter: z.string().default(""),
-        website: z.string().default(""),
-        portfolio: z.string().default(""),
-      })
-      .default({
-        linkedin: "",
-        twitter: "",
-        website: "",
-        portfolio: "",
-      }),
-    availability: z
-      .object({
-        days: z.array(z.string()).default([]),
-        times: z.array(z.string()).default([]),
-      })
-      .default({
-        days: [],
-        times: [],
-      }),
-  })
-  .refine((data) => data.password === data.password_confirmation, {
-    message: "Passwords don't match",
-    path: ["password_confirmation"],
-  });
+// Complete payload schema for API - simplified to match the new request body
+export const signupSchema = z.object({
+  first_name: z.string(),
+  last_name: z.string(),
+  email: z.string().email(),
+  password: z.string(),
+  password_confirmation: z.string(),
+  user_type: z.string(),
+  gender: z.string(),
+  phone: z.string(),
+  nationality: z.string(),
+  location: z.string(),
+  profile_pic: z.string().default(""),
+  about: z.string().default(""),
+});
 
 export type SignupFormData = z.infer<typeof signupFormSchema>;
 export type SignupPayload = z.infer<typeof signupSchema>;

@@ -80,7 +80,6 @@ const CareerGoals: React.FC<StepProps> = ({ handlePrevious }) => {
   return (
     <div className="max-w-[600px] mx-auto px-4">
       <div className="text-center mb-8">
-        <h1 className="text-[32px] font-bold text-[#2E3646] mb-2">Goals</h1>
         <p className="text-[#344054] text-[16px] font-semibold">
           Tell us about your career aspirations
         </p>

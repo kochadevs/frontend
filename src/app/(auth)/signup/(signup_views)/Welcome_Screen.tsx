@@ -6,7 +6,9 @@ interface WelcomeScreenProps {
   onNext: (userType: string) => void;
 }
 
-export default function WelcomeScreen({ onNext }: Readonly<WelcomeScreenProps>) {
+export default function WelcomeScreen({
+  onNext,
+}: Readonly<WelcomeScreenProps>) {
   const [selectedOption, setSelectedOption] = useState<string>("");
 
   const options = [
@@ -36,11 +38,11 @@ export default function WelcomeScreen({ onNext }: Readonly<WelcomeScreenProps>) 
   return (
     <div className="flex items-center justify-center min-h-screen overflow-y-scroll py-8">
       <div className="md:w-[599px] w-full md:px-2 px-4">
-        <div className="flex flex-col items-center justify-center gap-4">
+        <div className="flex flex-col items-center justify-center">
           <h2 className="text-[30px] font-[700] tracking-tight text-[#2E3646]">
             Welcome to Kocha
           </h2>
-          <p className="text-[#667085] text-center text-sm">
+          <p className="text-[#667085] text-center text-[16px]">
             Choose your path to get started
           </p>
         </div>
@@ -49,7 +51,7 @@ export default function WelcomeScreen({ onNext }: Readonly<WelcomeScreenProps>) 
           {options.map((option) => (
             <div
               key={option.id}
-              className={`w-full p-6 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+              className={`w-full px-6 py-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
                 selectedOption === option.id
                   ? "border-[#334AFF] bg-blue-50"
                   : "border-gray-200 hover:border-gray-300"

@@ -19,6 +19,7 @@ import {
   signupFormSchema,
   SignupPayload,
 } from "@/zodSchema/signupSchema";
+import { handleErrorMessage } from "@/utilities/handleErrorMessage";
 
 interface SignupProps {
   userType: string;
@@ -131,7 +132,7 @@ export default function SignupForm({
         return "Mentor";
       case "mentee":
         return "Mentee";
-      case "basic_user":
+      case "regular":
         return "Community Member";
       default:
         return type;
@@ -140,22 +141,18 @@ export default function SignupForm({
 
   const preparePayload = (validatedData: SignupFormData): SignupPayload => {
     return {
-      ...validatedData,
-      is_active: true,
-      email_verified: false,
+      first_name: validatedData.first_name,
+      last_name: validatedData.last_name,
+      email: validatedData.email,
+      password: validatedData.password,
+      password_confirmation: validatedData.password_confirmation,
+      user_type: validatedData.user_type,
+      gender: validatedData.gender,
+      phone: validatedData.phone || "", // Ensure phone is always a string
+      nationality: validatedData.nationality,
+      location: validatedData.location,
       profile_pic: imagePreview || "",
-      cover_photo: "",
       about: validatedData.about || "",
-      social_links: {
-        linkedin: "",
-        twitter: "",
-        website: "",
-        portfolio: "",
-      },
-      availability: {
-        days: [],
-        times: [],
-      },
     };
   };
 
@@ -193,18 +190,7 @@ export default function SignupForm({
         toast.success("Account created successfully!");
       }
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        const newErrors: Partial<Record<keyof SignupFormData, string>> = {};
-        error.issues.forEach((err: z.ZodIssue) => {
-          if (err.path[0]) {
-            newErrors[err.path[0] as keyof SignupFormData] = err.message;
-          }
-        });
-        setErrors(newErrors);
-      } else {
-        console.error("Signup error:", error);
-        toast.error(error instanceof Error ? error.message : "Signup failed");
-      }
+      handleErrorMessage(error, "Signup failed");
     } finally {
       setIsLoading(false);
     }
@@ -461,7 +447,7 @@ export default function SignupForm({
                         >
                           Female
                         </DropdownMenuItem>
-                        </DropdownMenuContent>
+                      </DropdownMenuContent>
                     </DropdownMenu>
                     {errors.gender && (
                       <p className="mt-1 text-sm text-red-600">

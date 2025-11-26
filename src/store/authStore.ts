@@ -1,232 +1,125 @@
 import { create } from "zustand";
-import { devtools, persist } from "zustand/middleware";
-import { AuthState, UserProfile, LoginResponse } from "../interface/auth/login";
-import { tokenUtils } from "../utilities/cookies";
-import {
-  handleLogout,
-  fetchUserProfile,
-} from "../utilities/handlers/authHandler";
+import { persist } from "zustand/middleware";
+import { LoginResponse } from "../interface/auth/login";
 
-interface AuthActions {
+interface AuthStore {
+  // State
+  authData: LoginResponse | null;
+  _hasHydrated: boolean; // Track if store has been hydrated from localStorage
+
   // Actions
   login: (loginResponse: LoginResponse) => void;
   logout: () => void;
-  updateUser: (user: Partial<UserProfile>) => void;
-  refreshUserProfile: () => Promise<void>;
-  initializeAuth: () => void;
-  refreshAuth: (newAccessToken: string) => void;
+  updateUser: (user: Partial<LoginResponse["user_profile"]>) => void;
+  setHasHydrated: (state: boolean) => void;
+  initializeAuth: () => void; // Add this back to fix the error
 }
 
-type AuthStore = AuthState & AuthActions;
-
-const initialState: AuthState = {
-  isAuthenticated: false,
-  user: null,
-  accessToken: null,
-  refreshToken: null,
-  tokenType: "Bearer",
-};
-
-// Create store with persist middleware
+// Simple store that just persists the login response
 export const useAuthStore = create<AuthStore>()(
-  devtools(
-    persist(
-      (set, get) => ({
-        ...initialState,
+  persist(
+    (set, get) => ({
+      // Initial state
+      authData: null,
+      _hasHydrated: false,
 
-        // Login action
-        login: (loginResponse: LoginResponse) => {
-          const { access_token, refresh_token, token_type, user_profile } =
-            loginResponse;
+      // Login - just store the response
+      login: (loginResponse: LoginResponse) => {
+        set({ authData: loginResponse });
+      },
 
-          // Store tokens in cookies
-          tokenUtils.storeTokens(
-            access_token,
-            refresh_token,
-            JSON.stringify(user_profile)
-          );
+      // Logout - clear everything
+      logout: () => {
+        set({ authData: null });
+      },
 
-          // Update store state
+      // Update user - simple merge
+      updateUser: (updatedUser: Partial<LoginResponse["user_profile"]>) => {
+        const currentState = get();
+        if (currentState.authData?.user_profile) {
           set({
-            isAuthenticated: true,
-            user: user_profile,
-            accessToken: access_token,
-            refreshToken: refresh_token,
-            tokenType: token_type,
+            authData: {
+              ...currentState.authData,
+              user_profile: {
+                ...currentState.authData.user_profile,
+                ...updatedUser,
+              },
+            },
           });
-        },
+        }
+      },
 
-        // Logout action
-        logout: async () => {
-          const currentState = get();
+      // Set hydration state
+      setHasHydrated: (state: boolean) => {
+        set({ _hasHydrated: state });
+      },
 
-          // Call logout API if we have an access token
-          if (currentState.accessToken) {
-            try {
-              await handleLogout(currentState.accessToken);
-            } catch (error) {
-              console.error("Logout API error:", error);
-              // Continue with local logout even if API fails
-            }
-          }
-
-          // Clear cookies
-          tokenUtils.clearTokens();
-
-          // Reset store state
-          set({ ...initialState });
-        },
-
-        // Update user profile
-        updateUser: (updatedUser: Partial<UserProfile>) => {
-          const currentState = get();
-          const currentUser = currentState.user;
-
-          if (currentUser) {
-            const newUser = { ...currentUser, ...updatedUser };
-
-            // Update user data in cookies
-            if (currentState.accessToken && currentState.refreshToken) {
-              tokenUtils.storeTokens(
-                currentState.accessToken,
-                currentState.refreshToken,
-                JSON.stringify(newUser)
-              );
-            }
-
-            set({ user: newUser });
-          }
-        },
-
-        // Refresh user profile from API
-        refreshUserProfile: async () => {
-          const currentState = get();
-
-          if (!currentState.accessToken) {
-            throw new Error("No access token available");
-          }
-
-          try {
-            const updatedUser = await fetchUserProfile(
-              currentState.accessToken
-            );
-
-            // Update user data in cookies
-            if (currentState.refreshToken) {
-              tokenUtils.storeTokens(
-                currentState.accessToken,
-                currentState.refreshToken,
-                JSON.stringify(updatedUser)
-              );
-            }
-
-            set({ user: updatedUser });
-          } catch (error) {
-            console.error("Error refreshing user profile:", error);
-            throw error;
-          }
-        },
-
-        // Initialize auth from cookies
-        initializeAuth: () => {
-          const currentState = get();
-
-          // Only run in browser
-          if (typeof window === "undefined") {
-            return;
-          }
-
-          const { accessToken, refreshToken, userData } =
-            tokenUtils.getTokens();
-
-          // If we have tokens but store is not authenticated, update the store
-          if (accessToken && refreshToken && userData) {
-            try {
-              const user = JSON.parse(userData);
-              set({
-                isAuthenticated: true,
-                user,
-                accessToken,
-                refreshToken,
-                tokenType: "Bearer",
-              });
-            } catch {
-              tokenUtils.clearTokens();
-              set({ ...initialState });
-            }
-          } else if (currentState.isAuthenticated && !accessToken) {
-            // If store thinks we're authenticated but no tokens in cookies, clear store
-            set({ ...initialState });
-          }
-        },
-
-        // Refresh access token
-        refreshAuth: (newAccessToken: string) => {
-          const currentState = get();
-
-          if (currentState.refreshToken && currentState.user) {
-            tokenUtils.storeTokens(
-              newAccessToken,
-              currentState.refreshToken,
-              JSON.stringify(currentState.user)
-            );
-
-            set({ accessToken: newAccessToken });
-          }
-        },
+      // Initialize auth (empty function for compatibility)
+      initializeAuth: () => {
+        // This is now handled automatically by Zustand's persistence
+        // Keeping it for backward compatibility
+        console.log("Auth initialization handled automatically by Zustand");
+      },
+    }),
+    {
+      name: "kocha-auth-storage", // localStorage key
+      onRehydrateStorage: () => (state) => {
+        // This runs after Zustand rehydrates from localStorage
+        state?.setHasHydrated(true);
+      },
+      // Only persist authData, not the hydration flag
+      partialize: (state) => ({
+        authData: state.authData,
       }),
-      {
-        name: "kocha-auth-storage",
-        partialize: (state) => ({
-          // Only persist user data and auth status, not tokens
-          isAuthenticated: state.isAuthenticated,
-          user: state.user,
-          tokenType: state.tokenType,
-        }),
-        // Handle hydration properly
-        onRehydrateStorage: () => (state) => {
-          // Initialize auth from cookies after rehydration
-          if (state && typeof window !== "undefined") {
-            state.initializeAuth?.();
-          }
-        },
-      }
-    ),
-    { name: "authStore" }
+    }
   )
 );
 
-// Hook to get auth state
-export const useAuth = () => {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const user = useAuthStore((state) => state.user);
-  const accessToken = useAuthStore((state) => state.accessToken);
-  const refreshToken = useAuthStore((state) => state.refreshToken);
-
-  return { isAuthenticated, user, accessToken, refreshToken };
+// Hook to check if store has hydrated
+export const useAuthHydration = () => {
+  return useAuthStore((state) => state._hasHydrated);
 };
 
-// Hook to get auth actions
+// Simple hooks with hydration check
+export const useAuth = () => {
+  const authData = useAuthStore((state) => state.authData);
+  const hasHydrated = useAuthHydration();
+
+  return {
+    isAuthenticated: !!authData?.access_token && hasHydrated,
+    user: authData?.user_profile || null,
+    accessToken: authData?.access_token || null,
+    refreshToken: authData?.refresh_token || null,
+    authData, // Full auth data if needed
+    hasHydrated, // Useful for conditional rendering
+  };
+};
+
 export const useAuthActions = () => {
   const login = useAuthStore((state) => state.login);
   const logout = useAuthStore((state) => state.logout);
   const updateUser = useAuthStore((state) => state.updateUser);
-  const refreshUserProfile = useAuthStore((state) => state.refreshUserProfile);
   const initializeAuth = useAuthStore((state) => state.initializeAuth);
-  const refreshAuth = useAuthStore((state) => state.refreshAuth);
 
-  return {
-    login,
-    logout,
-    updateUser,
-    refreshUserProfile,
-    initializeAuth,
-    refreshAuth,
-  };
+  return { login, logout, updateUser, initializeAuth };
 };
 
-// Individual selectors
-export const useIsAuthenticated = () =>
-  useAuthStore((state) => state.isAuthenticated);
-export const useUser = () => useAuthStore((state) => state.user);
-export const useAccessToken = () => useAuthStore((state) => state.accessToken);
+// Individual selectors with hydration check
+export const useIsAuthenticated = () => {
+  const authData = useAuthStore((state) => state.authData);
+  const hasHydrated = useAuthHydration();
+  return !!authData?.access_token && hasHydrated;
+};
+
+export const useUser = () => {
+  const authData = useAuthStore((state) => state.authData);
+  const hasHydrated = useAuthHydration();
+  // Return null if not hydrated to avoid flash of incorrect state
+  return hasHydrated ? authData?.user_profile || null : null;
+};
+
+export const useAccessToken = () => {
+  const authData = useAuthStore((state) => state.authData);
+  const hasHydrated = useAuthHydration();
+  return hasHydrated ? authData?.access_token || null : null;
+};

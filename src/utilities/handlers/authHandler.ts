@@ -34,24 +34,7 @@ export const handleSignup = async (payload: SignupPayload): Promise<any> => {
 
     return data;
   } catch (error: any) {
-    if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
-      const errorMessage =
-        error.response.data?.message ||
-        error.response.data?.error ||
-        "Signup failed";
-      console.error("Server error:", error.response.status, errorMessage);
-      throw new Error(errorMessage);
-    } else if (error.request) {
-      // The request was made but no response was received
-      console.error("Network error:", error.request);
-      throw new Error("Network error - please check your connection");
-    } else {
-      // Something happened in setting up the request that triggered an Error
-      console.error("Error:", error.message);
-      throw new Error(error.message || "An unexpected error occurred");
-    }
+    throw error
   }
 };
 
@@ -84,25 +67,7 @@ export const handleLogin = async (
 
     return data as LoginResponse;
   } catch (error: any) {
-    if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
-      const errorMessage =
-        error.response.data?.message ||
-        error.response.data?.error ||
-        error.response.data?.detail ||
-        "Login failed";
-      console.error("Server error:", error.response.status, errorMessage);
-      throw new Error(errorMessage);
-    } else if (error.request) {
-      // The request was made but no response was received
-      console.error("Network error:", error.request);
-      throw new Error("Network error - please check your connection");
-    } else {
-      // Something happened in setting up the request that triggered an Error
-      console.error("Error:", error.message);
-      throw new Error(error.message || "An unexpected error occurred");
-    }
+    throw error
   }
 };
 
@@ -128,19 +93,7 @@ export const handleLogout = async (accessToken: string): Promise<void> => {
       }
     );
   } catch (error: any) {
-    // Even if logout API fails, we'll still clear local data
-    console.warn("Logout API call failed, but clearing local data:", error);
-    if (error.response) {
-      console.error(
-        "Server error:",
-        error.response.status,
-        error.response.data
-      );
-    } else if (error.request) {
-      console.error("Network error:", error.request);
-    } else {
-      console.error("Error:", error.message);
-    }
+    throw error
   }
 };
 

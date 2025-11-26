@@ -1,6 +1,8 @@
 export interface StepProps {
   handleNext: () => void;
   handlePrevious: () => void;
+  isLastStep?: boolean;
+  isFirstStep?: boolean;
 }
 
 // Base interface for all onboarding options
