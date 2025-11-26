@@ -24,6 +24,8 @@ export type JobSearchStatusResponse = OnboardingOption[];
 export type RoleInterestResponse = RoleInterestOption[];
 export type IndustryResponse = OnboardingOption[];
 export type SkillsResponse = OnboardingOption[];
+export type CareerGoals = OnboardingOption[];
+export type MentoringFrequency = OnboardingOption[];
 export type CareerGoalsResponse = OnboardingOption[];
 
 // API Request interfaces

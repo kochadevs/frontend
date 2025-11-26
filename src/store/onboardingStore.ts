@@ -11,12 +11,12 @@ interface ProfessionalBackground {
 }
 
 interface CareerGoalsData {
-  shortTermGoal: string;
+  shortTermGoals: number[];
   longTermGoal: string;
 }
 
 interface MentoringPreferences {
-  frequency: string;
+  frequency: number[]; // Changed from string to number[]
   language: string;
   skills: number[];
   industries: number[];
@@ -97,7 +97,6 @@ export const useOnboardingStore = create<OnboardingState>()(
       },
 
       submitProfessionalBackground: async () => {
-        // Simply resolve the promise - data is already stored in state
         console.log(
           "Professional background stored locally:",
           get().professionalBackground
@@ -105,9 +104,9 @@ export const useOnboardingStore = create<OnboardingState>()(
         return Promise.resolve();
       },
 
-      // Career Goals (Step 2)
+      // Career Goals (Step 2) - Using array of IDs
       careerGoals: {
-        shortTermGoal: "",
+        shortTermGoals: [], // Array of numbers (IDs)
         longTermGoal: "",
       },
 
@@ -127,21 +126,20 @@ export const useOnboardingStore = create<OnboardingState>()(
       clearCareerGoals: () => {
         set({
           careerGoals: {
-            shortTermGoal: "",
+            shortTermGoals: [],
             longTermGoal: "",
           },
         });
       },
 
       submitCareerGoals: async () => {
-        // Simply resolve the promise - data is already stored in state
         console.log("Career goals stored locally:", get().careerGoals);
         return Promise.resolve();
       },
 
       // Mentoring Preferences (Step 3)
       mentoringPreferences: {
-        frequency: "",
+        frequency: [], // Changed from "" to []
         language: "",
         skills: [],
         industries: [],
@@ -163,7 +161,7 @@ export const useOnboardingStore = create<OnboardingState>()(
       clearMentoringPreferences: () => {
         set({
           mentoringPreferences: {
-            frequency: "",
+            frequency: [],
             language: "",
             skills: [],
             industries: [],
@@ -172,7 +170,6 @@ export const useOnboardingStore = create<OnboardingState>()(
       },
 
       submitMentoringPreferences: async () => {
-        // Simply resolve the promise - data is already stored in state
         console.log(
           "Mentoring preferences stored locally:",
           get().mentoringPreferences
@@ -197,11 +194,11 @@ export const useOnboardingStore = create<OnboardingState>()(
             skills: [],
           },
           careerGoals: {
-            shortTermGoal: "",
+            shortTermGoals: [],
             longTermGoal: "",
           },
           mentoringPreferences: {
-            frequency: "",
+            frequency: [],
             language: "",
             skills: [],
             industries: [],
@@ -222,31 +219,40 @@ export const useOnboardingStore = create<OnboardingState>()(
     }),
     {
       name: "onboarding-values",
-      version: 1,
+      version: 3, // Increment version for the frequency change
       migrate: (persistedState: any, version: number) => {
-        if (version < 1) {
-          return {
-            professionalBackground: {
-              currentRole: "",
-              company: "",
-              yearsOfExperience: "",
-              industries: [],
-              skills: [],
-            },
+        let state = persistedState;
+
+        // Handle migration from version 1 to 2
+        if (version < 2) {
+          state = {
+            ...persistedState,
             careerGoals: {
-              shortTermGoal: "",
-              longTermGoal: "",
+              shortTermGoals: persistedState.careerGoals?.shortTermGoal
+                ? [parseInt(persistedState.careerGoals.shortTermGoal) || 0]
+                : [],
+              longTermGoal: persistedState.careerGoals?.longTermGoal || "",
             },
-            mentoringPreferences: {
-              frequency: "",
-              language: "",
-              skills: [],
-              industries: [],
-            },
-            isSubmitting: false,
           };
         }
-        return persistedState;
+
+        // Handle migration from version 2 to 3 (frequency change)
+        if (version < 3) {
+          state = {
+            ...state,
+            mentoringPreferences: {
+              ...state.mentoringPreferences,
+              frequency: state.mentoringPreferences?.frequency
+                ? [parseInt(state.mentoringPreferences.frequency)].filter(
+                    (id) => !isNaN(id)
+                  )
+                : [],
+            },
+          };
+        }
+
+        console.log("Migrated onboarding state:", state);
+        return state;
       },
     }
   )

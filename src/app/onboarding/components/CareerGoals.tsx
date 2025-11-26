@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { StepProps } from "@/interface/onboarding";
 import { useOnboardingStore } from "@/store/onboardingStore";
@@ -12,10 +12,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { fetchCareerGoals } from "@/utilities/handlers/onboardingHandler";
 
 interface CareerGoalsData {
-  shortTermGoal: string;
+  shortTermGoals: number[];
   longTermGoal: string;
+}
+
+interface CareerGoalOption {
+  id: number;
+  date_created: string;
+  last_modified: string;
+  name: string;
 }
 
 const CareerGoals: React.FC<StepProps> = ({ handlePrevious, handleNext }) => {
@@ -23,30 +31,67 @@ const CareerGoals: React.FC<StepProps> = ({ handlePrevious, handleNext }) => {
     useOnboardingStore();
 
   const [formData, setFormData] = useState<CareerGoalsData>({
-    shortTermGoal: careerGoals.shortTermGoal || "",
+    shortTermGoals: careerGoals.shortTermGoals || [],
     longTermGoal: careerGoals.longTermGoal || "",
   });
 
-  const shortTermGoals = [
-    { value: "job_search", label: "Job Search" },
-    { value: "career_switch", label: "Career Switch" },
-    { value: "career_guidance", label: "Career Guidance/Progression" },
-    { value: "upskilling", label: "Upskilling" },
-  ];
+  const [shortTermGoals, setShortTermGoals] = useState<CareerGoalOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleInputChange = (field: keyof CareerGoalsData, value: string) => {
+  // Fetch career goals from API
+  useEffect(() => {
+    const loadCareerGoals = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const careerGoalsData = await fetchCareerGoals();
+        setShortTermGoals(careerGoalsData || []);
+      } catch (err) {
+        console.error("Error fetching career goals:", err);
+        setError("Failed to load career goals");
+        toast.error("Failed to load career goals options");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCareerGoals();
+  }, []);
+
+  const handleShortTermGoalChange = (value: string) => {
+    const goalId = parseInt(value);
     setFormData((prev) => ({
       ...prev,
-      [field]: value,
+      shortTermGoals: [goalId], // Store as array with single element
+    }));
+
+    // Also update the store immediately with the array
+    updateCareerGoals({ shortTermGoals: [goalId] });
+  };
+
+  const handleLongTermGoalChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      longTermGoal: value,
     }));
 
     // Also update the store immediately
-    updateCareerGoals({ [field]: value });
+    updateCareerGoals({ longTermGoal: value });
+  };
+
+  // Helper to get the selected goal name for display
+  const getSelectedGoalName = () => {
+    if (!formData.shortTermGoals.length) return "";
+    const selectedGoal = shortTermGoals.find(
+      (goal) => goal.id === formData.shortTermGoals[0]
+    );
+    return selectedGoal?.name || "";
   };
 
   const handleSaveAndContinue = async () => {
     // Validate required fields
-    if (!formData.shortTermGoal.trim() || !formData.longTermGoal.trim()) {
+    if (!formData.shortTermGoals.length || !formData.longTermGoal.trim()) {
       toast.error("Please fill in both short term and long term goals");
       return;
     }
@@ -87,25 +132,38 @@ const CareerGoals: React.FC<StepProps> = ({ handlePrevious, handleNext }) => {
           What are your immediate career objectives?
         </p>
 
-        <Select
-          value={formData.shortTermGoal}
-          onValueChange={(value) => handleInputChange("shortTermGoal", value)}
-        >
-          <SelectTrigger className="w-full h-12 px-4 border border-[#D1D5DB] rounded-lg focus:ring-2 focus:ring-[#251F99] focus:border-transparent">
-            <SelectValue placeholder="Select your short term goal" />
-          </SelectTrigger>
-          <SelectContent>
-            {shortTermGoals.map((goal) => (
-              <SelectItem
-                key={goal.value}
-                value={goal.value}
-                className="cursor-pointer py-3"
-              >
-                {goal.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {loading ? (
+          <div className="w-full h-12 px-4 border border-[#D1D5DB] rounded-lg flex items-center justify-center">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#334AFF]"></div>
+            <span className="ml-2 text-sm text-gray-500">Loading goals...</span>
+          </div>
+        ) : error ? (
+          <div className="w-full h-12 px-4 border border-[#D1D5DB] rounded-lg flex items-center justify-center text-red-500 text-sm">
+            Failed to load goals. Please try again.
+          </div>
+        ) : (
+          <Select
+            value={formData.shortTermGoals[0]?.toString() || ""} // Get first element from array
+            onValueChange={handleShortTermGoalChange}
+          >
+            <SelectTrigger className="w-full h-12 px-4 border border-[#D1D5DB] rounded-lg focus:ring-2 focus:ring-[#251F99] focus:border-transparent">
+              <SelectValue placeholder="Select your short term goal">
+                {getSelectedGoalName()}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {shortTermGoals.map((goal) => (
+                <SelectItem
+                  key={goal.id}
+                  value={goal.id.toString()}
+                  className="cursor-pointer py-3"
+                >
+                  {goal.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {/* Long Term Goals - Free Text */}
@@ -119,7 +177,7 @@ const CareerGoals: React.FC<StepProps> = ({ handlePrevious, handleNext }) => {
 
         <Textarea
           value={formData.longTermGoal}
-          onChange={(e) => handleInputChange("longTermGoal", e.target.value)}
+          onChange={(e) => handleLongTermGoalChange(e.target.value)}
           placeholder="Describe your long-term career aspirations, such as reaching a leadership position, starting your own business, specializing in a particular field, etc."
           className="w-full min-h-[120px] px-3 py-3 border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#251F99] focus:border-transparent resize-none"
         />
@@ -145,9 +203,10 @@ const CareerGoals: React.FC<StepProps> = ({ handlePrevious, handleNext }) => {
           className="flex min-w-[153px] justify-center rounded-md bg-[#334AFF] px-3 py-1.5 text-[16px] font-semibold text-white hover:text-[#fff]/70 shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px] disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleSaveAndContinue}
           disabled={
-            !formData.shortTermGoal.trim() ||
+            !formData.shortTermGoals.length ||
             !formData.longTermGoal.trim() ||
-            isSubmitting
+            isSubmitting ||
+            loading
           }
         >
           {isSubmitting ? "Saving..." : "Save & Continue"}

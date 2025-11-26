@@ -1,11 +1,16 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { StepProps, OnboardingOption } from "@/interface/onboarding";
+import {
+  StepProps,
+  OnboardingOption,
+  MentoringFrequency,
+} from "@/interface/onboarding";
 import { useOnboardingStore } from "@/store/onboardingStore";
 import {
   fetchSkills,
   fetchIndustries,
+  fetchMentoringFrequency,
 } from "@/utilities/handlers/onboardingHandler";
 import { toast } from "react-hot-toast";
 import {
@@ -31,13 +36,10 @@ const MentoringPreferences: React.FC<StepProps> = ({
 
   const [skills, setSkills] = useState<OnboardingOption[]>([]);
   const [industries, setIndustries] = useState<OnboardingOption[]>([]);
+  const [frequencyOptions, setFrequencyOptions] = useState<MentoringFrequency>(
+    []
+  );
   const [isLoading, setIsLoading] = useState(true);
-
-  const frequencyOptions = [
-    { value: "weekly", label: "Weekly" },
-    { value: "bi_weekly", label: "Bi-Weekly" },
-    { value: "monthly", label: "Monthly" },
-  ];
 
   const languageOptions = [
     { value: "english", label: "English" },
@@ -49,17 +51,21 @@ const MentoringPreferences: React.FC<StepProps> = ({
     { value: "arabic", label: "Arabic" },
   ];
 
-  // Load skills and industries
+  // Load skills, industries, and frequency options
   useEffect(() => {
     const loadData = async () => {
       try {
         setIsLoading(true);
-        const [skillsData, industriesData] = await Promise.all([
+        const [skillsData, industriesData, frequencyData] = await Promise.all([
           fetchSkills(),
           fetchIndustries(),
+          fetchMentoringFrequency(),
         ]);
         setSkills(skillsData);
         setIndustries(industriesData);
+
+        // Assuming fetchMentoringFrequency returns an array of OnboardingOption
+        setFrequencyOptions(frequencyData as MentoringFrequency);
       } catch (error) {
         console.error("Error loading data:", error);
         toast.error("Failed to load mentoring options");
@@ -72,7 +78,9 @@ const MentoringPreferences: React.FC<StepProps> = ({
   }, []);
 
   const handleFrequencyChange = (value: string) => {
-    updateMentoringPreferences({ frequency: value });
+    const frequencyId = parseInt(value);
+    // Store as array with single element (since it's a single select)
+    updateMentoringPreferences({ frequency: [frequencyId] });
   };
 
   const handleLanguageChange = (value: string) => {
@@ -97,9 +105,21 @@ const MentoringPreferences: React.FC<StepProps> = ({
     updateMentoringPreferences({ industries: newIndustries });
   };
 
+  // Helper to get the selected frequency name for display
+  const getSelectedFrequencyName = () => {
+    if (!mentoringPreferences.frequency.length) return "";
+    const selectedFrequency = frequencyOptions.find(
+      (freq) => freq.id === mentoringPreferences.frequency[0]
+    );
+    return selectedFrequency?.name || "";
+  };
+
   const handleSaveAndContinue = async () => {
     // Validate required fields
-    if (!mentoringPreferences.frequency || !mentoringPreferences.language) {
+    if (
+      !mentoringPreferences.frequency.length ||
+      !mentoringPreferences.language
+    ) {
       toast.error("Please select frequency and language preferences");
       return;
     }
@@ -144,20 +164,22 @@ const MentoringPreferences: React.FC<StepProps> = ({
           How often would you like to connect with a mentor?
         </p>
         <Select
-          value={mentoringPreferences.frequency}
+          value={mentoringPreferences.frequency[0]?.toString() || ""} // Get first element from array
           onValueChange={handleFrequencyChange}
         >
           <SelectTrigger className="w-full h-12 px-4 border border-[#D1D5DB] rounded-lg focus:ring-2 focus:ring-[#251F99] focus:border-transparent">
-            <SelectValue placeholder="Select frequency" />
+            <SelectValue placeholder="Select frequency">
+              {getSelectedFrequencyName()}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {frequencyOptions.map((option) => (
               <SelectItem
-                key={option.value}
-                value={option.value}
+                key={option.id}
+                value={option.id.toString()} // Use the ID as value
                 className="cursor-pointer py-3"
               >
-                {option.label}
+                {option.name}
               </SelectItem>
             ))}
           </SelectContent>
@@ -271,7 +293,7 @@ const MentoringPreferences: React.FC<StepProps> = ({
           className="flex w-[153px] justify-center rounded-md bg-[#334AFF] px-3 py-1.5 text-[16px] font-semibold text-white hover:text-[#fff]/70 shadow-xs hover:bg-[#251F99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer h-[40px]"
           onClick={handleSaveAndContinue}
           disabled={
-            !mentoringPreferences.frequency ||
+            !mentoringPreferences.frequency.length ||
             !mentoringPreferences.language ||
             isSubmitting
           }
