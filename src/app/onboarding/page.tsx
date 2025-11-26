@@ -5,7 +5,7 @@ import NavigationBar from "@/components/common/NavigationBar";
 import ProfessionalBackground from "./components/ProfessionalBackground";
 import MentoringPreferences from "./components/MentoringPreferences";
 import Review from "./components/Review"; // Import the new Review component
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore, useUser } from "@/store/authStore";
 
 interface StepConfig {
   component: React.ComponentType<StepProps>;
@@ -21,7 +21,7 @@ interface StepProps {
 
 const Onboarding = () => {
   const [step, setStep] = useState(1);
-  const user = useAuthStore((state) => state.user);
+  const user = useUser();
 
   const { totalSteps, stepComponents } = useMemo(() => {
     const userType = user?.user_type;

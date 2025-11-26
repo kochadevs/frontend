@@ -3,9 +3,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { StepProps } from "@/interface/onboarding";
 import { useOnboardingStore } from "@/store/onboardingStore";
-import { useAuthActions } from "@/store/authStore";
 import { toast } from "react-hot-toast";
-import { useRouter } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -20,15 +18,13 @@ interface CareerGoalsData {
   longTermGoal: string;
 }
 
-const CareerGoals: React.FC<StepProps> = ({ handlePrevious }) => {
-  const router = useRouter();
-  const { refreshUserProfile } = useAuthActions();
-  const { submitCareerGoals, isSubmitting, clearAllData } =
+const CareerGoals: React.FC<StepProps> = ({ handlePrevious, handleNext }) => {
+  const { careerGoals, updateCareerGoals, submitCareerGoals, isSubmitting } =
     useOnboardingStore();
 
   const [formData, setFormData] = useState<CareerGoalsData>({
-    shortTermGoal: "",
-    longTermGoal: "",
+    shortTermGoal: careerGoals.shortTermGoal || "",
+    longTermGoal: careerGoals.longTermGoal || "",
   });
 
   const shortTermGoals = [
@@ -43,6 +39,9 @@ const CareerGoals: React.FC<StepProps> = ({ handlePrevious }) => {
       ...prev,
       [field]: value,
     }));
+
+    // Also update the store immediately
+    updateCareerGoals({ [field]: value });
   };
 
   const handleSaveAndContinue = async () => {
@@ -53,26 +52,20 @@ const CareerGoals: React.FC<StepProps> = ({ handlePrevious }) => {
     }
 
     try {
-      // Submit career goals to API
+      // Ensure all data is saved to store
+      updateCareerGoals(formData);
+
+      // Submit career goals (this now just stores data locally)
       await submitCareerGoals();
 
-      // Refresh user profile to get updated onboarding data
-      await refreshUserProfile();
-
       // Show success message
-      toast.success("Onboarding completed successfully!");
+      toast.success("Career goals saved successfully!");
 
-      // Clear onboarding data since we're completed
-      clearAllData();
-
-      // Small delay to ensure everything is processed
-      setTimeout(() => {
-        router.push("/home");
-      }, 1500);
+      handleNext();
     } catch (error) {
-      console.error("Error completing onboarding:", error);
+      console.error("Error saving career goals:", error);
       toast.error(
-        error instanceof Error ? error.message : "Failed to complete onboarding"
+        error instanceof Error ? error.message : "Failed to save career goals"
       );
     }
   };
@@ -113,23 +106,6 @@ const CareerGoals: React.FC<StepProps> = ({ handlePrevious }) => {
             ))}
           </SelectContent>
         </Select>
-
-        {/* Alternative: Card-style selection (uncomment if preferred over dropdown) */}
-        {/* <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-          {shortTermGoals.map((goal) => (
-            <button
-              key={goal.value}
-              onClick={() => handleInputChange('shortTermGoal', goal.value)}
-              className={`p-4 rounded-lg border-2 text-left transition-all duration-200 ${
-                formData.shortTermGoal === goal.value
-                  ? "border-[#251F99] bg-[#EEF4FF] text-[#251F99] font-semibold"
-                  : "border-[#E5E7EB] text-[#374151] hover:border-[#D1D5DB] hover:bg-gray-50"
-              }`}
-            >
-              <div className="font-medium">{goal.label}</div>
-            </button>
-          ))}
-        </div> */}
       </div>
 
       {/* Long Term Goals - Free Text */}
@@ -174,7 +150,7 @@ const CareerGoals: React.FC<StepProps> = ({ handlePrevious }) => {
             isSubmitting
           }
         >
-          {isSubmitting ? "Completing..." : "Complete Onboarding"}
+          {isSubmitting ? "Saving..." : "Save & Continue"}
         </Button>
       </div>
     </div>

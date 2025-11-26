@@ -1,12 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { useAuthStore } from "./authStore";
-import {
-  submitCareerGoals,
-  submitProfessionalBackground,
-  submitMentoringPreferences,
-} from "@/utilities/handlers/onboardingHandler";
 
 interface ProfessionalBackground {
   currentRole: string;
@@ -56,6 +50,13 @@ interface OnboardingState {
 
   // Common
   clearAllData: () => void;
+
+  // Get all onboarding data
+  getAllOnboardingData: () => {
+    professionalBackground: ProfessionalBackground;
+    careerGoals: CareerGoalsData;
+    mentoringPreferences: MentoringPreferences;
+  };
 }
 
 export const useOnboardingStore = create<OnboardingState>()(
@@ -96,23 +97,12 @@ export const useOnboardingStore = create<OnboardingState>()(
       },
 
       submitProfessionalBackground: async () => {
-        try {
-          set({ isSubmitting: true });
-          const { professionalBackground } = get();
-          const authState = useAuthStore.getState();
-          const accessToken = authState.accessToken;
-
-          if (!accessToken) {
-            throw new Error("Please log in to continue with onboarding");
-          }
-
-          await submitProfessionalBackground(
-            { professional_background: professionalBackground },
-            accessToken
-          );
-        } finally {
-          set({ isSubmitting: false });
-        }
+        // Simply resolve the promise - data is already stored in state
+        console.log(
+          "Professional background stored locally:",
+          get().professionalBackground
+        );
+        return Promise.resolve();
       },
 
       // Career Goals (Step 2)
@@ -144,20 +134,9 @@ export const useOnboardingStore = create<OnboardingState>()(
       },
 
       submitCareerGoals: async () => {
-        try {
-          set({ isSubmitting: true });
-          const { careerGoals } = get();
-          const authState = useAuthStore.getState();
-          const accessToken = authState.accessToken;
-
-          if (!accessToken) {
-            throw new Error("Please log in to continue with onboarding");
-          }
-
-          await submitCareerGoals({ career_goals: careerGoals }, accessToken);
-        } finally {
-          set({ isSubmitting: false });
-        }
+        // Simply resolve the promise - data is already stored in state
+        console.log("Career goals stored locally:", get().careerGoals);
+        return Promise.resolve();
       },
 
       // Mentoring Preferences (Step 3)
@@ -193,23 +172,12 @@ export const useOnboardingStore = create<OnboardingState>()(
       },
 
       submitMentoringPreferences: async () => {
-        try {
-          set({ isSubmitting: true });
-          const { mentoringPreferences } = get();
-          const authState = useAuthStore.getState();
-          const accessToken = authState.accessToken;
-
-          if (!accessToken) {
-            throw new Error("Please log in to continue with onboarding");
-          }
-
-          await submitMentoringPreferences(
-            { mentoring_preferences: mentoringPreferences },
-            accessToken
-          );
-        } finally {
-          set({ isSubmitting: false });
-        }
+        // Simply resolve the promise - data is already stored in state
+        console.log(
+          "Mentoring preferences stored locally:",
+          get().mentoringPreferences
+        );
+        return Promise.resolve();
       },
 
       // Loading states
@@ -240,6 +208,16 @@ export const useOnboardingStore = create<OnboardingState>()(
           },
           isSubmitting: false,
         });
+      },
+
+      // Get all onboarding data
+      getAllOnboardingData: () => {
+        const state = get();
+        return {
+          professionalBackground: state.professionalBackground,
+          careerGoals: state.careerGoals,
+          mentoringPreferences: state.mentoringPreferences,
+        };
       },
     }),
     {
@@ -273,3 +251,118 @@ export const useOnboardingStore = create<OnboardingState>()(
     }
   )
 );
+
+// Convenience hooks for individual sections
+export const useProfessionalBackground = () => {
+  const professionalBackground = useOnboardingStore(
+    (state) => state.professionalBackground
+  );
+  const updateProfessionalBackground = useOnboardingStore(
+    (state) => state.updateProfessionalBackground
+  );
+  const setProfessionalBackground = useOnboardingStore(
+    (state) => state.setProfessionalBackground
+  );
+  const clearProfessionalBackground = useOnboardingStore(
+    (state) => state.clearProfessionalBackground
+  );
+  const submitProfessionalBackground = useOnboardingStore(
+    (state) => state.submitProfessionalBackground
+  );
+
+  return {
+    professionalBackground,
+    updateProfessionalBackground,
+    setProfessionalBackground,
+    clearProfessionalBackground,
+    submitProfessionalBackground,
+  };
+};
+
+export const useCareerGoals = () => {
+  const careerGoals = useOnboardingStore((state) => state.careerGoals);
+  const updateCareerGoals = useOnboardingStore(
+    (state) => state.updateCareerGoals
+  );
+  const setCareerGoals = useOnboardingStore((state) => state.setCareerGoals);
+  const clearCareerGoals = useOnboardingStore(
+    (state) => state.clearCareerGoals
+  );
+  const submitCareerGoals = useOnboardingStore(
+    (state) => state.submitCareerGoals
+  );
+
+  return {
+    careerGoals,
+    updateCareerGoals,
+    setCareerGoals,
+    clearCareerGoals,
+    submitCareerGoals,
+  };
+};
+
+export const useMentoringPreferences = () => {
+  const mentoringPreferences = useOnboardingStore(
+    (state) => state.mentoringPreferences
+  );
+  const updateMentoringPreferences = useOnboardingStore(
+    (state) => state.updateMentoringPreferences
+  );
+  const setMentoringPreferences = useOnboardingStore(
+    (state) => state.setMentoringPreferences
+  );
+  const clearMentoringPreferences = useOnboardingStore(
+    (state) => state.clearMentoringPreferences
+  );
+  const submitMentoringPreferences = useOnboardingStore(
+    (state) => state.submitMentoringPreferences
+  );
+
+  return {
+    mentoringPreferences,
+    updateMentoringPreferences,
+    setMentoringPreferences,
+    clearMentoringPreferences,
+    submitMentoringPreferences,
+  };
+};
+
+// Hook for common actions
+export const useOnboardingActions = () => {
+  const clearAllData = useOnboardingStore((state) => state.clearAllData);
+  const getAllOnboardingData = useOnboardingStore(
+    (state) => state.getAllOnboardingData
+  );
+  const setIsSubmitting = useOnboardingStore((state) => state.setIsSubmitting);
+  const isSubmitting = useOnboardingStore((state) => state.isSubmitting);
+
+  return {
+    clearAllData,
+    getAllOnboardingData,
+    setIsSubmitting,
+    isSubmitting,
+  };
+};
+
+// Hook to get entire onboarding state
+export const useOnboarding = () => {
+  const professionalBackground = useOnboardingStore(
+    (state) => state.professionalBackground
+  );
+  const careerGoals = useOnboardingStore((state) => state.careerGoals);
+  const mentoringPreferences = useOnboardingStore(
+    (state) => state.mentoringPreferences
+  );
+  const isSubmitting = useOnboardingStore((state) => state.isSubmitting);
+  const getAllOnboardingData = useOnboardingStore(
+    (state) => state.getAllOnboardingData
+  );
+
+  return {
+    professionalBackground,
+    careerGoals,
+    mentoringPreferences,
+    isSubmitting,
+    getAllOnboardingData,
+  };
+};
