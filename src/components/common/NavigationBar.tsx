@@ -5,7 +5,11 @@ import React, { useState, useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../ui/button";
-import { useAuthStore, useIsAuthenticated, useUser } from "../../store/authStore";
+import {
+  useAuthStore,
+  useIsAuthenticated,
+  useUser,
+} from "../../store/authStore";
 import { getUserInitials, getUserDisplayName } from "../../utilities/userUtils";
 import { toast } from "react-hot-toast";
 
@@ -61,7 +65,7 @@ const NavigationBar = () => {
             className="object-cover"
           />
         </div>
-        {pathname !== "/onboarding" && isAuthenticated && user && (
+        {!pathname.includes("/onboarding") && isAuthenticated && user && (
           <div className="flex items-center relative" ref={dropdownRef}>
             <div className="text-[#1F2C99] flex items-center justify-center text-[14px] font-semibold w-[40px] h-[40px] rounded-full bg-[#DBEAFF] border-2 border-[#1F2C99]/20">
               {getUserInitials(user)}
