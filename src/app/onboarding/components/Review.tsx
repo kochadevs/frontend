@@ -17,6 +17,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Edit, ArrowLeft, CheckCircle2, FileText } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 interface ReviewProps {
   handleNext: () => void;
@@ -46,6 +47,7 @@ const Review: React.FC<ReviewProps> = ({
 
   const userType = user?.user_type || "regular";
   const onboardingData = getAllOnboardingData();
+  const route = useRouter();
 
   useEffect(() => {
     const loadData = async () => {
@@ -134,13 +136,13 @@ const Review: React.FC<ReviewProps> = ({
 
       // Call the submission function with all required parameters
       await submitOnboardingInformation(
-        onboardingData, // Pass the onboarding data from store
+        onboardingData,
         true, // code_of_conduct_accepted (since they checked the box)
-        accessToken // Pass the access token
+        accessToken
       );
 
       toast.success("Profile completed successfully!");
-      handleNext();
+      route.push("/onboarding/post");
     } catch (error) {
       console.error("Failed to submit onboarding data:", error);
       toast.error(
