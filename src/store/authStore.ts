@@ -1,21 +1,21 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { LoginResponse } from "../interface/auth/login";
+import { tokenUtils } from "../utilities/cookies";
 
 interface AuthStore {
   // State
   authData: LoginResponse | null;
-  _hasHydrated: boolean; // Track if store has been hydrated from localStorage
+  _hasHydrated: boolean;
 
   // Actions
   login: (loginResponse: LoginResponse) => void;
   logout: () => void;
   updateUser: (user: Partial<LoginResponse["user_profile"]>) => void;
   setHasHydrated: (state: boolean) => void;
-  initializeAuth: () => void; // Add this back to fix the error
+  initializeAuth: () => void;
 }
 
-// Simple store that just persists the login response
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set, get) => ({
@@ -23,13 +23,23 @@ export const useAuthStore = create<AuthStore>()(
       authData: null,
       _hasHydrated: false,
 
-      // Login - just store the response
+      // Login - store full data in localStorage, tokens in cookies
       login: (loginResponse: LoginResponse) => {
+        const { access_token, refresh_token } = loginResponse;
+
+        // Store tokens in cookies
+        tokenUtils.storeTokens(access_token, refresh_token);
+
+        // Store full auth data in localStorage (via Zustand persist)
         set({ authData: loginResponse });
       },
 
       // Logout - clear everything
       logout: () => {
+        // Clear cookies
+        tokenUtils.clearTokens();
+
+        // Clear localStorage
         set({ authData: null });
       },
 
@@ -54,20 +64,44 @@ export const useAuthStore = create<AuthStore>()(
         set({ _hasHydrated: state });
       },
 
-      // Initialize auth (empty function for compatibility)
+      // Initialize auth - sync cookies with localStorage
       initializeAuth: () => {
-        // This is now handled automatically by Zustand's persistence
-        // Keeping it for backward compatibility
-        console.log("Auth initialization handled automatically by Zustand");
+        const currentState = get();
+
+        // If we have auth data in localStorage but no cookies, restore cookies
+        if (
+          currentState.authData?.access_token &&
+          currentState.authData?.refresh_token
+        ) {
+          const { accessToken, refreshToken } = tokenUtils.getTokens();
+
+          if (!accessToken || !refreshToken) {
+            // Restore tokens to cookies
+            tokenUtils.storeTokens(
+              currentState.authData.access_token,
+              currentState.authData.refresh_token
+            );
+            console.log("Restored tokens to cookies");
+          }
+        }
+
+        // If we have cookies but no localStorage data, we might want to fetch user data
+        // This handles the case where only cookies exist (from previous session)
+        const { accessToken, refreshToken } = tokenUtils.getTokens();
+        if ((accessToken || refreshToken) && !currentState.authData) {
+          console.log("Tokens found in cookies but no auth data in store");
+          // You might want to fetch user profile here if needed
+        }
+
+        // Mark as hydrated
+        set({ _hasHydrated: true });
       },
     }),
     {
-      name: "kocha-auth-storage", // localStorage key
-      onRehydrateStorage: () => (state) => {
-        // This runs after Zustand rehydrates from localStorage
-        state?.setHasHydrated(true);
+      name: "kocha-auth-storage",
+      onRehydrateStorage: () => () => {
+        console.log("Store rehydrated from localStorage");
       },
-      // Only persist authData, not the hydration flag
       partialize: (state) => ({
         authData: state.authData,
       }),
@@ -90,8 +124,8 @@ export const useAuth = () => {
     user: authData?.user_profile || null,
     accessToken: authData?.access_token || null,
     refreshToken: authData?.refresh_token || null,
-    authData, // Full auth data if needed
-    hasHydrated, // Useful for conditional rendering
+    authData,
+    hasHydrated,
   };
 };
 
@@ -104,7 +138,6 @@ export const useAuthActions = () => {
   return { login, logout, updateUser, initializeAuth };
 };
 
-// Individual selectors with hydration check
 export const useIsAuthenticated = () => {
   const authData = useAuthStore((state) => state.authData);
   const hasHydrated = useAuthHydration();
@@ -114,7 +147,6 @@ export const useIsAuthenticated = () => {
 export const useUser = () => {
   const authData = useAuthStore((state) => state.authData);
   const hasHydrated = useAuthHydration();
-  // Return null if not hydrated to avoid flash of incorrect state
   return hasHydrated ? authData?.user_profile || null : null;
 };
 

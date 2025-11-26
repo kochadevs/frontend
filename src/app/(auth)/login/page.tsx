@@ -77,6 +77,8 @@ function LoginContent() {
         loginResponse.user_profile,
         redirectTo
       );
+
+      console.log(redirectDestination, "redirection");
       router.push(redirectDestination);
     } catch (error) {
       handleErrorMessage(error, "Login Failed");

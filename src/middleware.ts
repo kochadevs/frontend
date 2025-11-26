@@ -1,5 +1,7 @@
+// middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { middlewareCookieUtils } from "./utilities/cookies";
 
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
@@ -9,23 +11,26 @@ export function middleware(request: NextRequest) {
     "/signup",
     "/forgot-password",
     "/reset-password",
+    "/onboarding",
   ];
   const isPublicRoute = publicRoutes.some((route) =>
     pathname.startsWith(route)
   );
 
-  // Check for auth token in cookies (simple check)
-  const hasAuthToken = request.cookies.get("auth-token")?.value;
+  // Check for auth token in cookies
+  const isAuthenticated = middlewareCookieUtils.isAuthenticated(request);
 
-  // Redirect authenticated users away from public routes
-  if (isPublicRoute && hasAuthToken) {
+  // Handle public routes for authenticated users
+  if (isPublicRoute && isAuthenticated) {
     return NextResponse.redirect(new URL("/home", request.url));
   }
 
-  // Redirect unauthenticated users to login for protected routes
-  if (!isPublicRoute && !hasAuthToken) {
+  // Handle protected routes for unauthenticated users
+  if (!isPublicRoute && !isAuthenticated) {
     const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("redirect", pathname);
+    if (pathname !== "/") {
+      loginUrl.searchParams.set("redirect", pathname);
+    }
     return NextResponse.redirect(loginUrl);
   }
 

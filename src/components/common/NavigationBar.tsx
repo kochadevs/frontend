@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../ui/button";
-import { useAuthStore } from "../../store/authStore";
+import { useAuthStore, useIsAuthenticated } from "../../store/authStore";
 import { getUserInitials, getUserDisplayName } from "../../utilities/userUtils";
 import { toast } from "react-hot-toast";
 
@@ -16,9 +16,9 @@ const NavigationBar = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Get user data from auth store
-  const user = useAuthStore((state) => state.user);
+  const user = useUser();
   const logout = useAuthStore((state) => state.logout);
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isAuthenticated = useIsAuthenticated();
 
   // Close dropdown when clicking outside
   useEffect(() => {
