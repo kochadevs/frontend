@@ -8,7 +8,6 @@ import { handleLogin } from "../../../utilities/handlers/authHandler";
 import { useAuthStore } from "../../../store/authStore";
 import { toast } from "react-hot-toast";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getRedirectPath } from "../../../utilities/redirectUtils";
 import NavigationBar from "@/components/common/NavigationBar";
 import { handleErrorMessage } from "@/utilities/handleErrorMessage";
 
@@ -33,10 +32,9 @@ function LoginContent() {
   // Handle redirect when authenticated
   useEffect(() => {
     if (authData?.access_token && authData.user_profile) {
-      const redirectDestination = getRedirectPath(
-        authData.user_profile,
-        redirectTo
-      );
+      const redirectDestination = authData.user_profile.onboarding_completed
+        ? "/home"
+        : "/onboarding";
       router.push(redirectDestination);
     }
   }, [authData, router, redirectTo]);
@@ -72,13 +70,12 @@ function LoginContent() {
       setErrors({});
       toast.success("Login successful!");
 
-      // Redirect
-      const redirectDestination = getRedirectPath(
-        loginResponse.user_profile,
-        redirectTo
-      );
+      // Simple redirect logic based on onboarding status
+      const redirectDestination = loginResponse.user_profile
+        .onboarding_completed
+        ? "/home"
+        : "/onboarding";
 
-      console.log(redirectDestination, "redirection");
       router.push(redirectDestination);
     } catch (error) {
       handleErrorMessage(error, "Login Failed");

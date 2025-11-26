@@ -85,8 +85,6 @@ export const useAuthStore = create<AuthStore>()(
           }
         }
 
-        // If we have cookies but no localStorage data, we might want to fetch user data
-        // This handles the case where only cookies exist (from previous session)
         const { accessToken, refreshToken } = tokenUtils.getTokens();
         if ((accessToken || refreshToken) && !currentState.authData) {
           console.log("Tokens found in cookies but no auth data in store");

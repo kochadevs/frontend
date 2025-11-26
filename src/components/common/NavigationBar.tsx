@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../ui/button";
-import { useAuthStore, useIsAuthenticated } from "../../store/authStore";
+import { useAuthStore, useIsAuthenticated, useUser } from "../../store/authStore";
 import { getUserInitials, getUserDisplayName } from "../../utilities/userUtils";
 import { toast } from "react-hot-toast";
 

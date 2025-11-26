@@ -11,7 +11,6 @@ export function middleware(request: NextRequest) {
     "/signup",
     "/forgot-password",
     "/reset-password",
-    "/onboarding",
   ];
   const isPublicRoute = publicRoutes.some((route) =>
     pathname.startsWith(route)
