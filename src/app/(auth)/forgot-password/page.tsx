@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { z } from "zod";
@@ -11,6 +10,7 @@ import {
 } from "../../../zodSchema/passwordResetSchema";
 import { handleForgotPassword } from "../../../utilities/handlers/authHandler";
 import { toast } from "react-hot-toast";
+import NavigationBar from "@/components/common/NavigationBar";
 
 const ForgotPassword = () => {
   const [formData, setFormData] = useState<ForgotPasswordFormData>({
@@ -84,16 +84,11 @@ const ForgotPassword = () => {
   if (isSuccess) {
     return (
       <div className="flex items-center justify-center min-h-screen">
+        <div className="fixed top-0 w-full z-50">
+          <NavigationBar />
+        </div>
         <div className="md:w-[499px] w-full md:px-2 px-4">
           <div className="flex flex-col items-center justify-center gap-4">
-            <div className="relative h-[38px] w-[144.66px]">
-              <Image
-                alt="kocha_logo"
-                src="/asset/kocha_logo.png"
-                className="h-10 w-auto"
-                fill
-              />
-            </div>
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
               <svg
                 className="w-8 h-8 text-green-500"
@@ -146,16 +141,11 @@ const ForgotPassword = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen">
+      <div className="fixed top-0 w-full z-50">
+        <NavigationBar />
+      </div>
       <div className="md:w-[499px] w-full md:px-2 px-4">
         <div className="flex flex-col items-center justify-center gap-4">
-          <div className="relative h-[38px] w-[144.66px]">
-            <Image
-              alt="kocha_logo"
-              src="/asset/kocha_logo.png"
-              className="h-10 w-auto"
-              fill
-            />
-          </div>
           <h2 className="text-[30px] font-[700] tracking-tight text-[#2E3646]">
             Forgot password
           </h2>

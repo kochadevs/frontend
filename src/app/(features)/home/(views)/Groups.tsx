@@ -17,10 +17,10 @@ import {
   fetchMyGroups,
   leaveGroup,
 } from "@/utilities/handlers/groupHandler";
-import { useAuthStore } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import { toast } from "react-hot-toast";
 import { getInitialsFromSingleName } from "@/utilities/getNameInitials";
+import { useAccessToken } from "@/store/authStore";
 
 export default function Groups() {
   const [activeTab, setActiveTab] = useState("all");
@@ -29,7 +29,7 @@ export default function Groups() {
   const [myGroups, setMyGroups] = useState<Group[]>([]);
   const [isLoadingGroups, setIsLoadingGroups] = useState(false);
   const [isLoadingMyGroups, setIsLoadingMyGroups] = useState(false);
-  const accessToken = useAuthStore((state) => state.accessToken);
+  const accessToken = useAccessToken();
 
   const handleGroupCreated = () => {
     // Refresh both groups lists

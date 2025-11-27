@@ -1,6 +1,8 @@
 export interface StepProps {
   handleNext: () => void;
   handlePrevious: () => void;
+  isLastStep?: boolean;
+  isFirstStep?: boolean;
 }
 
 // Base interface for all onboarding options
@@ -22,6 +24,8 @@ export type JobSearchStatusResponse = OnboardingOption[];
 export type RoleInterestResponse = RoleInterestOption[];
 export type IndustryResponse = OnboardingOption[];
 export type SkillsResponse = OnboardingOption[];
+export type CareerGoals = OnboardingOption[];
+export type MentoringFrequency = OnboardingOption[];
 export type CareerGoalsResponse = OnboardingOption[];
 
 // API Request interfaces
@@ -53,4 +57,22 @@ export interface CareerGoalsRequest {
 export interface OnboardingSubmissionResponse {
   message: string;
   success?: boolean;
+}
+
+export interface ProfessionalBackground {
+  currentRole: string;
+  company: string;
+  yearsOfExperience: string;
+}
+
+export interface CareerGoalsData {
+  shortTermGoal: string;
+  longTermGoal: string;
+}
+
+export interface MentoringPreferences {
+  frequency: string; // "weekly" | "bi_weekly" | "monthly"
+  language: string;
+  skills: number[];
+  industries: number[];
 }

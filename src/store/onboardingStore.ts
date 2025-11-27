@@ -1,353 +1,374 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { useAuthStore } from "./authStore";
-import { submitNewRoleValues, submitJobSearchStatus, submitRoleInterest, submitIndustries, submitSkills, submitCareerGoals } from "@/utilities/handlers/onboardingHandler";
+
+interface ProfessionalBackground {
+  currentRole: string;
+  company: string;
+  yearsOfExperience: string;
+  industries: number[];
+  skills: number[];
+}
+
+interface CareerGoalsData {
+  shortTermGoals: number[];
+  longTermGoal: string;
+}
+
+interface MentoringPreferences {
+  frequency: number[]; // Changed from string to number[]
+  language: string;
+  skills: number[];
+  industries: number[];
+}
 
 interface OnboardingState {
-  // Value Selection (Step 1)
-  selectedValues: number[];
-  toggleValue: (id: number) => void;
-  setSelectedValues: (values: number[]) => void;
-  clearSelectedValues: () => void;
-  submitNewRoleValues: () => Promise<void>;
-  
-  // Job Search Status (Step 2)
-  jobSearchStatus: number[];
-  toggleJobSearchStatus: (id: number) => void;
-  setJobSearchStatus: (status: number[]) => void;
-  clearJobSearchStatus: () => void;
-  submitJobSearchStatus: () => Promise<void>;
+  // Professional Background (Step 1)
+  professionalBackground: ProfessionalBackground;
+  updateProfessionalBackground: (data: Partial<ProfessionalBackground>) => void;
+  setProfessionalBackground: (data: ProfessionalBackground) => void;
+  clearProfessionalBackground: () => void;
+  submitProfessionalBackground: () => Promise<void>;
 
-  // Role Selection (Step 3)
-  selectedRoles: number[];
-  toggleRole: (id: number) => void;
-  setSelectedRoles: (roles: number[]) => void;
-  clearSelectedRoles: () => void;
-  submitRoleInterest: () => Promise<void>;
-
-  // Industry Selection (Step 4)
-  selectedIndustries: number[];
-  toggleIndustry: (industry: number) => void;
-  setSelectedIndustries: (industries: number[]) => void;
-  clearSelectedIndustries: () => void;
-  submitIndustries: () => Promise<void>;
-
-  // Skills Selection (Step 5)
-  selectedSkills: number[];
-  toggleSkill: (skill: number) => void;
-  setSelectedSkills: (skills: number[]) => void;
-  clearSelectedSkills: () => void;
-  submitSkills: () => Promise<void>;
-
-  // Career Goals (Step 6)
-  careerGoals: number[];
-  toggleCareerGoal: (goal: number) => void;
-  setCareerGoals: (goals: number[]) => void;
+  // Career Goals (Step 2)
+  careerGoals: CareerGoalsData;
+  updateCareerGoals: (data: Partial<CareerGoalsData>) => void;
+  setCareerGoals: (data: CareerGoalsData) => void;
   clearCareerGoals: () => void;
   submitCareerGoals: () => Promise<void>;
-  
+
+  // Mentoring Preferences (Step 3)
+  mentoringPreferences: MentoringPreferences;
+  updateMentoringPreferences: (data: Partial<MentoringPreferences>) => void;
+  setMentoringPreferences: (data: MentoringPreferences) => void;
+  clearMentoringPreferences: () => void;
+  submitMentoringPreferences: () => Promise<void>;
+
   // Loading states
   isSubmitting: boolean;
   setIsSubmitting: (isSubmitting: boolean) => void;
-  
+
   // Common
   clearAllData: () => void;
+
+  // Get all onboarding data
+  getAllOnboardingData: () => {
+    professionalBackground: ProfessionalBackground;
+    careerGoals: CareerGoalsData;
+    mentoringPreferences: MentoringPreferences;
+  };
 }
 
 export const useOnboardingStore = create<OnboardingState>()(
   persist(
     (set, get) => ({
-      // Value Selection (Step 1)
-      selectedValues: [],
-      
-      toggleValue: (id) => {
-        set((state) => {
-          if (state.selectedValues.includes(id)) {
-            // Remove the value if already selected
-            return {
-              selectedValues: state.selectedValues.filter((v) => v !== id)
-            };
-          }
-          
-          // Check if we've reached the limit
-          if (state.selectedValues.length >= 3) {
-            return state;
-          }
-          
-          // Add the new value
-          return {
-            selectedValues: [...state.selectedValues, id]
-          };
+      // Professional Background (Step 1)
+      professionalBackground: {
+        currentRole: "",
+        company: "",
+        yearsOfExperience: "",
+        industries: [],
+        skills: [],
+      },
+
+      updateProfessionalBackground: (data) => {
+        set((state) => ({
+          professionalBackground: {
+            ...state.professionalBackground,
+            ...data,
+          },
+        }));
+      },
+
+      setProfessionalBackground: (data) => {
+        set({ professionalBackground: data });
+      },
+
+      clearProfessionalBackground: () => {
+        set({
+          professionalBackground: {
+            currentRole: "",
+            company: "",
+            yearsOfExperience: "",
+            industries: [],
+            skills: [],
+          },
         });
       },
-      
-      setSelectedValues: (values) => {
-        set({ selectedValues: values });
-      },
-      
-      clearSelectedValues: () => {
-        set({ selectedValues: [] });
-      },
-      
-      submitNewRoleValues: async () => {
-        try {
-          set({ isSubmitting: true });
-          const { selectedValues } = get();
-          const authState = useAuthStore.getState();
-          const accessToken = authState.accessToken;
-          
-          if (!accessToken) {
-            throw new Error("Please log in to continue with onboarding");
-          }
-          await submitNewRoleValues(
-            { new_role_values: selectedValues },
-            accessToken
-          );
-        } finally {
-          set({ isSubmitting: false });
-        }
-      },
-      
-      // Job Search Status (Step 2)
-      jobSearchStatus: [],
-      
-      toggleJobSearchStatus: (id) => {
-        set((state) => ({
-          jobSearchStatus: state.jobSearchStatus.includes(id)
-            ? state.jobSearchStatus.filter((v) => v !== id)
-            : [...state.jobSearchStatus, id]
-        }));
-      },
-      
-      setJobSearchStatus: (status) => {
-        set({ jobSearchStatus: status });
-      },
-      
-      clearJobSearchStatus: () => {
-        set({ jobSearchStatus: [] });
-      },
-      
-      submitJobSearchStatus: async () => {
-        try {
-          set({ isSubmitting: true });
-          const { jobSearchStatus } = get();
-          const authState = useAuthStore.getState();
-          const accessToken = authState.accessToken;
-          
-          if (!accessToken) {
-            throw new Error("Please log in to continue with onboarding");
-          }
-          
-          await submitJobSearchStatus(
-            { job_search_status: jobSearchStatus },
-            accessToken
-          );
-        } finally {
-          set({ isSubmitting: false });
-        }
+
+      submitProfessionalBackground: async () => {
+        console.log(
+          "Professional background stored locally:",
+          get().professionalBackground
+        );
+        return Promise.resolve();
       },
 
-      // Role Selection (Step 3)
-      selectedRoles: [],
-      
-      toggleRole: (id) => {
-        set((state) => {
-          if (state.selectedRoles.includes(id)) {
-            return {
-              selectedRoles: state.selectedRoles.filter((v) => v !== id)
-            };
-          }
-          if (state.selectedRoles.length >= 5) {
-            return state;
-          }
-          return {
-            selectedRoles: [...state.selectedRoles, id]
-          };
-        });
-      },
-      
-      setSelectedRoles: (roles) => {
-        set({ selectedRoles: roles });
-      },
-      
-      clearSelectedRoles: () => {
-        set({ selectedRoles: [] });
-      },
-      
-      submitRoleInterest: async () => {
-        try {
-          set({ isSubmitting: true });
-          const { selectedRoles } = get();
-          const authState = useAuthStore.getState();
-          const accessToken = authState.accessToken;
-          
-          if (!accessToken) {
-            throw new Error("Please log in to continue with onboarding");
-          }
-          
-          await submitRoleInterest(
-            { roles_of_interest: selectedRoles },
-            accessToken
-          );
-        } finally {
-          set({ isSubmitting: false });
-        }
-      },
-      
-      // Industry Selection (Step 4)
-      selectedIndustries: [],
-      
-      toggleIndustry: (industry) => {
-        set((state) => ({
-          selectedIndustries: state.selectedIndustries.includes(industry)
-            ? state.selectedIndustries.filter((i) => i !== industry)
-            : [...state.selectedIndustries, industry]
-        }));
-      },
-      
-      setSelectedIndustries: (industries) => {
-        set({ selectedIndustries: industries });
-      },
-      
-      clearSelectedIndustries: () => {
-        set({ selectedIndustries: [] });
-      },
-      
-      submitIndustries: async () => {
-        try {
-          set({ isSubmitting: true });
-          const { selectedIndustries } = get();
-          const authState = useAuthStore.getState();
-          const accessToken = authState.accessToken;
-          
-          if (!accessToken) {
-            throw new Error("Please log in to continue with onboarding");
-          }
-          
-          await submitIndustries(
-            { industries: selectedIndustries },
-            accessToken
-          );
-        } finally {
-          set({ isSubmitting: false });
-        }
+      // Career Goals (Step 2) - Using array of IDs
+      careerGoals: {
+        shortTermGoals: [], // Array of numbers (IDs)
+        longTermGoal: "",
       },
 
-      // Skills Selection (Step 5)
-      selectedSkills: [],
-      
-      toggleSkill: (skill) => {
+      updateCareerGoals: (data) => {
         set((state) => ({
-          selectedSkills: state.selectedSkills.includes(skill)
-            ? state.selectedSkills.filter((s) => s !== skill)
-            : [...state.selectedSkills, skill]
+          careerGoals: {
+            ...state.careerGoals,
+            ...data,
+          },
         }));
-      },
-      
-      setSelectedSkills: (skills) => {
-        set({ selectedSkills: skills });
-      },
-      
-      clearSelectedSkills: () => {
-        set({ selectedSkills: [] });
-      },
-      
-      submitSkills: async () => {
-        try {
-          set({ isSubmitting: true });
-          const { selectedSkills } = get();
-          const authState = useAuthStore.getState();
-          const accessToken = authState.accessToken;
-          
-          if (!accessToken) {
-            throw new Error("Please log in to continue with onboarding");
-          }
-          
-          await submitSkills(
-            { skills: selectedSkills },
-            accessToken
-          );
-        } finally {
-          set({ isSubmitting: false });
-        }
       },
 
-      // Career Goals (Step 6)
-      careerGoals: [],
-      
-      toggleCareerGoal: (goal) => {
-        set((state) => ({
-          careerGoals: state.careerGoals.includes(goal)
-            ? state.careerGoals.filter((g) => g !== goal)
-            : [...state.careerGoals, goal]
-        }));
+      setCareerGoals: (data) => {
+        set({ careerGoals: data });
       },
-      
-      setCareerGoals: (goals) => {
-        set({ careerGoals: goals });
-      },
-      
+
       clearCareerGoals: () => {
-        set({ careerGoals: [] });
+        set({
+          careerGoals: {
+            shortTermGoals: [],
+            longTermGoal: "",
+          },
+        });
       },
-      
+
       submitCareerGoals: async () => {
-        try {
-          set({ isSubmitting: true });
-          const { careerGoals } = get();
-          const authState = useAuthStore.getState();
-          const accessToken = authState.accessToken;
-          
-          if (!accessToken) {
-            throw new Error("Please log in to continue with onboarding");
-          }
-          
-          await submitCareerGoals(
-            { career_goals: careerGoals },
-            accessToken
-          );
-        } finally {
-          set({ isSubmitting: false });
-        }
+        console.log("Career goals stored locally:", get().careerGoals);
+        return Promise.resolve();
       },
-      
+
+      // Mentoring Preferences (Step 3)
+      mentoringPreferences: {
+        frequency: [], // Changed from "" to []
+        language: "",
+        skills: [],
+        industries: [],
+      },
+
+      updateMentoringPreferences: (data) => {
+        set((state) => ({
+          mentoringPreferences: {
+            ...state.mentoringPreferences,
+            ...data,
+          },
+        }));
+      },
+
+      setMentoringPreferences: (data) => {
+        set({ mentoringPreferences: data });
+      },
+
+      clearMentoringPreferences: () => {
+        set({
+          mentoringPreferences: {
+            frequency: [],
+            language: "",
+            skills: [],
+            industries: [],
+          },
+        });
+      },
+
+      submitMentoringPreferences: async () => {
+        console.log(
+          "Mentoring preferences stored locally:",
+          get().mentoringPreferences
+        );
+        return Promise.resolve();
+      },
+
       // Loading states
       isSubmitting: false,
       setIsSubmitting: (isSubmitting) => {
         set({ isSubmitting });
       },
-      
+
       // Common
       clearAllData: () => {
         set({
-          selectedValues: [],
-          jobSearchStatus: [],
-          selectedRoles: [],
-          selectedIndustries: [],
-          selectedSkills: [],
-          careerGoals: [],
+          professionalBackground: {
+            currentRole: "",
+            company: "",
+            yearsOfExperience: "",
+            industries: [],
+            skills: [],
+          },
+          careerGoals: {
+            shortTermGoals: [],
+            longTermGoal: "",
+          },
+          mentoringPreferences: {
+            frequency: [],
+            language: "",
+            skills: [],
+            industries: [],
+          },
           isSubmitting: false,
         });
+      },
+
+      // Get all onboarding data
+      getAllOnboardingData: () => {
+        const state = get();
+        return {
+          professionalBackground: state.professionalBackground,
+          careerGoals: state.careerGoals,
+          mentoringPreferences: state.mentoringPreferences,
+        };
       },
     }),
     {
       name: "onboarding-values",
-      version: 1,
-      migrate: (persistedState: unknown, version: number) => {
-        if (version < 1) {
-          // Clear old data and start fresh
-          return {
-            selectedValues: [],
-            jobSearchStatus: [],
-            selectedRoles: [],
-            selectedIndustries: [],
-            selectedSkills: [],
-            careerGoals: [],
-            isSubmitting: false,
+      version: 3, // Increment version for the frequency change
+      migrate: (persistedState: any, version: number) => {
+        let state = persistedState;
+
+        // Handle migration from version 1 to 2
+        if (version < 2) {
+          state = {
+            ...persistedState,
+            careerGoals: {
+              shortTermGoals: persistedState.careerGoals?.shortTermGoal
+                ? [parseInt(persistedState.careerGoals.shortTermGoal) || 0]
+                : [],
+              longTermGoal: persistedState.careerGoals?.longTermGoal || "",
+            },
           };
         }
-        return persistedState;
+
+        // Handle migration from version 2 to 3 (frequency change)
+        if (version < 3) {
+          state = {
+            ...state,
+            mentoringPreferences: {
+              ...state.mentoringPreferences,
+              frequency: state.mentoringPreferences?.frequency
+                ? [parseInt(state.mentoringPreferences.frequency)].filter(
+                    (id) => !isNaN(id)
+                  )
+                : [],
+            },
+          };
+        }
+
+        console.log("Migrated onboarding state:", state);
+        return state;
       },
     }
   )
 );
+
+// Convenience hooks for individual sections
+export const useProfessionalBackground = () => {
+  const professionalBackground = useOnboardingStore(
+    (state) => state.professionalBackground
+  );
+  const updateProfessionalBackground = useOnboardingStore(
+    (state) => state.updateProfessionalBackground
+  );
+  const setProfessionalBackground = useOnboardingStore(
+    (state) => state.setProfessionalBackground
+  );
+  const clearProfessionalBackground = useOnboardingStore(
+    (state) => state.clearProfessionalBackground
+  );
+  const submitProfessionalBackground = useOnboardingStore(
+    (state) => state.submitProfessionalBackground
+  );
+
+  return {
+    professionalBackground,
+    updateProfessionalBackground,
+    setProfessionalBackground,
+    clearProfessionalBackground,
+    submitProfessionalBackground,
+  };
+};
+
+export const useCareerGoals = () => {
+  const careerGoals = useOnboardingStore((state) => state.careerGoals);
+  const updateCareerGoals = useOnboardingStore(
+    (state) => state.updateCareerGoals
+  );
+  const setCareerGoals = useOnboardingStore((state) => state.setCareerGoals);
+  const clearCareerGoals = useOnboardingStore(
+    (state) => state.clearCareerGoals
+  );
+  const submitCareerGoals = useOnboardingStore(
+    (state) => state.submitCareerGoals
+  );
+
+  return {
+    careerGoals,
+    updateCareerGoals,
+    setCareerGoals,
+    clearCareerGoals,
+    submitCareerGoals,
+  };
+};
+
+export const useMentoringPreferences = () => {
+  const mentoringPreferences = useOnboardingStore(
+    (state) => state.mentoringPreferences
+  );
+  const updateMentoringPreferences = useOnboardingStore(
+    (state) => state.updateMentoringPreferences
+  );
+  const setMentoringPreferences = useOnboardingStore(
+    (state) => state.setMentoringPreferences
+  );
+  const clearMentoringPreferences = useOnboardingStore(
+    (state) => state.clearMentoringPreferences
+  );
+  const submitMentoringPreferences = useOnboardingStore(
+    (state) => state.submitMentoringPreferences
+  );
+
+  return {
+    mentoringPreferences,
+    updateMentoringPreferences,
+    setMentoringPreferences,
+    clearMentoringPreferences,
+    submitMentoringPreferences,
+  };
+};
+
+// Hook for common actions
+export const useOnboardingActions = () => {
+  const clearAllData = useOnboardingStore((state) => state.clearAllData);
+  const getAllOnboardingData = useOnboardingStore(
+    (state) => state.getAllOnboardingData
+  );
+  const setIsSubmitting = useOnboardingStore((state) => state.setIsSubmitting);
+  const isSubmitting = useOnboardingStore((state) => state.isSubmitting);
+
+  return {
+    clearAllData,
+    getAllOnboardingData,
+    setIsSubmitting,
+    isSubmitting,
+  };
+};
+
+// Hook to get entire onboarding state
+export const useOnboarding = () => {
+  const professionalBackground = useOnboardingStore(
+    (state) => state.professionalBackground
+  );
+  const careerGoals = useOnboardingStore((state) => state.careerGoals);
+  const mentoringPreferences = useOnboardingStore(
+    (state) => state.mentoringPreferences
+  );
+  const isSubmitting = useOnboardingStore((state) => state.isSubmitting);
+  const getAllOnboardingData = useOnboardingStore(
+    (state) => state.getAllOnboardingData
+  );
+
+  return {
+    professionalBackground,
+    careerGoals,
+    mentoringPreferences,
+    isSubmitting,
+    getAllOnboardingData,
+  };
+};

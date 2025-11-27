@@ -5,7 +5,11 @@ import React, { useState, useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../ui/button";
-import { useAuthStore } from "../../store/authStore";
+import {
+  useAuthStore,
+  useIsAuthenticated,
+  useUser,
+} from "../../store/authStore";
 import { getUserInitials, getUserDisplayName } from "../../utilities/userUtils";
 import { toast } from "react-hot-toast";
 
@@ -16,9 +20,9 @@ const NavigationBar = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Get user data from auth store
-  const user = useAuthStore((state) => state.user);
+  const user = useUser();
   const logout = useAuthStore((state) => state.logout);
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isAuthenticated = useIsAuthenticated();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -41,6 +45,8 @@ const NavigationBar = () => {
     try {
       await logout();
       toast.success("Logged out successfully");
+      localStorage.removeItem("kocha-auth-storage");
+      localStorage.removeItem("onboarding-values");
       router.push("/login");
     } catch (error) {
       console.error("Logout error:", error);
@@ -61,7 +67,7 @@ const NavigationBar = () => {
             className="object-cover"
           />
         </div>
-        {pathname !== "/onboarding" && isAuthenticated && user && (
+        {!pathname.includes("/onboarding") && isAuthenticated && user && (
           <div className="flex items-center relative" ref={dropdownRef}>
             <div className="text-[#1F2C99] flex items-center justify-center text-[14px] font-semibold w-[40px] h-[40px] rounded-full bg-[#DBEAFF] border-2 border-[#1F2C99]/20">
               {getUserInitials(user)}

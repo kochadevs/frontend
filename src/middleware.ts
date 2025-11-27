@@ -1,36 +1,30 @@
+// middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { middlewareCookieUtils } from "./utilities/cookies";
-import { getRedirectPath, requiresOnboarding, hasCompletedOnboarding } from "./utilities/redirectUtils";
 
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
+
+  const publicRoutes = [
+    "/login",
+    "/signup",
+    "/forgot-password",
+    "/reset-password",
+  ];
+  const isPublicRoute = publicRoutes.some((route) =>
+    pathname.startsWith(route)
+  );
+
+  // Check for auth token in cookies
   const isAuthenticated = middlewareCookieUtils.isAuthenticated(request);
 
-  const publicRoutes = ["/login", "/signup", "/forgot-password", "/reset-password"];
-  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
-
-  // Helper function to get user data
-  const getUserData = () => {
-    try {
-      const authData = middlewareCookieUtils.getAuthData(request);
-      if (authData.userData) {
-        const user = JSON.parse(authData.userData);
-        return user;
-      }
-    } catch (error) {
-      console.error("Error parsing user data in middleware:", error);
-    }
-    return null;
-  };
-
+  // Handle public routes for authenticated users
   if (isPublicRoute && isAuthenticated) {
-    const user = getUserData();
-    // Redirect authenticated users to appropriate page using utility function
-    const redirectUrl = getRedirectPath(user, "/home");
-    return NextResponse.redirect(new URL(redirectUrl, request.url));
+    return NextResponse.redirect(new URL("/home", request.url));
   }
 
+  // Handle protected routes for unauthenticated users
   if (!isPublicRoute && !isAuthenticated) {
     const loginUrl = new URL("/login", request.url);
     if (pathname !== "/") {
@@ -39,26 +33,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Handle authenticated users accessing protected routes
-  if (!isPublicRoute && isAuthenticated) {
-    const user = getUserData();
-    
-    // If user needs to complete onboarding and is trying to access pages other than onboarding
-    if (requiresOnboarding(user) && !pathname.startsWith("/onboarding")) {
-      return NextResponse.redirect(new URL("/onboarding", request.url));
-    }
-    
-    // If user has completed onboarding and is trying to access onboarding, redirect to home
-    if (hasCompletedOnboarding(user) && pathname.startsWith("/onboarding")) {
-      return NextResponse.redirect(new URL("/home", request.url));
-    }
-  }
-
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|asset).*)",
-  ],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|assets).*)"],
 };

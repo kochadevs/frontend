@@ -13,9 +13,12 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { createGroupSchema, CreateGroupFormData } from "@/zodSchema/groupSchema";
+import {
+  createGroupSchema,
+  CreateGroupFormData,
+} from "@/zodSchema/groupSchema";
 import { createGroup } from "@/utilities/handlers/groupHandler";
-import { useAuthStore, useAuthActions } from "@/store/authStore";
+import { useAuthActions, useAccessToken, useIsAuthenticated } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 
 interface CreateGroupModalProps {
@@ -29,27 +32,27 @@ export default function CreateGroupModal({
   onClose,
   onGroupCreated,
 }: Readonly<CreateGroupModalProps>) {
-  const accessToken = useAuthStore((state) => state.accessToken);
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const accessToken = useAccessToken();
+  const isAuthenticated = useIsAuthenticated();
   const { initializeAuth } = useAuthActions();
-  
+
   // Initialize auth from cookies if not already authenticated
   useEffect(() => {
     if (!isAuthenticated || !accessToken) {
       initializeAuth();
     }
   }, [isAuthenticated, accessToken, initializeAuth]);
-  
+
   const [formData, setFormData] = useState<CreateGroupFormData>({
     name: "",
     description: "",
     is_public: true,
   });
-  
+
   const [errors, setErrors] = useState<
     Partial<Record<keyof CreateGroupFormData, string>>
   >({});
-  
+
   const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (
@@ -105,7 +108,7 @@ export default function CreateGroupModal({
         const { accessToken: cookieToken } = tokenUtils.getTokens();
         token = cookieToken;
       }
-      
+
       if (!token) {
         throw new Error("Please log in to create a group");
       }
@@ -126,7 +129,8 @@ export default function CreateGroupModal({
     } catch (error) {
       if (error instanceof z.ZodError) {
         // Handle validation errors
-        const newErrors: Partial<Record<keyof CreateGroupFormData, string>> = {};
+        const newErrors: Partial<Record<keyof CreateGroupFormData, string>> =
+          {};
         error.issues.forEach((err: z.ZodIssue) => {
           if (err.path[0]) {
             newErrors[err.path[0] as keyof CreateGroupFormData] = err.message;
@@ -154,7 +158,7 @@ export default function CreateGroupModal({
             Create a new group to connect with people who share your interests.
           </DialogDescription>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             {/* Group Name Field */}
@@ -207,7 +211,9 @@ export default function CreateGroupModal({
                 placeholder="Describe what your group is about..."
               />
               {errors.description && (
-                <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.description}
+                </p>
               )}
             </div>
 
@@ -224,14 +230,26 @@ export default function CreateGroupModal({
                 </p>
               </div>
               <div className="flex items-center space-x-3">
-                <span className={`text-sm ${!formData.is_public ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
+                <span
+                  className={`text-sm ${
+                    !formData.is_public
+                      ? "text-gray-900 font-medium"
+                      : "text-gray-500"
+                  }`}
+                >
                   Private
                 </span>
                 <Switch
                   checked={formData.is_public}
                   onCheckedChange={handleSwitchChange}
                 />
-                <span className={`text-sm ${formData.is_public ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
+                <span
+                  className={`text-sm ${
+                    formData.is_public
+                      ? "text-gray-900 font-medium"
+                      : "text-gray-500"
+                  }`}
+                >
                   Public
                 </span>
               </div>

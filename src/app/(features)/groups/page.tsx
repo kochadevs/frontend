@@ -8,13 +8,13 @@ import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft, Plus, Search } from "lucide-react";
-import { useAuthStore, useAuthActions } from "@/store/authStore";
+import {  useAccessToken, useAuthActions, useIsAuthenticated } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import CreateGroupModal from "@/components/modals/CreateGroupModal";
 
 export default function AllGroupsPage() {
-  const accessToken = useAuthStore((state) => state.accessToken);
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const accessToken = useAccessToken();
+  const isAuthenticated = useIsAuthenticated();
   const { initializeAuth } = useAuthActions();
 
   const [groups, setGroups] = useState<Group[]>([]);

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import MemberCard from "./MemberCard";
 import { GroupMember } from "@/interface/groupMembers";
 import { fetchGroupMembers } from "@/utilities/handlers/groupHandler";
-import { useAuthStore } from "@/store/authStore";
+import { useAccessToken } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import { toast } from "react-hot-toast";
 
@@ -17,7 +17,7 @@ export default function MembersView({ groupId }: Readonly<MembersViewProps>) {
   const [filteredMembers, setFilteredMembers] = useState<GroupMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const accessToken = useAuthStore((state) => state.accessToken);
+  const accessToken = useAccessToken();
 
   useEffect(() => {
     const loadMembers = async () => {

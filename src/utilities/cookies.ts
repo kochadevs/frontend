@@ -1,126 +1,80 @@
-import { NextRequest } from "next/server";
+// utilities/cookies.ts
 
-// Cookie names
+// Add this constant at the top of your file
 export const COOKIE_NAMES = {
-  ACCESS_TOKEN: "access_token",
-  REFRESH_TOKEN: "refresh_token",
-  USER_DATA: "user_data",
+  ACCESS_TOKEN: "access-token",
+  REFRESH_TOKEN: "refresh-token",
+  USER_DATA: "user-data",
 } as const;
 
-// Client-side cookie utilities
-export const cookieUtils = {
-  // Set a cookie
-  set: (name: string, value: string, days: number = 30) => {
-    if (typeof window !== "undefined") {
-      const expires = new Date();
-      expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
-      document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;secure;samesite=strict`;
-    }
-  },
-
-  // Get a cookie
-  get: (name: string): string | null => {
-    if (typeof window !== "undefined") {
-      const nameEQ = name + "=";
-      const ca = document.cookie.split(";");
-      for (let i = 0; i < ca.length; i++) {
-        let c = ca[i];
-        while (c.charAt(0) === " ") c = c.substring(1, c.length);
-        if (c.indexOf(nameEQ) === 0)
-          return c.substring(nameEQ.length, c.length);
-      }
-    }
-    return null;
-  },
-
-  // Remove a cookie
-  remove: (name: string) => {
-    if (typeof window !== "undefined") {
-      document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
-    }
-  },
-
-  // Clear all auth cookies
-  clearAuth: () => {
-    cookieUtils.remove(COOKIE_NAMES.ACCESS_TOKEN);
-    cookieUtils.remove(COOKIE_NAMES.REFRESH_TOKEN);
-    cookieUtils.remove(COOKIE_NAMES.USER_DATA);
-  },
-};
-
-
-// Middleware-specific cookie utilities (for NextRequest)
-export const middlewareCookieUtils = {
-  // Get cookie from middleware request
-  get: (request: NextRequest, name: string): string | null => {
-    try {
-      const cookie = request.cookies.get(name);
-      return cookie?.value || null;
-    } catch (error) {
-      console.error("Error reading middleware cookie:", error);
-      return null;
-    }
-  },
-
-  // Get all auth cookies from middleware request
-  getAuthData: (request: NextRequest) => {
-    return {
-      accessToken: middlewareCookieUtils.get(
-        request,
-        COOKIE_NAMES.ACCESS_TOKEN
-      ),
-      refreshToken: middlewareCookieUtils.get(
-        request,
-        COOKIE_NAMES.REFRESH_TOKEN
-      ),
-      userData: middlewareCookieUtils.get(request, COOKIE_NAMES.USER_DATA),
-    };
-  },
-
-  // Check if user is authenticated from request
-  isAuthenticated: (request: NextRequest): boolean => {
-    const accessToken = middlewareCookieUtils.get(
-      request,
-      COOKIE_NAMES.ACCESS_TOKEN
-    );
-    const refreshToken = middlewareCookieUtils.get(
-      request,
-      COOKIE_NAMES.REFRESH_TOKEN
-    );
-    return !!(accessToken && refreshToken);
-  },
-};
-
-// Token utilities
 export const tokenUtils = {
-  // Store auth tokens
-  storeTokens: (
-    accessToken: string,
-    refreshToken: string,
-    userData: string
-  ) => {
-    cookieUtils.set(COOKIE_NAMES.ACCESS_TOKEN, accessToken, 30); // 30 days
-    cookieUtils.set(COOKIE_NAMES.REFRESH_TOKEN, refreshToken, 60); // 60 days
-    cookieUtils.set(COOKIE_NAMES.USER_DATA, userData, 30); // 30 days
+  // Store tokens in cookies
+  storeTokens(accessToken: string, refreshToken: string) {
+    try {
+      // Set access token cookie (7 days)
+      document.cookie = `${
+        COOKIE_NAMES.ACCESS_TOKEN
+      }=${accessToken}; path=/; max-age=${
+        60 * 60 * 24 * 7
+      }; secure; samesite=lax`;
+
+      // Set refresh token cookie (7 days)
+      document.cookie = `${
+        COOKIE_NAMES.REFRESH_TOKEN
+      }=${refreshToken}; path=/; max-age=${
+        60 * 60 * 24 * 7
+      }; secure; samesite=lax`;
+    } catch (error) {
+      console.error("Error storing tokens in cookies:", error);
+    }
   },
 
-  // Get stored tokens
-  getTokens: () => {
-    return {
-      accessToken: cookieUtils.get(COOKIE_NAMES.ACCESS_TOKEN),
-      refreshToken: cookieUtils.get(COOKIE_NAMES.REFRESH_TOKEN),
-      userData: cookieUtils.get(COOKIE_NAMES.USER_DATA),
-    };
+  // Get tokens from cookies
+  getTokens() {
+    const cookies = document.cookie.split(";");
+    let accessToken = null;
+    let refreshToken = null;
+
+    cookies.forEach((cookie) => {
+      const [name, value] = cookie.trim().split("=");
+      if (name === COOKIE_NAMES.ACCESS_TOKEN) accessToken = value;
+      if (name === COOKIE_NAMES.REFRESH_TOKEN) refreshToken = value;
+    });
+
+    return { accessToken, refreshToken };
   },
 
-  // Clear stored tokens
-  clearTokens: () => {
-    cookieUtils.clearAuth();
+  // Clear tokens from cookies
+  clearTokens() {
+    document.cookie = `${COOKIE_NAMES.ACCESS_TOKEN}=; path=/; max-age=0`;
+    document.cookie = `${COOKIE_NAMES.REFRESH_TOKEN}=; path=/; max-age=0`;
   },
 
-  // Check if user is authenticated (has valid access token)
-  isAuthenticated: (): boolean => {
-    const accessToken = cookieUtils.get(COOKIE_NAMES.ACCESS_TOKEN);
-    return !!accessToken;
+  // Check if user is authenticated (for middleware)
+  isAuthenticated() {
+    return !!this.getTokens().accessToken;
+  },
+};
+
+// For middleware usage
+export const middlewareCookieUtils = {
+  isAuthenticated(request: Request) {
+    const cookieHeader = request.headers.get("cookie");
+    return cookieHeader?.includes(`${COOKIE_NAMES.ACCESS_TOKEN}=`) || false;
+  },
+
+  getTokens(request: Request) {
+    const cookieHeader = request.headers.get("cookie") || "";
+    const cookies = cookieHeader.split(";");
+    let accessToken = null;
+    let refreshToken = null;
+
+    cookies.forEach((cookie) => {
+      const [name, value] = cookie.trim().split("=");
+      if (name === COOKIE_NAMES.ACCESS_TOKEN) accessToken = value;
+      if (name === COOKIE_NAMES.REFRESH_TOKEN) refreshToken = value;
+    });
+
+    return { accessToken, refreshToken };
   },
 };
