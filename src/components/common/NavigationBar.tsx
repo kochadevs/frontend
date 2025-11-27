@@ -45,6 +45,8 @@ const NavigationBar = () => {
     try {
       await logout();
       toast.success("Logged out successfully");
+      localStorage.removeItem("kocha-auth-storage");
+      localStorage.removeItem("onboarding-values");
       router.push("/login");
     } catch (error) {
       console.error("Logout error:", error);
