@@ -1,6 +1,5 @@
 // utilities/cookies.ts
 
-// Add this constant at the top of your file
 export const COOKIE_NAMES = {
   ACCESS_TOKEN: "access-token",
   REFRESH_TOKEN: "refresh-token",
