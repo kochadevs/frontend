@@ -81,7 +81,6 @@ export const useAuthStore = create<AuthStore>()(
               currentState.authData.access_token,
               currentState.authData.refresh_token
             );
-            console.log("Restored tokens to cookies");
           }
         }
 

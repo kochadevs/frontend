@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useOnboardingStore } from "@/store/onboardingStore";
-import { useAccessToken, useUser } from "@/store/authStore";
+import { useAccessToken, useAuthStore, useUser } from "@/store/authStore";
 import { OnboardingOption } from "@/interface/onboarding";
 import {
   fetchIndustries,
@@ -18,6 +18,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Edit, ArrowLeft, CheckCircle2, FileText } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { handleErrorMessage } from "@/utilities/handleErrorMessage";
 
 interface ReviewProps {
   handleNext: () => void;
@@ -25,11 +26,7 @@ interface ReviewProps {
   handleEditStep?: (stepNumber: number) => void;
 }
 
-const Review: React.FC<ReviewProps> = ({
-  handleNext,
-  handlePrevious,
-  handleEditStep,
-}) => {
+const Review: React.FC<ReviewProps> = ({ handlePrevious, handleEditStep }) => {
   const { getAllOnboardingData } = useOnboardingStore();
   const user = useUser();
   const accessToken = useAccessToken();
@@ -47,7 +44,8 @@ const Review: React.FC<ReviewProps> = ({
 
   const userType = user?.user_type || "regular";
   const onboardingData = getAllOnboardingData();
-  const route = useRouter();
+  const { updateUser } = useAuthStore();
+  const router = useRouter();
 
   useEffect(() => {
     const loadData = async () => {
@@ -133,22 +131,23 @@ const Review: React.FC<ReviewProps> = ({
 
     try {
       setIsSubmitting(true);
-
-      // Call the submission function with all required parameters
-      await submitOnboardingInformation(
+      const result = await submitOnboardingInformation(
         onboardingData,
         true, // code_of_conduct_accepted (since they checked the box)
         accessToken
       );
 
+      // Update the user profile in the auth store with the returned data
+      if (result.userProfile) {
+        updateUser(result.userProfile);
+      }
+
       toast.success("Profile completed successfully!");
-      route.push("/onboarding/post");
+      router.push("/onboarding/post");
     } catch (error) {
-      console.error("Failed to submit onboarding data:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to complete profile. Please try again."
+      handleErrorMessage(
+        error,
+        "Failed to complete profile. Please try again."
       );
     } finally {
       setIsSubmitting(false);

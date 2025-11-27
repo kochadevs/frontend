@@ -1,12 +1,17 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React, { useState, useEffect } from "react";
-import { useUser } from "@/store/authStore";
+import { useUser, useAccessToken } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, Sparkles, Edit3 } from "lucide-react";
+import { CheckCircle2, Edit3, Sparkles } from "lucide-react";
 import { toast } from "react-hot-toast";
 import NavigationBar from "@/components/common/NavigationBar";
+import Loader from "@/components/common/Loader";
+import { OnboardingWelcomePost } from "@/utilities/handlers/onboardingHandler";
+import { handleErrorMessage } from "@/utilities/handleErrorMessage";
+import { useRouter } from "next/navigation";
 
 interface OnboardingPostProps {
   handleNext: () => void;
@@ -14,10 +19,11 @@ interface OnboardingPostProps {
 }
 
 export default function OnboardingPost({
-  handleNext,
   handlePrevious,
 }: Readonly<OnboardingPostProps>) {
   const user = useUser();
+  const router = useRouter();
+  const accessToken = useAccessToken();
   const [welcomeMessage, setWelcomeMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCustomizing, setIsCustomizing] = useState(false);
@@ -75,14 +81,19 @@ export default function OnboardingPost({
       return;
     }
 
+    if (!accessToken) {
+      toast.error("Authentication required. Please log in again.");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
 
+      await OnboardingWelcomePost({ content: welcomeMessage }, accessToken);
       toast.success("Welcome post published successfully! 🎉");
-      handleNext();
-    } catch (error) {
-      console.error("Error posting welcome message:", error);
-      toast.error("Failed to post welcome message. Please try again.");
+      router.push("/home");
+    } catch (error: any) {
+      handleErrorMessage(error, "Failed to create welcome post");
     } finally {
       setIsSubmitting(false);
     }
@@ -94,18 +105,8 @@ export default function OnboardingPost({
     toast.success("New welcome message generated!");
   };
 
-  const handleSkip = () => {
-    toast.success("You can always post an introduction later!");
-    handleNext();
-  };
-
   if (!user) {
-    return (
-      <div className="max-w-2xl mx-auto px-4 text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#334AFF] mx-auto"></div>
-        <p className="mt-4 text-muted-foreground">Loading your profile...</p>
-      </div>
-    );
+    return <Loader text="Loading your profile..." />;
   }
 
   return (
@@ -116,6 +117,9 @@ export default function OnboardingPost({
       <div className="max-w-2xl mx-auto px-4 space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
+          <div className="flex justify-center">
+            <Sparkles className="h-12 w-12 text-[#334AFF]" />
+          </div>
           <h1 className="text-3xl font-bold tracking-tight">
             Welcome to Kocha! 🎉
           </h1>
@@ -137,6 +141,7 @@ export default function OnboardingPost({
                 size="sm"
                 onClick={handleRegenerateMessage}
                 className="h-8"
+                disabled={isSubmitting}
               >
                 Regenerate
               </Button>
@@ -155,6 +160,7 @@ export default function OnboardingPost({
               className="min-h-[150px] resize-none"
               onFocus={() => setIsCustomizing(true)}
               onBlur={() => setIsCustomizing(false)}
+              disabled={isSubmitting}
             />
 
             <div className="flex items-center justify-between text-sm text-muted-foreground">
@@ -175,6 +181,7 @@ export default function OnboardingPost({
               variant="outline"
               onClick={handlePrevious}
               className="h-12 gap-2 w-[120px]"
+              disabled={isSubmitting}
             >
               Back
             </Button>
@@ -182,20 +189,15 @@ export default function OnboardingPost({
 
           <div className="flex gap-4 ml-auto">
             <Button
-              variant="outline"
-              onClick={handleSkip}
-              className="h-12 gap-2 w-[120px]"
-            >
-              Skip
-            </Button>
-
-            <Button
               onClick={handlePostToCommunity}
               disabled={!welcomeMessage.trim() || isSubmitting}
               className="w-[180px] bg-[#334AFF] hover:bg-[#251F99] h-12 gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
-                "Posting..."
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Posting...
+                </div>
               ) : (
                 <>
                   <CheckCircle2 className="h-4 w-4" />
@@ -223,6 +225,18 @@ export default function OnboardingPost({
             </ul>
           </CardContent>
         </Card>
+
+        {/* Loading State Overlay */}
+        {isSubmitting && (
+          <div className="fixed inset-0 bg-[#0000006b] bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg">
+              <div className="flex items-center gap-3">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#334AFF]"></div>
+                <span>Posting your welcome message...</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

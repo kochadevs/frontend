@@ -6,6 +6,10 @@ import {
   MentoringFrequency,
 } from "@/interface/onboarding";
 import axios from "axios";
+import { fetchUserProfile } from "./authHandler";
+import { handleErrorMessage } from "../handleErrorMessage";
+import { Post } from "@/interface/postCard";
+import { CreatePostPayload } from "@/interface/posts";
 
 // Helper function to get base URL
 const getBaseURL = () => {
@@ -94,9 +98,10 @@ export const submitOnboardingInformation = async (
   onboardingData: any,
   code_of_conduct_accepted: boolean,
   accessToken: string
-): Promise<void> => {
+): Promise<{ onboardingResponse: any; userProfile: any }> => {
   try {
     const baseURL = getBaseURL();
+
     // Construct the request body according to the API specification
     const requestBody = {
       professional_background: {
@@ -113,8 +118,8 @@ export const submitOnboardingInformation = async (
         long_term_goals: onboardingData.careerGoals.longTermGoal,
       },
       mentoring_preferences: {
-        mentoring_frequency_ids: onboardingData.mentoringPreferences.frequency, // Now directly using the array
-        mentoring_format_ids: [], // You might need to add this to your store if needed
+        mentoring_frequency_ids: onboardingData.mentoringPreferences.frequency,
+        mentoring_format_ids: [],
         preferred_skill_ids: onboardingData.mentoringPreferences.skills,
         preferred_industry_ids: onboardingData.mentoringPreferences.industries,
       },
@@ -123,7 +128,8 @@ export const submitOnboardingInformation = async (
 
     console.log("Submitting onboarding data:", requestBody);
 
-    const response = await axios.post(
+    // Submit onboarding data
+    const onboardingResponse = await axios.post(
       `${baseURL}/onbarding/complete`,
       requestBody,
       {
@@ -131,12 +137,47 @@ export const submitOnboardingInformation = async (
         timeout: 10000,
       }
     );
-    return response.data;
+
+    // Fetch updated user profile
+    const userProfile = await fetchUserProfile(accessToken);
+
+    return {
+      onboardingResponse: onboardingResponse.data,
+      userProfile,
+    };
   } catch (error: any) {
-    console.error("Error submitting professional background:", error);
     throw new Error(
       error.response?.data?.message ||
         "Failed to submit professional background"
     );
+  }
+};
+
+export const OnboardingWelcomePost = async (
+  content: CreatePostPayload,
+  accessToken: string
+): Promise<Post | undefined> => {
+  try {
+    const baseURL = getBaseURL();
+
+    if (!accessToken) {
+      throw new Error("Authentication token is required");
+    }
+
+    if (!content.content?.trim()) {
+      throw new Error("Post content cannot be empty");
+    }
+
+    const response = await axios.post(`${baseURL}/feed/posts`, content, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      timeout: 10000,
+    });
+
+    return response.data as Post;
+  } catch (error: any) {
+    throw error;
   }
 };

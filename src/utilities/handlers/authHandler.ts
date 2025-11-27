@@ -59,8 +59,7 @@ export const handleLogin = async (
     const response = await axios.post(`${baseURL}/users/login`, payloadData, {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
-      },
-      timeout: 10000,
+      }
     });
 
     const { data } = response;
@@ -88,8 +87,7 @@ export const handleLogout = async (accessToken: string): Promise<void> => {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
-        },
-        timeout: 10000,
+        }
       }
     );
   } catch (error: any) {
