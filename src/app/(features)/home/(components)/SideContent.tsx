@@ -3,15 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getMentors } from "@/utilities/handlers/mentorHandler";
-import { useAuthStore } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import { toast } from "react-hot-toast";
 import { Mentor, MentorSkill } from "@/interface/mentors";
+import { useAccessToken } from "@/store/authStore";
 
 export default function SideContent() {
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const accessToken = useAuthStore((state) => state.accessToken);
+  const accessToken = useAccessToken();
 
   const loadMentors = useCallback(async () => {
     try {

@@ -4,8 +4,8 @@ import CareerGoals from "./components/CareerGoals";
 import NavigationBar from "@/components/common/NavigationBar";
 import ProfessionalBackground from "./components/ProfessionalBackground";
 import MentoringPreferences from "./components/MentoringPreferences";
-import Review from "./components/Review"; // Import the new Review component
-import { useAuthStore, useUser } from "@/store/authStore";
+import Review from "./components/Review";
+import { useUser } from "@/store/authStore";
 
 interface StepConfig {
   component: React.ComponentType<StepProps>;
@@ -17,6 +17,9 @@ interface StepProps {
   handlePrevious: () => void;
   isLastStep?: boolean;
   isFirstStep?: boolean;
+  currentStep?: number; // Add these optional props
+  totalSteps?: number;
+  handleEditStep?: (stepNumber: number) => void; // Add this for Review component
 }
 
 const Onboarding = () => {
@@ -32,7 +35,7 @@ const Onboarding = () => {
 
     switch (userType) {
       case "mentee":
-        config.totalSteps = 4; // Increased from 3 to 4
+        config.totalSteps = 4;
         config.stepComponents = [
           {
             component: ProfessionalBackground,
@@ -40,29 +43,29 @@ const Onboarding = () => {
           },
           { component: CareerGoals, title: "Career Goals" },
           { component: MentoringPreferences, title: "Mentor Preferences" },
-          { component: Review, title: "Review Information" }, // Added Review as last step
+          { component: Review, title: "Review Information" },
         ];
         break;
       case "mentor":
-        config.totalSteps = 3; // Increased from 2 to 3
+        config.totalSteps = 3;
         config.stepComponents = [
           {
             component: ProfessionalBackground,
             title: "Professional Background",
           },
           { component: MentoringPreferences, title: "Mentoring Preferences" },
-          { component: Review, title: "Review Information" }, // Added Review as last step
+          { component: Review, title: "Review Information" },
         ];
         break;
       case "regular":
       default:
-        config.totalSteps = 2; // Increased from 1 to 2
+        config.totalSteps = 2;
         config.stepComponents = [
           {
             component: ProfessionalBackground,
             title: "Professional Background",
           },
-          { component: Review, title: "Review Information" }, // Added Review as last step
+          { component: Review, title: "Review Information" },
         ];
         break;
     }
@@ -78,7 +81,6 @@ const Onboarding = () => {
     setStep((prev) => Math.max(prev - 1, 1));
   };
 
-  // Function to handle going back to a specific step for editing
   const handleEditStep = (stepNumber: number) => {
     setStep(stepNumber);
   };
@@ -119,8 +121,7 @@ const Onboarding = () => {
             isFirstStep={step === 1}
             currentStep={step}
             totalSteps={totalSteps}
-            // Pass edit function only to Review component
-            {...(step === totalSteps && { handleEditStep })}
+            handleEditStep={step === totalSteps ? handleEditStep : undefined}
           />
         )}
       </main>

@@ -12,9 +12,9 @@ import {
   fetchGroupMembers,
   fetchGroupDetails,
 } from "@/utilities/handlers/groupHandler";
-import { useAuthStore } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import { toast } from "react-hot-toast";
+import { useAccessToken } from "@/store/authStore";
 
 export default function Group() {
   const params = useParams();
@@ -24,7 +24,7 @@ export default function Group() {
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [groupDetails, setGroupDetails] = useState<Group | null>(null);
   const [isLoadingGroup, setIsLoadingGroup] = useState(true);
-  const accessToken = useAuthStore((state) => state.accessToken);
+  const accessToken = useAccessToken();
 
   useEffect(() => {
     const loadGroupData = async () => {

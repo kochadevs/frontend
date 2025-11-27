@@ -1,15 +1,27 @@
 // utilities/cookies.ts
+
+// Add this constant at the top of your file
+export const COOKIE_NAMES = {
+  ACCESS_TOKEN: "access-token",
+  REFRESH_TOKEN: "refresh-token",
+  USER_DATA: "user-data",
+} as const;
+
 export const tokenUtils = {
   // Store tokens in cookies
   storeTokens(accessToken: string, refreshToken: string) {
     try {
       // Set access token cookie (7 days)
-      document.cookie = `access-token=${accessToken}; path=/; max-age=${
+      document.cookie = `${
+        COOKIE_NAMES.ACCESS_TOKEN
+      }=${accessToken}; path=/; max-age=${
         60 * 60 * 24 * 7
       }; secure; samesite=lax`;
 
       // Set refresh token cookie (7 days)
-      document.cookie = `refresh-token=${refreshToken}; path=/; max-age=${
+      document.cookie = `${
+        COOKIE_NAMES.REFRESH_TOKEN
+      }=${refreshToken}; path=/; max-age=${
         60 * 60 * 24 * 7
       }; secure; samesite=lax`;
     } catch (error) {
@@ -25,8 +37,8 @@ export const tokenUtils = {
 
     cookies.forEach((cookie) => {
       const [name, value] = cookie.trim().split("=");
-      if (name === "access-token") accessToken = value;
-      if (name === "refresh-token") refreshToken = value;
+      if (name === COOKIE_NAMES.ACCESS_TOKEN) accessToken = value;
+      if (name === COOKIE_NAMES.REFRESH_TOKEN) refreshToken = value;
     });
 
     return { accessToken, refreshToken };
@@ -34,8 +46,8 @@ export const tokenUtils = {
 
   // Clear tokens from cookies
   clearTokens() {
-    document.cookie = "access-token=; path=/; max-age=0";
-    document.cookie = "refresh-token=; path=/; max-age=0";
+    document.cookie = `${COOKIE_NAMES.ACCESS_TOKEN}=; path=/; max-age=0`;
+    document.cookie = `${COOKIE_NAMES.REFRESH_TOKEN}=; path=/; max-age=0`;
   },
 
   // Check if user is authenticated (for middleware)
@@ -48,7 +60,7 @@ export const tokenUtils = {
 export const middlewareCookieUtils = {
   isAuthenticated(request: Request) {
     const cookieHeader = request.headers.get("cookie");
-    return cookieHeader?.includes("access-token=") || false;
+    return cookieHeader?.includes(`${COOKIE_NAMES.ACCESS_TOKEN}=`) || false;
   },
 
   getTokens(request: Request) {
@@ -59,8 +71,8 @@ export const middlewareCookieUtils = {
 
     cookies.forEach((cookie) => {
       const [name, value] = cookie.trim().split("=");
-      if (name === "access-token") accessToken = value;
-      if (name === "refresh-token") refreshToken = value;
+      if (name === COOKIE_NAMES.ACCESS_TOKEN) accessToken = value;
+      if (name === COOKIE_NAMES.REFRESH_TOKEN) refreshToken = value;
     });
 
     return { accessToken, refreshToken };

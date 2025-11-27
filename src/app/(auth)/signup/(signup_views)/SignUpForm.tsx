@@ -10,7 +10,6 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useRef } from "react";
-import { z } from "zod";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { handleSignup } from "@/utilities/handlers/authHandler";

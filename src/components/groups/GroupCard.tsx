@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Group } from "@/interface/groups";
 import { joinGroup } from "@/utilities/handlers/groupHandler";
-import { useAuthStore } from "@/store/authStore";
+import { useAccessToken } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import { toast } from "react-hot-toast";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -20,7 +20,7 @@ export default function GroupCard({
   group,
   onJoinSuccess,
 }: Readonly<GroupCardProps>) {
-  const accessToken = useAuthStore((state) => state.accessToken);
+  const accessToken = useAccessToken();
   const [isJoining, setIsJoining] = useState(false);
 
   const handleJoinGroup = async () => {

@@ -7,7 +7,6 @@ import {
 } from "@/interface/onboarding";
 import axios from "axios";
 import { fetchUserProfile } from "./authHandler";
-import { handleErrorMessage } from "../handleErrorMessage";
 import { Post } from "@/interface/postCard";
 import { CreatePostPayload } from "@/interface/posts";
 

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -329,7 +330,7 @@ export default function Messaging() {
       // Use mock data as fallback
       setConversations(mockConversations);
     }
-  }, [accessToken, user?.id]);
+  }, [accessToken, user?.id, mockConversations]);
 
   const handleRoomCreated = useCallback(
     (room: ChatRoom) => {
@@ -491,7 +492,7 @@ export default function Messaging() {
         }
       }
     }
-  }, [selectedConversation, loadRoomMessages]);
+  }, [selectedConversation, loadRoomMessages, mockMessages]);
 
   useEffect(() => {
     loadRooms();
