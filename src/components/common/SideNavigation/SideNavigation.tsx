@@ -6,6 +6,7 @@ import {
   // Briefcase,
   PackagePlus,
   Users,
+  User,
   MessagesSquare,
   Calendar,
 } from "lucide-react";
@@ -28,6 +29,7 @@ const SideNavigationBar = () => {
     { icon: PackagePlus, label: "Mentor Packages", href: "/mentor-packages" },
     { icon: Calendar, label: "Bookings", href: "/bookings" },
     { icon: MessagesSquare, label: "Message", href: "/message" },
+    { icon: User, label: "Profile", href: "/profile" },
   ];
 
   // Add Mentor Match only for mentees (non-mentors)

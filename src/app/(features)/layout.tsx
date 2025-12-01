@@ -11,7 +11,7 @@ export default function PagesLayout({
       <NavigationBar />
       <div className="flex items-start">
         <SideNavigation />
-        <div className="module-container  flex-1 bg-[#F9FAFB] h-screen overflow-y-scroll pb-[5rem]">
+        <div className="module-container overflow-x-hidden flex-1 bg-[#F9FAFB] h-screen overflow-y-scroll pb-[5rem]">
           {children}
         </div>
       </div>
