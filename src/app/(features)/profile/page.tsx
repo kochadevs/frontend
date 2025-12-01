@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import InformationCompletionBanner from "@/components/common/InformationCompletionBanner";
 import { useState } from "react";
+import AnnualTargetView from "./(views)/AnnualTarget";
 
 export default function ProfileDetails() {
   const [activeTab, setActiveTab] = useState("profile");
@@ -91,13 +92,7 @@ export default function ProfileDetails() {
 
         {activeTab === "annualTarget" && (
           <div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">
-              Annual Target Progress
-            </h2>
-            <p className="text-gray-600">
-              Your annual target information will appear here.
-            </p>
-            {/* Add your annual target form/content here */}
+            <AnnualTargetView/>
           </div>
         )}
       </div>
