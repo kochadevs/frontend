@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import InformationCompletionBanner from "@/components/common/InformationCompletionBanner";
 import { useState } from "react";
 import AnnualTargetView from "./(views)/AnnualTarget";
+import ProfileView from "./(views)/ProfileView";
 
 export default function ProfileDetails() {
   const [activeTab, setActiveTab] = useState("profile");
@@ -78,21 +79,11 @@ export default function ProfileDetails() {
 
       {/* Tab Content */}
       <div className="container mx-auto p-6">
-        {activeTab === "profile" && (
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">
-              Profile Information
-            </h2>
-            <p className="text-gray-600">
-              Your profile details will appear here.
-            </p>
-            {/* Add your profile form/content here */}
-          </div>
-        )}
+        {activeTab === "profile" && <ProfileView />}
 
         {activeTab === "annualTarget" && (
           <div>
-            <AnnualTargetView/>
+            <AnnualTargetView />
           </div>
         )}
       </div>
