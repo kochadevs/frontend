@@ -16,54 +16,128 @@ interface CircularProgressProps {
 const CircularProgress: React.FC<CircularProgressProps> = ({
   percentage,
   label,
-  size = 120,
-  strokeWidth = 15,
+  size = 100, // Reduced from 140
+  strokeWidth = 10, // Reduced from 12
 }) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
+  // Determine color based on percentage
+  const getProgressColor = (percent: number) => {
+    if (percent < 30) {
+      return {
+        gradient: `linear-gradient(135deg, #EF4444 0%, #DC2626 100%)`,
+        shadow: "shadow-[0_2px_10px_rgba(239,68,68,0.2)]",
+        textColor: "text-red-600",
+      };
+    } else if (percent < 70) {
+      return {
+        gradient: `linear-gradient(135deg, #F59E0B 0%, #D97706 100%)`,
+        shadow: "shadow-[0_2px_10px_rgba(245,158,11,0.2)]",
+        textColor: "text-amber-600",
+      };
+    } else {
+      return {
+        gradient: `linear-gradient(135deg, #10B981 0%, #059669 100%)`,
+        shadow: "shadow-[0_2px_10px_rgba(16,185,129,0.2)]",
+        textColor: "text-emerald-600",
+      };
+    }
+  };
+
+  const progressColors = getProgressColor(percentage);
+
   return (
     <div className="flex flex-col items-center">
-      <div className="relative" style={{ width: size, height: size }}>
+      <div
+        className="relative transition-all duration-300 ease-out hover:scale-[1.02]"
+        style={{ width: size, height: size }}
+      >
+        {/* Outer glow effect */}
+        <div
+          className={`absolute inset-0 rounded-full blur-md opacity-40 transition-all duration-300 ${progressColors.shadow}`}
+        ></div>
+
         <svg width={size} height={size} className="transform -rotate-90">
-          {/* Background circle */}
+          {/* Background circle with subtle gradient */}
           <circle
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke="#E5E7EB"
+            stroke="url(#bgGradient)"
             strokeWidth={strokeWidth}
             fill="none"
+            className="opacity-20"
           />
-          {/* Progress circle with gradient */}
+
+          {/* Progress circle with dynamic gradient */}
           <circle
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke="url(#gradient)"
+            stroke="url(#progressGradient)"
             strokeWidth={strokeWidth}
             fill="none"
             strokeDasharray={circumference}
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
-            className="transition-all duration-500 ease-out"
+            className="transition-all duration-700 ease-out"
           />
+
           <defs>
-            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#251F99" />
-              <stop offset="100%" stopColor="#6C47FF" />
+            {/* Background gradient */}
+            <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#F3F4F6" />
+              <stop offset="100%" stopColor="#E5E7EB" />
+            </linearGradient>
+
+            {/* Dynamic progress gradient */}
+            <linearGradient
+              id="progressGradient"
+              x1="0%"
+              y1="0%"
+              x2="100%"
+              y2="100%"
+            >
+              <stop
+                offset="0%"
+                stopColor={
+                  percentage < 30
+                    ? "#EF4444"
+                    : percentage < 70
+                    ? "#F59E0B"
+                    : "#10B981"
+                }
+              />
+              <stop
+                offset="100%"
+                stopColor={
+                  percentage < 30
+                    ? "#DC2626"
+                    : percentage < 70
+                    ? "#D97706"
+                    : "#059669"
+                }
+              />
             </linearGradient>
           </defs>
         </svg>
-        {/* Percentage text */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-2xl font-bold text-gray-800">
+
+        {/* Percentage text with animation */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span
+            className={`text-xl font-bold transition-all duration-300 ${progressColors.textColor}`}
+          >
             {percentage}%
           </span>
         </div>
       </div>
-      <span className="mt-2 text-sm font-medium text-gray-600">{label}</span>
+
+      {/* Label with animation */}
+      <div className="mt-2 text-center">
+        <span className="text-xs font-medium text-gray-700">{label}</span>
+      </div>
     </div>
   );
 };
@@ -80,7 +154,6 @@ const InformationCompletionBanner = () => {
       setLoading(true);
       setError(null);
 
-      // Try to get token from store first, then from cookies as fallback
       let token = accessToken;
       if (!token) {
         const { accessToken: cookieToken } = tokenUtils.getTokens();
@@ -95,7 +168,6 @@ const InformationCompletionBanner = () => {
         return;
       }
 
-      // Use the imported API function
       const data = await getInformationCompletionData(token);
       setCompletionData(data);
     } catch (err) {
@@ -106,7 +178,6 @@ const InformationCompletionBanner = () => {
       setError(errorMessage);
       console.error("Error fetching completion data:", err);
 
-      // Show toast for API errors
       if (
         err instanceof Error &&
         err.message !== "Please sign in to view completion data."
@@ -120,28 +191,24 @@ const InformationCompletionBanner = () => {
 
   useEffect(() => {
     fetchCompletionData();
-  }, [accessToken]); // Added accessToken as dependency to refetch when token changes
+  }, [accessToken]);
 
   const handleRetry = () => {
     fetchCompletionData();
   };
 
-  // Loading state
+  // Loading state with skeleton animation
   if (loading) {
     return (
-      <div className="w-full px-24 py-6 bg-white shadow-sm">
-        <div className="flex justify-between items-center">
+      <div className="w-full px-6 py-4 bg-white border-b shadow-sm">
+        <div className="flex justify-between items-center max-w-2xl mx-auto">
           <div className="flex flex-col items-center">
-            <div className="w-32 h-32 rounded-full border-[15px] border-gray-200 animate-pulse"></div>
-            <span className="mt-2 text-sm font-medium text-gray-400">
-              Loading...
-            </span>
+            <div className="w-20 h-20 rounded-full border-6 border-gray-200 animate-pulse"></div>
+            <div className="h-3 w-24 bg-gray-200 rounded-full mt-2 animate-pulse"></div>
           </div>
           <div className="flex flex-col items-center">
-            <div className="w-32 h-32 rounded-full border-[15px] border-gray-200 animate-pulse"></div>
-            <span className="mt-2 text-sm font-medium text-gray-400">
-              Loading...
-            </span>
+            <div className="w-20 h-20 rounded-full border-6 border-gray-200 animate-pulse"></div>
+            <div className="h-3 w-24 bg-gray-200 rounded-full mt-2 animate-pulse"></div>
           </div>
         </div>
       </div>
@@ -151,13 +218,13 @@ const InformationCompletionBanner = () => {
   // Error state
   if (error) {
     return (
-      <div className="w-full px-24 py-6 bg-white shadow-sm">
-        <div className="text-center">
+      <div className="w-full px-6 py-4 bg-white border-b shadow-sm">
+        <div className="text-center max-w-2xl mx-auto">
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 inline-block">
-            <p className="text-red-700 mb-2">{error}</p>
+            <p className="text-red-700 text-sm font-medium">{error}</p>
             <button
               onClick={handleRetry}
-              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm"
+              className="mt-2 px-4 py-2 bg-red-600 text-white text-xs rounded-md hover:bg-red-700 transition-colors font-medium"
             >
               Try Again
             </button>
@@ -170,9 +237,9 @@ const InformationCompletionBanner = () => {
   // No data state
   if (!completionData) {
     return (
-      <div className="w-full px-24 py-6 bg-white shadow-sm">
-        <div className="text-center text-gray-500">
-          No completion data available
+      <div className="w-full px-6 py-4 bg-white border-b shadow-sm">
+        <div className="text-center max-w-2xl mx-auto">
+          <p className="text-gray-500 text-sm">No completion data available</p>
         </div>
       </div>
     );
@@ -180,26 +247,48 @@ const InformationCompletionBanner = () => {
 
   // Success state - display actual data from API
   return (
-    <div className="w-full px-24 py-6 bg-white shadow-sm">
-      <div className="flex justify-between items-center">
+    <div className="w-full px-6 py-4 bg-white border-b shadow-sm">
+      <div className="flex justify-between items-center max-w-2xl mx-auto">
         <CircularProgress
           percentage={completionData.profile_completion_percentage}
           label="Profile Completion"
+          size={100}
         />
+
+        <div className="w-px h-16 bg-gray-200"></div>
+
         <CircularProgress
           percentage={completionData.annual_target_completion_percentage}
           label="Annual Target"
+          size={100}
         />
       </div>
-      {/* Optional: Show overall completion */}
+
+      {/* Overall completion with progress bar */}
       {completionData.overall_completion_percentage > 0 && (
-        <div className="text-center mt-4">
-          <p className="text-sm text-gray-600">
-            Overall Completion:{" "}
-            <span className="font-semibold text-[#251F99]">
+        <div className="mt-4 max-w-md mx-auto">
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-xs font-medium text-gray-600">
+              Overall Progress
+            </span>
+            <span className="text-xs font-bold text-gray-900">
               {completionData.overall_completion_percentage}%
             </span>
-          </p>
+          </div>
+          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-700 ease-out"
+              style={{
+                width: `${completionData.overall_completion_percentage}%`,
+                background:
+                  completionData.overall_completion_percentage < 30
+                    ? "linear-gradient(90deg, #EF4444, #DC2626)"
+                    : completionData.overall_completion_percentage < 70
+                    ? "linear-gradient(90deg, #F59E0B, #D97706)"
+                    : "linear-gradient(90deg, #10B981, #059669)",
+              }}
+            ></div>
+          </div>
         </div>
       )}
     </div>

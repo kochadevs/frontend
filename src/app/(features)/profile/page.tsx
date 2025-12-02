@@ -69,7 +69,7 @@ export default function ProfileDetails() {
                 strokeLinejoin="round"
               />
             </svg>
-            <span className="text-sm font-medium">Annual Target</span>
+            <span className="text-sm font-medium">My Target</span>
           </Button>
         </div>
       </header>
