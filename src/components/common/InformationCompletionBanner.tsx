@@ -16,8 +16,8 @@ interface CircularProgressProps {
 const CircularProgress: React.FC<CircularProgressProps> = ({
   percentage,
   label,
-  size = 100, // Reduced from 140
-  strokeWidth = 10, // Reduced from 12
+  size = 100,
+  strokeWidth = 10,
 }) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
@@ -201,15 +201,18 @@ const InformationCompletionBanner = () => {
   if (loading) {
     return (
       <div className="w-full px-6 py-4 bg-white border-b shadow-sm">
-        <div className="flex justify-between items-center max-w-2xl mx-auto">
-          <div className="flex flex-col items-center">
-            <div className="w-20 h-20 rounded-full border-6 border-gray-200 animate-pulse"></div>
-            <div className="h-3 w-24 bg-gray-200 rounded-full mt-2 animate-pulse"></div>
-          </div>
-          <div className="flex flex-col items-center">
-            <div className="w-20 h-20 rounded-full border-6 border-gray-200 animate-pulse"></div>
-            <div className="h-3 w-24 bg-gray-200 rounded-full mt-2 animate-pulse"></div>
-          </div>
+        <div className="flex justify-between items-center max-w-3xl mx-auto">
+          {[...Array(3)].map((_, index) => (
+            <React.Fragment key={index}>
+              <div className="flex flex-col items-center">
+                <div className="w-20 h-20 rounded-full border-6 border-gray-200 animate-pulse"></div>
+                <div className="h-3 w-24 bg-gray-200 rounded-full mt-2 animate-pulse"></div>
+              </div>
+              {index < 2 && (
+                <div className="w-px h-16 bg-gray-200 hidden md:block"></div>
+              )}
+            </React.Fragment>
+          ))}
         </div>
       </div>
     );
@@ -248,49 +251,34 @@ const InformationCompletionBanner = () => {
   // Success state - display actual data from API
   return (
     <div className="w-full px-6 py-4 bg-white border-b shadow-sm">
-      <div className="flex justify-between items-center max-w-2xl mx-auto">
+      <div className="flex flex-col md:flex-row justify-between items-center max-w-4xl mx-auto gap-6 md:gap-0">
+        {/* Profile Completion */}
         <CircularProgress
           percentage={completionData.profile_completion_percentage}
           label="Profile Completion"
           size={100}
         />
 
-        <div className="w-px h-16 bg-gray-200"></div>
+        {/* Divider for desktop */}
+        <div className="w-px h-16 bg-gray-200 hidden md:block"></div>
 
+        {/* Annual Target */}
         <CircularProgress
           percentage={completionData.annual_target_completion_percentage}
           label="Annual Target"
           size={100}
         />
-      </div>
 
-      {/* Overall completion with progress bar */}
-      {completionData.overall_completion_percentage > 0 && (
-        <div className="mt-4 max-w-md mx-auto">
-          <div className="flex justify-between items-center mb-1">
-            <span className="text-xs font-medium text-gray-600">
-              Overall Progress
-            </span>
-            <span className="text-xs font-bold text-gray-900">
-              {completionData.overall_completion_percentage}%
-            </span>
-          </div>
-          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-700 ease-out"
-              style={{
-                width: `${completionData.overall_completion_percentage}%`,
-                background:
-                  completionData.overall_completion_percentage < 30
-                    ? "linear-gradient(90deg, #EF4444, #DC2626)"
-                    : completionData.overall_completion_percentage < 70
-                    ? "linear-gradient(90deg, #F59E0B, #D97706)"
-                    : "linear-gradient(90deg, #10B981, #059669)",
-              }}
-            ></div>
-          </div>
-        </div>
-      )}
+        {/* Divider for desktop */}
+        <div className="w-px h-16 bg-gray-200 hidden md:block"></div>
+
+        {/* Overall Progress */}
+        <CircularProgress
+          percentage={completionData.overall_completion_percentage}
+          label="Overall Progress"
+          size={100}
+        />
+      </div>
     </div>
   );
 };
