@@ -8,7 +8,7 @@ export default function ProfileDetails() {
   const [activeTab, setActiveTab] = useState("profile");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30">
+    <div className="min-h-[80vh] bg-gradient-to-br from-gray-50 to-blue-50/30">
       <header className="w-full h-[60px] bg-[#251F99] border-b sticky top-0 z-10">
         {/* Background Pattern - moved behind content */}
         <div className="absolute inset-0 opacity-10 pointer-events-none">

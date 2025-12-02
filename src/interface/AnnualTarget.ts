@@ -1,4 +1,18 @@
-// interface/AnnualTarget.ts
+import type { Dayjs } from "dayjs";
+export interface CreateTargetFormValues {
+  objective: string;
+  measured_by: string;
+  completed_by: Dayjs;
+  upload_path: string;
+}
+
+export interface EditTargetFormValues {
+  objective?: string;
+  measured_by?: string;
+  completed_by?: Dayjs;
+  upload_path?: string;
+  status?: string;
+}
 
 export type TargetStatus =
   | "not_started"

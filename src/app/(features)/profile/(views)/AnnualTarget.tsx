@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import React, { useState, useEffect } from "react";
@@ -21,7 +22,10 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
-  Upload,
+  Upload as UploadIcon,
+  File,
+  Image as ImageIcon,
+  X,
 } from "lucide-react";
 import {
   AnnualTarget,
@@ -41,7 +45,7 @@ import type { Dayjs } from "dayjs";
 import { handleErrorMessage } from "@/utilities/handleErrorMessage";
 import Loader from "@/components/common/Loader";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -51,7 +55,6 @@ interface CreateTargetFormValues {
   measured_by: string;
   completed_by: Dayjs;
   upload_path: string;
-  status?: string;
 }
 
 interface EditTargetFormValues {
@@ -75,6 +78,8 @@ export default function MyTargetsView() {
   );
   const [createForm] = Form.useForm();
   const [editForm] = Form.useForm();
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploadPreview, setUploadPreview] = useState<string | null>(null);
   const accessToken = useAccessToken();
 
   const fetchTargets = async () => {
@@ -108,6 +113,61 @@ export default function MyTargetsView() {
     fetchTargets();
   }, [accessToken]);
 
+  // Handle file selection and preview
+  const handleFileSelect = (file: File) => {
+    // Validate file type
+    const validTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+    ];
+    if (!validTypes.includes(file.type)) {
+      message.error("Please upload only image files (JPEG, PNG, GIF, WebP)");
+      return false;
+    }
+
+    // Validate file size (5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    if (file.size > maxSize) {
+      message.error("File size must be less than 5MB");
+      return false;
+    }
+
+    setUploadedFile(file);
+
+    // Create preview URL
+    const previewUrl = URL.createObjectURL(file);
+    setUploadPreview(previewUrl);
+
+    // Set form field value - just the file name as string
+    if (createModalVisible) {
+      createForm.setFieldValue("upload_path", file.name);
+    } else if (editModalVisible) {
+      editForm.setFieldValue("upload_path", file.name);
+    }
+
+    return true;
+  };
+
+  // Handle file removal
+  const handleRemoveFile = () => {
+    // Revoke the object URL to prevent memory leaks
+    if (uploadPreview) {
+      URL.revokeObjectURL(uploadPreview);
+    }
+
+    setUploadedFile(null);
+    setUploadPreview(null);
+
+    if (createModalVisible) {
+      createForm.setFieldValue("upload_path", "");
+    } else if (editModalVisible) {
+      editForm.setFieldValue("upload_path", "");
+    }
+  };
+
   const handleCreateTarget = async (values: CreateAnnualTargetRequest) => {
     try {
       let token = accessToken;
@@ -120,10 +180,17 @@ export default function MyTargetsView() {
         throw new Error("Authentication required");
       }
 
-      await createAnnualTarget(token, values);
+      // Just send the file name as string in upload_path field
+      const uploadPathValue = values.upload_path || "";
+
+      await createAnnualTarget(token, {
+        ...values,
+        upload_path: uploadPathValue,
+      });
       message.success("Target created successfully");
       setCreateModalVisible(false);
       createForm.resetFields();
+      handleRemoveFile(); // Clean up file preview
       fetchTargets();
     } catch (err) {
       handleErrorMessage(err, "Failed to create target");
@@ -150,13 +217,14 @@ export default function MyTargetsView() {
       if (values.completed_by)
         updateData.completed_by = values.completed_by.format("YYYY-MM-DD");
       if (values.upload_path !== undefined)
-        updateData.upload_path = values.upload_path;
+        updateData.upload_path = values.upload_path || "";
       if (values.status) updateData.status = values.status;
 
       await updateAnnualTarget(token, selectedTarget.id, updateData);
       message.success("Target updated successfully");
       setEditModalVisible(false);
       editForm.resetFields();
+      handleRemoveFile(); // Clean up file preview
       fetchTargets();
     } catch (err) {
       handleErrorMessage(err, "Failed to update target");
@@ -233,6 +301,21 @@ export default function MyTargetsView() {
     }
   };
 
+  const getBorderColor = (status: string) => {
+    switch (status) {
+      case "not_started":
+        return "border-l-red-500";
+      case "in_progress":
+        return "border-l-yellow-500";
+      case "completed":
+        return "border-l-green-500";
+      case "overdue":
+        return "border-l-red-700";
+      default:
+        return "border-l-gray-400";
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return dayjs(dateString).format("DD-MMM-YYYY").toUpperCase();
   };
@@ -241,22 +324,50 @@ export default function MyTargetsView() {
     return dayjs(dateString).format("DD MMM YYYY, h:mm A");
   };
 
-  const onFinishCreate: FormProps<CreateTargetFormValues>["onFinish"] = (
+  // Handle drag and drop
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      const file = files[0];
+      handleFileSelect(file);
+    }
+  };
+
+  const onFinishCreate: FormProps<CreateTargetFormValues>["onFinish"] = async (
     values
   ) => {
-    handleCreateTarget({
+    // Convert Dayjs to string for API
+    const apiValues: CreateAnnualTargetRequest = {
       objective: values.objective,
       measured_by: values.measured_by,
       completed_by: values.completed_by.format("YYYY-MM-DD"),
-      upload_path: values.upload_path,
-    });
+      upload_path: values.upload_path || "",
+    };
+    handleCreateTarget(apiValues);
   };
 
-  const onFinishEdit: FormProps<EditTargetFormValues>["onFinish"] = (
+  const onFinishEdit: FormProps<EditTargetFormValues>["onFinish"] = async (
     values
   ) => {
     handleEditTarget(values);
   };
+
+  // Clean up preview URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      if (uploadPreview) {
+        URL.revokeObjectURL(uploadPreview);
+      }
+    };
+  }, [uploadPreview]);
 
   if (loading) {
     return (
@@ -281,8 +392,8 @@ export default function MyTargetsView() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">My Targets</h1>
           <p className="text-gray-600">
-            How we work is as important as what we deliver. Reflect how you will
-            demonstrate our values in your goals.
+            Set meaningful targets that reflect your core values. Your goals
+            should demonstrate excellence in both process and outcome.
           </p>
         </div>
         <Button
@@ -300,97 +411,151 @@ export default function MyTargetsView() {
         </div>
       )}
 
-      {/* Targets Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Targets List - Compact Full Width */}
+      <div className="space-y-3">
         {targets.map((target) => (
-          <Card key={target.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex justify-between items-start">
-                <CardTitle className="text-base font-semibold text-gray-900 line-clamp-2">
-                  {target.objective}
-                </CardTitle>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => handleViewTarget(target.id)}
-                      className="flex items-center gap-2"
-                    >
-                      <Eye className="w-4 h-4" />
-                      View Details
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setSelectedTarget(target);
-                        editForm.setFieldsValue({
-                          objective: target.objective,
-                          measured_by: target.measured_by,
-                          completed_by: target.completed_by
-                            ? dayjs(target.completed_by)
-                            : null,
-                          upload_path: target.upload_path,
-                          status: target.status,
-                        });
-                        setEditModalVisible(true);
-                      }}
-                      className="flex items-center gap-2"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setSelectedTarget(target);
-                        setDeleteModalVisible(true);
-                      }}
-                      className="flex items-center gap-2 text-red-600"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {/* Measured By */}
-                <div>
-                  <p className="text-sm font-medium text-gray-700 mb-1">
-                    Measured By
-                  </p>
-                  <p className="text-sm text-gray-900">{target.measured_by}</p>
-                </div>
+          <Card
+            key={target.id}
+            className={`hover:shadow-md transition-shadow border-l-4 rounded-none ${getBorderColor(
+              target.status
+            )}`}
+          >
+            <CardContent className="px-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                {/* Left Content - Objective and Measured By */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <CardTitle className="text-base font-semibold text-gray-900 line-clamp-2 pr-2">
+                      {target.objective}
+                    </CardTitle>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 flex-shrink-0"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => handleViewTarget(target.id)}
+                          className="flex items-center gap-2"
+                        >
+                          <Eye className="w-4 h-4" />
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setSelectedTarget(target);
+                            editForm.setFieldsValue({
+                              objective: target.objective,
+                              measured_by: target.measured_by,
+                              completed_by: target.completed_by
+                                ? dayjs(target.completed_by)
+                                : null,
+                              upload_path: target.upload_path,
+                              status: target.status,
+                            });
+                            setEditModalVisible(true);
+                          }}
+                          className="flex items-center gap-2"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setSelectedTarget(target);
+                            setDeleteModalVisible(true);
+                          }}
+                          className="flex items-center gap-2 text-red-600"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
 
-                {/* Status and Date */}
-                <div className="flex justify-between items-center">
-                  <Badge
-                    className={`${getStatusColor(
-                      target.status
-                    )} flex items-center gap-1`}
-                  >
-                    {getStatusIcon(target.status)}
-                    {target.status.replace("_", " ")}
-                  </Badge>
-                  <div className="flex items-center gap-1 text-sm text-gray-600">
-                    <Calendar className="w-4 h-4" />
-                    {formatDate(target.completed_by)}
+                  <div className="mt-2">
+                    <p className="text-xs font-medium text-gray-500 mb-1">
+                      MEASURED BY
+                    </p>
+                    <p className="text-sm text-gray-900 line-clamp-1">
+                      {target.measured_by}
+                    </p>
                   </div>
                 </div>
 
-                {/* Upload Path */}
-                {target.upload_path && (
-                  <div className="pt-3 border-t">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Upload className="w-4 h-4" />
-                      <span className="truncate">{target.upload_path}</span>
+                {/* Vertical Divider - Hidden on mobile */}
+                <div className="hidden md:block h-12 border-r border-gray-200"></div>
+
+                {/* Right Content - Compact metadata */}
+                <div className="md:w-auto">
+                  <div className="grid grid-cols-1 gap-4">
+                    {/* Complete By */}
+                    <div className="space-y-1 flex gap-x-2 items-center">
+                      <Calendar className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                      <p className="text-xs font-medium text-gray-500">
+                        COMPLETE BY
+                      </p>
+                      <div className="flex items-center gap-1.5 text-gray-900">
+                        <span className="text-sm font-medium">
+                          {formatDate(target.completed_by)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Status */}
+                    <div className="space-y-1 flex gap-x-2 items-center">
+                      <p className="text-xs font-medium text-gray-500">
+                        STATUS
+                      </p>
+                      <Badge
+                        className={`${getStatusColor(
+                          target.status
+                        )} flex items-center gap-1.5 px-2 py-1 text-xs h-6`}
+                      >
+                        {getStatusIcon(target.status)}
+                        <span className="capitalize">
+                          {target.status.replace("_", " ")}
+                        </span>
+                      </Badge>
+                    </div>
+
+                    {/* Uploaded File */}
+                    <div className="space-y-1 flex gap-x-2 items-center">
+                      <p className="text-xs font-medium text-gray-500">
+                        {target.upload_path ? "FILE" : "NO FILE"}
+                      </p>
+                      {target.upload_path ? (
+                        <div
+                          className="flex items-center gap-1.5 group cursor-pointer"
+                          onClick={() => handleViewTarget(target.id)}
+                        >
+                          <div className="p-1 bg-gray-100 rounded flex-shrink-0">
+                            {target.upload_path.match(
+                              /\.(jpg|jpeg|png|gif|webp)$/i
+                            ) ? (
+                              <ImageIcon className="w-3.5 h-3.5 text-blue-500" />
+                            ) : (
+                              <File className="w-3.5 h-3.5 text-gray-500" />
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-900 truncate max-w-[100px] group-hover:text-blue-600 transition-colors">
+                            {target.upload_path.split("/").pop()}
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-400 italic">
+                          No file attached
+                        </p>
+                      )}
                     </div>
                   </div>
-                )}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -425,6 +590,7 @@ export default function MyTargetsView() {
         onCancel={() => {
           setCreateModalVisible(false);
           createForm.resetFields();
+          handleRemoveFile();
         }}
         footer={null}
         width={600}
@@ -473,8 +639,102 @@ export default function MyTargetsView() {
             />
           </Form.Item>
 
-          <Form.Item name="upload_path" label="Upload Path (Optional)">
-            <Input placeholder="Path to supporting documents..." />
+          <Form.Item label="Upload File (Optional)">
+            <div className="space-y-4">
+              {/* File Upload Area */}
+              {!uploadedFile ? (
+                <div
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#251F99] transition-colors cursor-pointer"
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                  onClick={() => {
+                    const input = document.createElement("input");
+                    input.type = "file";
+                    input.accept = "image/*";
+                    input.onchange = (e) => {
+                      const file = (e.target as HTMLInputElement).files?.[0];
+                      if (file) {
+                        handleFileSelect(file);
+                      }
+                    };
+                    input.click();
+                  }}
+                >
+                  <div className="flex flex-col items-center justify-center gap-3">
+                    <div className="p-3 rounded-full bg-gray-100">
+                      <UploadIcon className="w-6 h-6 text-gray-600" />
+                    </div>
+                    <div className="text-center">
+                      <p className="font-medium text-gray-900">
+                        Click to upload or drag and drop
+                      </p>
+                      <p className="text-sm text-gray-500 mt-1">
+                        PNG, JPG, GIF up to 5MB
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mt-2"
+                    >
+                      Select File
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="border border-gray-200 rounded-lg bg-gray-50 p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-white rounded-md border">
+                        {uploadedFile.type.startsWith("image/") ? (
+                          <ImageIcon className="w-5 h-5 text-blue-600" />
+                        ) : (
+                          <File className="w-5 h-5 text-gray-600" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {uploadedFile.name}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleRemoveFile}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+
+                  {/* Image Preview */}
+                  {uploadPreview && (
+                    <div className="mt-4">
+                      <p className="text-sm font-medium text-gray-700 mb-2">
+                        Preview:
+                      </p>
+                      <div className="relative h-48 w-full overflow-hidden rounded-md border">
+                        <img
+                          src={uploadPreview}
+                          alt="Preview"
+                          className="object-contain w-full h-full"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <Form.Item name="upload_path" noStyle>
+                <Input type="hidden" />
+              </Form.Item>
+            </div>
           </Form.Item>
 
           <Form.Item className="mb-0">
@@ -485,6 +745,7 @@ export default function MyTargetsView() {
                 onClick={() => {
                   setCreateModalVisible(false);
                   createForm.resetFields();
+                  handleRemoveFile();
                 }}
               >
                 Cancel
@@ -507,6 +768,7 @@ export default function MyTargetsView() {
         onCancel={() => {
           setEditModalVisible(false);
           editForm.resetFields();
+          handleRemoveFile();
         }}
         footer={null}
         width={600}
@@ -542,8 +804,132 @@ export default function MyTargetsView() {
             </Select>
           </Form.Item>
 
-          <Form.Item name="upload_path" label="Upload Path">
-            <Input placeholder="Path to supporting documents..." />
+          <Form.Item label="Upload File">
+            <div className="space-y-4">
+              {/* Show existing file if it exists */}
+              {selectedTarget?.upload_path && !uploadedFile && (
+                <div className="border border-gray-200 rounded-lg bg-gray-50 p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-white rounded-md border">
+                        {selectedTarget.upload_path.match(
+                          /\.(jpg|jpeg|png|gif|webp)$/i
+                        ) ? (
+                          <ImageIcon className="w-5 h-5 text-blue-600" />
+                        ) : (
+                          <File className="w-5 h-5 text-gray-600" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {selectedTarget.upload_path}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Current file name
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* File Upload Area (for new file) */}
+              {!uploadedFile ? (
+                <div
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#251F99] transition-colors cursor-pointer"
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                  onClick={() => {
+                    const input = document.createElement("input");
+                    input.type = "file";
+                    input.accept = "image/*";
+                    input.onchange = (e) => {
+                      const file = (e.target as HTMLInputElement).files?.[0];
+                      if (file) {
+                        handleFileSelect(file);
+                      }
+                    };
+                    input.click();
+                  }}
+                >
+                  <div className="flex flex-col items-center justify-center gap-3">
+                    <div className="p-3 rounded-full bg-gray-100">
+                      <UploadIcon className="w-6 h-6 text-gray-600" />
+                    </div>
+                    <div className="text-center">
+                      <p className="font-medium text-gray-900">
+                        {selectedTarget?.upload_path
+                          ? "Upload new file to replace"
+                          : "Click to upload or drag and drop"}
+                      </p>
+                      <p className="text-sm text-gray-500 mt-1">
+                        PNG, JPG, GIF up to 5MB
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mt-2"
+                    >
+                      Select File
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="border border-gray-200 rounded-lg bg-gray-50 p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-white rounded-md border">
+                        {uploadedFile.type.startsWith("image/") ? (
+                          <ImageIcon className="w-5 h-5 text-blue-600" />
+                        ) : (
+                          <File className="w-5 h-5 text-gray-600" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {uploadedFile.name}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          New file •{" "}
+                          {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleRemoveFile}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+
+                  {/* New Image Preview */}
+                  {uploadPreview && (
+                    <div className="mt-4">
+                      <p className="text-sm font-medium text-gray-700 mb-2">
+                        New file preview:
+                      </p>
+                      <div className="relative h-48 w-full overflow-hidden rounded-md border">
+                        <img
+                          src={uploadPreview}
+                          alt="Preview"
+                          className="object-contain w-full h-full"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <Form.Item name="upload_path" noStyle>
+                <Input type="hidden" />
+              </Form.Item>
+            </div>
           </Form.Item>
 
           <Form.Item className="mb-0">
@@ -554,6 +940,7 @@ export default function MyTargetsView() {
                 onClick={() => {
                   setEditModalVisible(false);
                   editForm.resetFields();
+                  handleRemoveFile();
                 }}
               >
                 Cancel
@@ -620,11 +1007,28 @@ export default function MyTargetsView() {
             {selectedTarget.upload_path && (
               <div>
                 <label className="font-semibold text-gray-700 block mb-2">
-                  Upload Path:
+                  Uploaded File:
                 </label>
-                <div className="flex items-center gap-2 text-gray-900">
-                  <Upload className="w-4 h-4" />
-                  {selectedTarget.upload_path}
+                <div className="border border-gray-200 rounded-lg bg-gray-50 p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-white rounded-md border">
+                        {selectedTarget.upload_path.match(
+                          /\.(jpg|jpeg|png|gif|webp)$/i
+                        ) ? (
+                          <ImageIcon className="w-5 h-5 text-blue-600" />
+                        ) : (
+                          <File className="w-5 h-5 text-gray-600" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {selectedTarget.upload_path}
+                        </p>
+                        <p className="text-sm text-gray-500">File name</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
