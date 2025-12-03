@@ -24,9 +24,8 @@ const SideNavigationBar = () => {
   // Base navigation items
   const baseNavItems = [
     { icon: LayoutDashboard, label: "Home", href: "/home" },
-    // { icon: FileText, label: "Documents", href: "/documents" },
-    // { icon: Briefcase, label: "Jobs", href: "/jobs" },
     { icon: PackagePlus, label: "Mentor Packages", href: "/mentor-packages" },
+    { icon: PackagePlus, label: "Mentorship", href: "/mentorship" },
     { icon: Calendar, label: "Bookings", href: "/bookings" },
     { icon: Calendar, label: "Events", href: "/events" },
     { icon: MessagesSquare, label: "Message", href: "/message" },

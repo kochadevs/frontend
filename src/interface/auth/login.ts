@@ -69,6 +69,29 @@ interface Availability {
   [key: string]: any;
 }
 
+// Nested Professional Background Interface
+interface ProfessionalBackground {
+  current_role: string;
+  company: string;
+  years_of_experience: number;
+  industry: Industry[];
+  skills: Skill[];
+}
+
+// Nested Goals Interface
+interface Goals {
+  career_goals: CareerGoal[];
+  long_term_goals: string;
+}
+
+// Nested Mentoring Preferences Interface
+interface MentoringPreferences {
+  mentoring_frequency: MentoringFrequency[];
+  mentoring_format: MentoringFormat[];
+  preferred_skills: Skill[];
+  preferred_industries: Industry[];
+}
+
 export interface UserProfile {
   id: number;
   first_name: string;
@@ -83,24 +106,23 @@ export interface UserProfile {
   profile_pic: string;
   cover_photo: string;
   about: string;
-  current_role: string;
-  company: string;
-  years_of_experience: number;
-  long_term_goals: string;
-  code_of_conduct_accepted: boolean;
-  onboarding_completed: boolean;
-  is_onboarded: boolean;
   user_type: string;
   social_links: SocialLinks;
   availability: Availability;
+
+  // Nested objects
+  professional_background: ProfessionalBackground;
+  goals: Goals;
+  mentoring_preferences: MentoringPreferences;
+
+  // Direct arrays
   new_role_values: NewRoleValue[];
   job_search_status: JobSearchStatus[];
   role_of_interest: RoleOfInterest[];
-  industry: Industry[];
-  skills: Skill[];
-  career_goals: CareerGoal[];
-  mentoring_frequency: MentoringFrequency[];
-  mentoring_format: MentoringFormat[];
+
+  code_of_conduct_accepted: boolean;
+  onboarding_completed: boolean;
+  is_onboarded: boolean;
 }
 
 export interface LoginResponse {
