@@ -2,8 +2,6 @@
 import React, { useState } from "react";
 import {
   LayoutDashboard,
-  // FileText,
-  // Briefcase,
   PackagePlus,
   Users,
   User,
@@ -19,31 +17,41 @@ const SideNavigationBar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
   const user = useUser();
-  const isMentor = user?.user_type === "mentor";
 
-  // Base navigation items
+  // Check if user is mentor or mentee
+  const userType = user?.user_type?.toLowerCase();
+  const isMentorOrMentee = userType === "mentor" || userType === "mentee";
+
+  // Base navigation items - always shown
   const baseNavItems = [
     { icon: LayoutDashboard, label: "Home", href: "/home" },
-    { icon: PackagePlus, label: "Mentor Packages", href: "/mentor-packages" },
-    { icon: PackagePlus, label: "Mentorship", href: "/mentorship" },
+    // { icon: PackagePlus, label: "Mentor Packages", href: "/mentor-packages" },
     { icon: Calendar, label: "Bookings", href: "/bookings" },
     { icon: Calendar, label: "Events", href: "/events" },
     { icon: MessagesSquare, label: "Message", href: "/message" },
     { icon: User, label: "Profile", href: "/profile" },
   ];
 
-  // Add Mentor Match only for mentees (non-mentors)
-  const navItems = !isMentor 
+  const navItems = isMentorOrMentee
     ? [
         baseNavItems[0], // Home
-        { icon: Users, label: "Mentor Match", href: "/mentor_match" },
-        ...baseNavItems.slice(1) // Rest of the items
+        { icon: Users, label: "Mentorship", href: "/mentorship" },
+        ...baseNavItems.slice(1), // Rest of the items
       ]
     : baseNavItems;
 
-   const isActive = (path: string) => {
-     return pathname.startsWith(path);
-   };
+  // Add Mentor Match only for mentees
+  // const finalNavItems =
+  //   userType === "mentee"
+  //     ? [
+  //         ...navItems.filter((item) => item.label !== "Mentor Match"), // Remove existing Mentor Match if any
+  //         { icon: Users, label: "Mentor Match", href: "/mentor_match" },
+  //       ]
+  //     : navItems;
+
+  const isActive = (path: string) => {
+    return pathname.startsWith(path);
+  };
 
   return (
     <nav
@@ -54,7 +62,7 @@ const SideNavigationBar = () => {
     >
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="self-end p-2 text-white hover:bg-linear-to-r from-[#334AFF] to-[#251F99]  rounded-lg m-2"
+        className="self-end p-2 text-white hover:bg-linear-to-r from-[#334AFF] to-[#251F99] rounded-lg m-2"
       >
         {isCollapsed ? (
           <svg
@@ -96,7 +104,7 @@ const SideNavigationBar = () => {
           <Link
             key={item.href}
             href={item.href}
-            className={`flex items-center gap-3 text-white/90  border-l-2 border-transparent   p-3 transition-colors ${
+            className={`flex items-center gap-3 text-white/90 border-l-2 border-transparent p-3 transition-colors ${
               isActive(item.href)
                 ? "bg-linear-to-r from-[#334AFF] to-[#251F99] border-white"
                 : "hover:bg-linear-to-r from-[#334AFF] to-[#251F99] hover:border-white"
