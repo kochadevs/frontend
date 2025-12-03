@@ -28,6 +28,7 @@ const SideNavigationBar = () => {
     // { icon: Briefcase, label: "Jobs", href: "/jobs" },
     { icon: PackagePlus, label: "Mentor Packages", href: "/mentor-packages" },
     { icon: Calendar, label: "Bookings", href: "/bookings" },
+    { icon: Calendar, label: "Events", href: "/events" },
     { icon: MessagesSquare, label: "Message", href: "/message" },
     { icon: User, label: "Profile", href: "/profile" },
   ];

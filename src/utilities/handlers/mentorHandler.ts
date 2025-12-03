@@ -1,61 +1,55 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import axios from "axios";
 import { Mentor } from "@/interface/mentors";
 
 const BASE_URL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
 
-/**
- * Fetch all mentors from the API
- */
+const api = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
 export async function getMentors(token: string): Promise<Mentor[]> {
   try {
-    const response = await fetch(`${BASE_URL}/mentors/`, {
-      method: "GET",
+    const response = await api.get<Mentor[]>("/mentors/", {
       headers: {
-        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        errorData.message ||
-          errorData.detail ||
-          `Failed to fetch mentors: ${response.status} ${response.statusText}`
-      );
-    }
+    return response.data;
+  } catch (error: any) {
+    const message =
+      error.response?.data?.message ||
+      error.response?.data?.detail ||
+      error.message ||
+      "Failed to fetch mentors";
 
-    const mentors: Mentor[] = await response.json();
-    return mentors;
-  } catch (error) {
-    throw error;
+    throw new Error(message);
   }
 }
 
-/**
- * Fetch a single mentor by ID from the API
- */
-export async function getMentorById(token: string, mentorId: string): Promise<Mentor> {
+export async function getMentorById(
+  token: string,
+  mentorId: string
+): Promise<Mentor> {
   try {
-    const response = await fetch(`${BASE_URL}/mentors${mentorId}/details`, {
-      method: "GET",
+    const response = await api.get<Mentor>(`/mentors/${mentorId}/details`, {
       headers: {
-        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        errorData.message ||
-          errorData.detail ||
-          `Failed to fetch mentor: ${response.status} ${response.statusText}`
-      );
-    }
+    return response.data;
+  } catch (error: any) {
+    const message =
+      error.response?.data?.message ||
+      error.response?.data?.detail ||
+      error.message ||
+      "Failed to fetch mentor";
 
-    const mentor: Mentor = await response.json();
-    return mentor;
-  } catch (error) {
-    throw error;
+    throw new Error(message);
   }
 }
