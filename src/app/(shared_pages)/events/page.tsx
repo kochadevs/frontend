@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -29,7 +30,11 @@ import {
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { handleErrorMessage } from "@/utilities/handleErrorMessage";
-import { fetchEventDetails, fetchIncomingEvents } from "@/utilities/handlers/eventsHandler";
+import {
+  fetchEventDetails,
+  fetchIncomingEvents,
+} from "@/utilities/handlers/eventsHandler";
+import Loader from "@/components/common/Loader";
 
 dayjs.extend(relativeTime);
 
@@ -150,7 +155,11 @@ export default function Events() {
   }, [accessToken]);
 
   if (loading) {
-    return <EventsSkeleton />;
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader text="Loading Events..." />
+      </div>
+    );
   }
 
   if (error) {
@@ -447,50 +456,3 @@ export default function Events() {
     </div>
   );
 }
-
-// Skeleton loading component
-const EventsSkeleton = () => {
-  return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header Skeleton */}
-      <div className="mb-8">
-        <Skeleton className="h-8 w-64 mb-2" />
-        <Skeleton className="h-4 w-96" />
-      </div>
-
-      {/* Events Grid Skeleton */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[...Array(6)].map((_, index) => (
-          <Card key={index} className="overflow-hidden">
-            <Skeleton className="h-48 w-full" />
-            <CardHeader className="pb-3">
-              <div className="flex justify-between items-start mb-2">
-                <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-6 w-20" />
-              </div>
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-5/6 mt-2" />
-            </CardHeader>
-            <CardContent className="pb-3 space-y-3">
-              <div className="flex items-center gap-2">
-                <Skeleton className="w-4 h-4" />
-                <Skeleton className="h-4 w-32" />
-              </div>
-              <div className="flex items-center gap-2">
-                <Skeleton className="w-4 h-4" />
-                <Skeleton className="h-4 w-40" />
-              </div>
-              <div className="flex items-center gap-2">
-                <Skeleton className="w-4 h-4" />
-                <Skeleton className="h-4 w-24" />
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Skeleton className="h-10 w-full" />
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
-};
