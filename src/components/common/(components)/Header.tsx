@@ -94,11 +94,11 @@ const Header = ({ handleChangeView, currentView, mentor }: HeaderProps) => {
                     </div>
                   )}
 
-                  {mentor?.industry?.[0] && (
+                  {mentor?.professional_background.industry?.[0] && (
                     <div className="space-y-1">
                       <p className="text-gray-500">Industry</p>
                       <p className="font-medium text-gray-900">
-                        {mentor.industry[0].name}
+                        {mentor.professional_background.industry[0].name}
                       </p>
                     </div>
                   )}

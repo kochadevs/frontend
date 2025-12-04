@@ -28,8 +28,11 @@ export default function OnboardingPost() {
 
     const firstName = user.first_name || "there";
     const about = user.about || "excited to be part of this community";
-    const currentRole = user.current_role || "professional";
-    const company = user.company ? ` at ${user.company}` : "";
+    const currentRole =
+      user.professional_background?.current_role || "professional";
+    const company = user.professional_background?.company
+      ? ` at ${user.professional_background.company}`
+      : "";
     const userType = user.user_type || "member";
 
     const baseMessages = [

@@ -11,7 +11,7 @@ type SkillProps = {
 
 export default function Skill({ mentor }: Readonly<SkillProps>) {
   const [showAll, setShowAll] = useState(false);
-  const skills = mentor?.skills || [];
+  const skills = mentor?.professional_background.skills || [];
   const displayedSkills = showAll ? skills : skills.slice(0, 12);
 
   return (

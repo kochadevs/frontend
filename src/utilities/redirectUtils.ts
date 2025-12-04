@@ -38,11 +38,11 @@ export const requiresOnboarding = (user: UserProfile | null): boolean => {
 
   return (
     isFieldIncomplete(user.new_role_values) ||
-    isFieldIncomplete(user.industry) ||
+    isFieldIncomplete(user.professional_background.industry) ||
     isFieldIncomplete(user.job_search_status) ||
     isFieldIncomplete(user.role_of_interest) ||
-    isFieldIncomplete(user.skills) ||
-    isFieldIncomplete(user.career_goals)
+    isFieldIncomplete(user.professional_background.skills) ||
+    isFieldIncomplete(user.goals.career_goals)
   );
 };
 
@@ -64,10 +64,10 @@ export const hasCompletedOnboarding = (user: UserProfile | null): boolean => {
 
   return (
     isFieldComplete(user.new_role_values) &&
-    isFieldComplete(user.industry) &&
+    isFieldComplete(user.professional_background.industry) &&
     isFieldComplete(user.job_search_status) &&
     isFieldComplete(user.role_of_interest) &&
-    isFieldComplete(user.skills) &&
-    isFieldComplete(user.career_goals)
+    isFieldComplete(user.professional_background.skills) &&
+    isFieldComplete(user.goals.career_goals)
   );
 };
