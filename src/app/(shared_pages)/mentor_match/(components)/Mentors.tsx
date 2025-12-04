@@ -62,7 +62,8 @@ export default function Mentors() {
   // Get unique industries for filter
   const industries = useMemo(() => {
     const allIndustries = mentors.flatMap(
-      (mentor) => mentor.industry?.map((ind) => ind.name) || []
+      (mentor) =>
+        mentor.professional_background?.industry?.map((ind) => ind.name) || []
     );
     return [...new Set(allIndustries)].sort();
   }, [mentors]);
@@ -70,16 +71,19 @@ export default function Mentors() {
   // Filter mentors based on search and industry
   const filteredMentors = useMemo(() => {
     return mentors.filter((mentor) => {
+      const mentorSkills = mentor.professional_background?.skills || [];
+      const mentorIndustry = mentor.professional_background?.industry || [];
+
       const matchesSearch =
         searchQuery === "" ||
         mentor.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         mentor.last_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         mentor.about?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         mentor.location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        mentor.skills?.some((skill) =>
+        mentorSkills.some((skill) =>
           skill.name.toLowerCase().includes(searchQuery.toLowerCase())
         ) ||
-        mentor.industry?.some((ind) =>
+        mentorIndustry.some((ind) =>
           ind.name.toLowerCase().includes(searchQuery.toLowerCase())
         ) ||
         mentor.new_role_values?.some((role) =>
@@ -88,7 +92,7 @@ export default function Mentors() {
 
       const matchesIndustry =
         selectedIndustry === "all" ||
-        mentor.industry?.some((ind) => ind.name === selectedIndustry);
+        mentorIndustry.some((ind) => ind.name === selectedIndustry);
 
       return matchesSearch && matchesIndustry;
     });
