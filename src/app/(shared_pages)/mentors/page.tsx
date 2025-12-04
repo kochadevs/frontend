@@ -55,7 +55,10 @@ export default function MentorsPage() {
       const industries = Array.from(
         new Set(
           actualMentors.flatMap(
-            (mentor) => mentor.industry?.map((ind) => ind.name) || []
+            (mentor) =>
+              mentor.professional_background?.industry?.map(
+                (ind) => ind.name
+              ) || []
           )
         )
       ).filter(Boolean);
@@ -83,12 +86,16 @@ export default function MentorsPage() {
           `${mentor.first_name} ${mentor.last_name}`.toLowerCase();
         const about = mentor.about?.toLowerCase() || "";
         const skills =
-          mentor.skills?.map((s) => s.name.toLowerCase()).join(" ") || "";
+          mentor.professional_background?.skills
+            ?.map((s) => s.name.toLowerCase())
+            .join(" ") || "";
         const roles =
           mentor.role_of_interest?.map((r) => r.name.toLowerCase()).join(" ") ||
           "";
         const industry =
-          mentor.industry?.map((i) => i.name.toLowerCase()).join(" ") || "";
+          mentor.professional_background?.industry
+            ?.map((i) => i.name.toLowerCase())
+            .join(" ") || "";
         const location = mentor.location?.toLowerCase() || "";
 
         const query = searchQuery.toLowerCase();
@@ -105,7 +112,9 @@ export default function MentorsPage() {
 
     if (selectedIndustry !== "all") {
       filtered = filtered.filter((mentor) =>
-        mentor.industry?.some((ind) => ind.name === selectedIndustry)
+        mentor.professional_background?.industry?.some(
+          (ind) => ind.name === selectedIndustry
+        )
       );
     }
 
