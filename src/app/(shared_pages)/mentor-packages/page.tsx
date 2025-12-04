@@ -267,22 +267,50 @@ export default function MentorPackagesPage() {
   const createMentorFromPackage = (pkg: MentorPackage): Mentor => {
     return {
       id: pkg.user_id,
-      first_name: "Mentor", // We'll use generic names since we don't have full mentor data
+      first_name: "Mentor",
       last_name: `#${pkg.user_id}`,
       email: "",
       gender: "",
       nationality: "",
       location: "",
+      phone: "",
       is_active: true,
+      email_verified: false,
       profile_pic: "",
+      cover_photo: "",
       about: "",
       user_type: "mentor",
+      social_links: {},
+      availability: {},
+
+      // Nested objects
+      professional_background: {
+        current_role: "",
+        company: "",
+        years_of_experience: 0,
+        industry: [],
+        skills: [],
+      },
+      goals: {
+        career_goals: [],
+        long_term_goals: "",
+      },
+      mentoring_preferences: {
+        mentoring_frequency: [],
+        mentoring_format: [],
+        preferred_skills: [],
+        preferred_industries: [],
+      },
+
+      // Direct arrays
       new_role_values: [],
       job_search_status: [],
       role_of_interest: [],
-      industry: [],
-      skills: [],
-      career_goals: [],
+
+      // Other required fields
+      code_of_conduct_accepted: false,
+      onboarding_completed: false,
+      is_onboarded: false,
     };
   };
 

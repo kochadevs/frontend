@@ -1,3 +1,5 @@
+import { UserProfile } from "./auth/login";
+
 export interface MentorRole {
   id: number;
   date_created: string;
@@ -41,25 +43,7 @@ export interface MentorCareerGoal {
   name: string;
 }
 
-export interface Mentor {
-  first_name: string;
-  last_name: string;
-  email: string;
-  gender: string;
-  nationality: string;
-  location: string;
-  is_active: boolean;
-  profile_pic: string;
-  about: string;
-  user_type: "mentee" | "mentor";
-  id: number;
-  new_role_values: MentorRole[];
-  job_search_status: MentorJobSearchStatus[];
-  role_of_interest: MentorRoleOfInterest[];
-  industry: MentorIndustry[];
-  skills: MentorSkill[];
-  career_goals: MentorCareerGoal[];
-}
+export type Mentor = UserProfile;
 
 export interface MentorsResponse {
   mentors: Mentor[];
