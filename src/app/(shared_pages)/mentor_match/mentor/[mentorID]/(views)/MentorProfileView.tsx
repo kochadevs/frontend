@@ -16,7 +16,7 @@ export default function MentorProfileView({
   return (
     <>
       <About mentor={mentor} />
-      <CareerGoals careerGoals={mentor?.career_goals} />
+      <CareerGoals careerGoals={mentor?.goals.career_goals} />
       <Skill mentor={mentor} />
       <Experience />
       <Education />
