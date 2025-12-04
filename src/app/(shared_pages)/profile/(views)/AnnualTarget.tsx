@@ -721,7 +721,8 @@ export default function MyTargetsView() {
                         Preview:
                       </p>
                       <div className="relative h-48 w-full overflow-hidden rounded-md border">
-                        <img
+                        <Image
+                          fill
                           src={uploadPreview}
                           alt="Preview"
                           className="object-contain w-full h-full"
