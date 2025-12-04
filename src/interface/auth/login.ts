@@ -33,7 +33,7 @@ interface RoleOfInterest {
   category: string;
 }
 
-interface Skill {
+export interface Skill {
   id: number;
   date_created: string;
   last_modified: string;
