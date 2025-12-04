@@ -6,9 +6,13 @@ import Link from "next/link";
 import { Mentor } from "@/interface/mentors";
 import { CustomAvatar } from "@/components/common/CustomAvatar";
 
-export default function MentorCard({ mentor }: Readonly<{ mentor: Mentor }>){
-   return(
-     <div className="bg-white rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 p-6 flex flex-col h-full">
+export default function MentorCard({ mentor }: Readonly<{ mentor: Mentor }>) {
+  // Access nested properties safely
+  const industry = mentor.professional_background?.industry || [];
+  const skills = mentor.professional_background?.skills || [];
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 p-6 flex flex-col h-full">
       {/* Header with Avatar and Basic Info */}
       <div className="flex items-start gap-4 mb-2">
         <div className="flex-shrink-0">
@@ -55,10 +59,10 @@ export default function MentorCard({ mentor }: Readonly<{ mentor: Mentor }>){
             <span className="truncate">{mentor.location}</span>
           </div>
         )}
-        {mentor.industry?.[0] && (
+        {industry?.[0] && (
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <Building2 size={14} className="text-gray-400" />
-            <span className="truncate">{mentor.industry[0].name}</span>
+            <span className="truncate">{industry[0].name}</span>
           </div>
         )}
       </div>
@@ -73,11 +77,11 @@ export default function MentorCard({ mentor }: Readonly<{ mentor: Mentor }>){
       </div>
 
       {/* Skills Preview */}
-      {mentor.skills && mentor.skills.length > 0 && (
-        <div >
+      {skills && skills.length > 0 && (
+        <div>
           <h4 className="font-semibold text-gray-900 text-sm mb-2">Skills</h4>
           <div className="flex flex-wrap gap-1">
-            {mentor.skills.slice(0, 3).map((skill) => (
+            {skills.slice(0, 3).map((skill) => (
               <span
                 key={skill.id}
                 className="inline-block px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full font-medium"
@@ -85,9 +89,9 @@ export default function MentorCard({ mentor }: Readonly<{ mentor: Mentor }>){
                 {skill.name}
               </span>
             ))}
-            {mentor.skills.length > 3 && (
+            {skills.length > 3 && (
               <span className="inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                +{mentor.skills.length - 3} more
+                +{skills.length - 3} more
               </span>
             )}
           </div>
@@ -103,5 +107,5 @@ export default function MentorCard({ mentor }: Readonly<{ mentor: Mentor }>){
         </Link>
       </div>
     </div>
-   )
-};
+  );
+}
