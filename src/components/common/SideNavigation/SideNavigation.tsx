@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import {
   LayoutDashboard,
-  PackagePlus,
   Users,
   User,
   MessagesSquare,

@@ -16,7 +16,6 @@ import { Modal } from "antd";
 import { useAccessToken } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import { Event } from "@/interface/events";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Calendar,
   Clock,
@@ -35,6 +34,7 @@ import {
   fetchIncomingEvents,
 } from "@/utilities/handlers/eventsHandler";
 import Loader from "@/components/common/Loader";
+import Image from "next/image";
 
 dayjs.extend(relativeTime);
 
@@ -222,8 +222,9 @@ export default function Events() {
               >
                 {/* Event Image */}
                 {event.image_url && (
-                  <div className="h-48 overflow-hidden">
-                    <img
+                  <div className="relative h-48 overflow-hidden">
+                    <Image
+                    fill
                       src={event.image_url}
                       alt={event.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
@@ -342,8 +343,9 @@ export default function Events() {
           <div className="mt-4 space-y-6">
             {/* Event Image */}
             {selectedEvent.image_url && (
-              <div className="h-64 overflow-hidden rounded-lg">
-                <img
+              <div className="relative h-64 overflow-hidden rounded-lg">
+                <Image
+                  fill
                   src={selectedEvent.image_url}
                   alt={selectedEvent.title}
                   className="w-full h-full object-cover"

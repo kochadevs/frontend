@@ -46,6 +46,7 @@ import { handleErrorMessage } from "@/utilities/handleErrorMessage";
 import Loader from "@/components/common/Loader";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import Image from "next/image";
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -915,7 +916,8 @@ export default function MyTargetsView() {
                         New file preview:
                       </p>
                       <div className="relative h-48 w-full overflow-hidden rounded-md border">
-                        <img
+                        <Image
+                          fill
                           src={uploadPreview}
                           alt="Preview"
                           className="object-contain w-full h-full"
