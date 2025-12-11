@@ -34,7 +34,7 @@ export const handleSignup = async (payload: SignupPayload): Promise<any> => {
 
     return data;
   } catch (error: any) {
-    throw error
+    throw error;
   }
 };
 
@@ -59,14 +59,14 @@ export const handleLogin = async (
     const response = await axios.post(`${baseURL}/users/login`, payloadData, {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
-      }
+      },
     });
 
     const { data } = response;
 
     return data as LoginResponse;
   } catch (error: any) {
-    throw error
+    throw error;
   }
 };
 
@@ -87,11 +87,11 @@ export const handleLogout = async (accessToken: string): Promise<void> => {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
-        }
+        },
       }
     );
   } catch (error: any) {
-    throw error
+    throw error;
   }
 };
 
@@ -195,7 +195,8 @@ export const handleResetPassword = async (
 
 // Fetch updated user profile after onboarding completion
 export const fetchUserProfile = async (
-  accessToken: string
+  accessToken: string,
+  user_id: number | undefined
 ): Promise<UserProfile> => {
   try {
     const baseURL = process.env.NEXT_PUBLIC_AXIOS_API_BASE_URL;
@@ -206,7 +207,11 @@ export const fetchUserProfile = async (
       );
     }
 
-    const response = await axios.get(`${baseURL}/users/me`, {
+    if (!user_id) {
+      throw new Error("User ID is required to fetch profile");
+    }
+
+    const response = await axios.get(`${baseURL}/users/${user_id}`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,

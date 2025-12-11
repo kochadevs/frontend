@@ -114,8 +114,18 @@ export default function MyTargetsView() {
     fetchTargets();
   }, [accessToken]);
 
+  // Convert file to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   // Handle file selection and preview
-  const handleFileSelect = (file: File) => {
+  const handleFileSelect = async (file: File) => {
     // Validate file type
     const validTypes = [
       "image/jpeg",
@@ -142,11 +152,19 @@ export default function MyTargetsView() {
     const previewUrl = URL.createObjectURL(file);
     setUploadPreview(previewUrl);
 
-    // Set form field value - just the file name as string
-    if (createModalVisible) {
-      createForm.setFieldValue("upload_path", file.name);
-    } else if (editModalVisible) {
-      editForm.setFieldValue("upload_path", file.name);
+    try {
+      // Convert image to base64
+      const base64String = await fileToBase64(file);
+
+      // Set form field value with base64 data
+      if (createModalVisible) {
+        createForm.setFieldValue("upload_path", base64String);
+      } else if (editModalVisible) {
+        editForm.setFieldValue("upload_path", base64String);
+      }
+    } catch (err) {
+      message.error("Failed to process image. Please try again.");
+      return false;
     }
 
     return true;
@@ -162,6 +180,7 @@ export default function MyTargetsView() {
     setUploadedFile(null);
     setUploadPreview(null);
 
+    // Clear the form field
     if (createModalVisible) {
       createForm.setFieldValue("upload_path", "");
     } else if (editModalVisible) {
@@ -181,13 +200,18 @@ export default function MyTargetsView() {
         throw new Error("Authentication required");
       }
 
-      // Just send the file name as string in upload_path field
+      // Check if upload_path is a base64 string
       const uploadPathValue = values.upload_path || "";
 
-      await createAnnualTarget(token, {
+      // Determine if we're sending base64 or just a string
+      const isBase64 = uploadPathValue.startsWith("data:image/");
+
+      const payload: CreateAnnualTargetRequest = {
         ...values,
-        upload_path: uploadPathValue,
-      });
+        upload_path: isBase64 ? uploadPathValue : "", // Send base64 if present
+      };
+
+      await createAnnualTarget(token, payload);
       message.success("Target created successfully");
       setCreateModalVisible(false);
       createForm.resetFields();
@@ -217,8 +241,15 @@ export default function MyTargetsView() {
       if (values.measured_by) updateData.measured_by = values.measured_by;
       if (values.completed_by)
         updateData.completed_by = values.completed_by.format("YYYY-MM-DD");
-      if (values.upload_path !== undefined)
-        updateData.upload_path = values.upload_path || "";
+
+      // Handle upload_path - send base64 if it's a new image, otherwise keep existing
+      if (values.upload_path !== undefined) {
+        const isBase64 = values.upload_path?.startsWith("data:image/") ?? false;
+        updateData.upload_path = isBase64
+          ? values.upload_path
+          : values.upload_path || "";
+      }
+
       if (values.status) updateData.status = values.status;
 
       await updateAnnualTarget(token, selectedTarget.id, updateData);
@@ -331,14 +362,14 @@ export default function MyTargetsView() {
     e.stopPropagation();
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
     const files = e.dataTransfer.files;
     if (files.length > 0) {
       const file = files[0];
-      handleFileSelect(file);
+      await handleFileSelect(file);
     }
   };
 
@@ -352,13 +383,13 @@ export default function MyTargetsView() {
       completed_by: values.completed_by.format("YYYY-MM-DD"),
       upload_path: values.upload_path || "",
     };
-    handleCreateTarget(apiValues);
+    await handleCreateTarget(apiValues);
   };
 
   const onFinishEdit: FormProps<EditTargetFormValues>["onFinish"] = async (
     values
   ) => {
-    handleEditTarget(values);
+    await handleEditTarget(values);
   };
 
   // Clean up preview URLs when component unmounts
@@ -537,7 +568,8 @@ export default function MyTargetsView() {
                           onClick={() => handleViewTarget(target.id)}
                         >
                           <div className="p-1 bg-gray-100 rounded flex-shrink-0">
-                            {target.upload_path.match(
+                            {target.upload_path.startsWith("data:image/") ||
+                            target.upload_path.match(
                               /\.(jpg|jpeg|png|gif|webp)$/i
                             ) ? (
                               <ImageIcon className="w-3.5 h-3.5 text-blue-500" />
@@ -546,7 +578,9 @@ export default function MyTargetsView() {
                             )}
                           </div>
                           <p className="text-sm text-gray-900 truncate max-w-[100px] group-hover:text-blue-600 transition-colors">
-                            {target.upload_path.split("/").pop()}
+                            {target.upload_path.startsWith("data:image/")
+                              ? "Image file"
+                              : target.upload_path.split("/").pop()}
                           </p>
                         </div>
                       ) : (
@@ -652,10 +686,10 @@ export default function MyTargetsView() {
                     const input = document.createElement("input");
                     input.type = "file";
                     input.accept = "image/*";
-                    input.onchange = (e) => {
+                    input.onchange = async (e) => {
                       const file = (e.target as HTMLInputElement).files?.[0];
                       if (file) {
-                        handleFileSelect(file);
+                        await handleFileSelect(file);
                       }
                     };
                     input.click();
@@ -814,7 +848,8 @@ export default function MyTargetsView() {
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-white rounded-md border">
-                        {selectedTarget.upload_path.match(
+                        {selectedTarget.upload_path.startsWith("data:image/") ||
+                        selectedTarget.upload_path.match(
                           /\.(jpg|jpeg|png|gif|webp)$/i
                         ) ? (
                           <ImageIcon className="w-5 h-5 text-blue-600" />
@@ -824,11 +859,11 @@ export default function MyTargetsView() {
                       </div>
                       <div>
                         <p className="font-medium text-gray-900">
-                          {selectedTarget.upload_path}
+                          {selectedTarget.upload_path.startsWith("data:image/")
+                            ? "Image file"
+                            : selectedTarget.upload_path}
                         </p>
-                        <p className="text-sm text-gray-500">
-                          Current file name
-                        </p>
+                        <p className="text-sm text-gray-500">Current file</p>
                       </div>
                     </div>
                   </div>
@@ -845,10 +880,10 @@ export default function MyTargetsView() {
                     const input = document.createElement("input");
                     input.type = "file";
                     input.accept = "image/*";
-                    input.onchange = (e) => {
+                    input.onchange = async (e) => {
                       const file = (e.target as HTMLInputElement).files?.[0];
                       if (file) {
-                        handleFileSelect(file);
+                        await handleFileSelect(file);
                       }
                     };
                     input.click();
@@ -1016,7 +1051,8 @@ export default function MyTargetsView() {
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-white rounded-md border">
-                        {selectedTarget.upload_path.match(
+                        {selectedTarget.upload_path.startsWith("data:image/") ||
+                        selectedTarget.upload_path.match(
                           /\.(jpg|jpeg|png|gif|webp)$/i
                         ) ? (
                           <ImageIcon className="w-5 h-5 text-blue-600" />
@@ -1026,12 +1062,35 @@ export default function MyTargetsView() {
                       </div>
                       <div>
                         <p className="font-medium text-gray-900">
-                          {selectedTarget.upload_path}
+                          {selectedTarget.upload_path.startsWith("data:image/")
+                            ? "Image file (base64 encoded)"
+                            : selectedTarget.upload_path}
                         </p>
-                        <p className="text-sm text-gray-500">File name</p>
+                        <p className="text-sm text-gray-500">
+                          {selectedTarget.upload_path.startsWith("data:image/")
+                            ? "Base64 image data"
+                            : "File name"}
+                        </p>
                       </div>
                     </div>
                   </div>
+
+                  {/* Show image preview if it's base64 */}
+                  {selectedTarget.upload_path.startsWith("data:image/") && (
+                    <div className="mt-4">
+                      <p className="text-sm font-medium text-gray-700 mb-2">
+                        Image Preview:
+                      </p>
+                      <div className="relative h-48 w-full overflow-hidden rounded-md border">
+                        <Image
+                          fill
+                          src={selectedTarget.upload_path}
+                          alt="Uploaded image"
+                          className="object-contain w-full h-full"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

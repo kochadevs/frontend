@@ -10,7 +10,7 @@ export default function ProfileDetails() {
 
   return (
     <div className="min-h-[80vh] bg-gradient-to-br from-gray-50 to-blue-50/30">
-      <header className="w-full h-[60px] bg-[#251F99] border-b sticky top-0 z-10">
+      <header className="w-full h-[60px]  bg-[#251F99] border-b sticky top-0 z-40">
         {/* Background Pattern - moved behind content */}
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -translate-y-16 translate-x-16"></div>

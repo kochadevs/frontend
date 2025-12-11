@@ -1,6 +1,5 @@
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import PostCard from "../(components)/PostCard";
 import StartAPost from "../(components)/StartAPost";
 import {
@@ -19,6 +18,7 @@ import { useUser, useAccessToken, useAuthActions } from "@/store/authStore";
 import { tokenUtils } from "@/utilities/cookies";
 import { toast } from "react-hot-toast";
 import SideContent from "../(components)/SideContent";
+import { CustomAvatar } from "@/components/common/CustomAvatar";
 
 // Dynamically import EmojiPicker to avoid SSR issues
 
@@ -705,13 +705,10 @@ export default function PostContent() {
       <div className="container mx-auto flex flex-col gap-y-[1.5rem]  flex-1">
         {/* Post creation input */}
         <div className="bg-white p-[16px] border rounded-[8px] flex items-center gap-[16px]">
-          <Avatar className="w-[55px] h-[55px] object-center">
-            <AvatarImage
-              src={currentUser.avatar}
-              className="w-full h-full object-cover"
-            />
-            <AvatarFallback>You</AvatarFallback>
-          </Avatar>
+          <CustomAvatar
+            src={user?.profile_pic}
+            name={`${user?.first_name as string} ${user?.last_name as string}`}
+          />
           <div className="flex-1">
             <StartAPost onPostCreated={handlePostCreated} />
           </div>

@@ -48,9 +48,9 @@ export const CustomAvatar = ({ src, name, className }: CustomAvatarProps) => {
     <div
       className={`
         relative w-[48px] h-[48px] rounded-full 
-        bg-gradient-to-br from-[#334AFF] to-[#251F99] 
+         bg-[#DBEAFF] border-2 border-[#1F2C99]/20
         flex items-center justify-center 
-        text-white font-semibold text-sm
+        text-[#1F2C99] font-semibold text-sm
         ring-2 ring-gray-100 overflow-hidden
         object-center
         ${className || ""}

@@ -252,7 +252,7 @@ const InformationCompletionBanner = () => {
   // Success state - display actual data from API
   return (
     <div className="w-full px-6 py-4 bg-white border-b shadow-sm">
-      <div className="flex flex-col md:flex-row justify-between items-center max-w-4xl mx-auto gap-6 md:gap-0">
+      <div className="flex flex-row justify-between items-center max-w-4xl mx-auto gap-6 md:gap-0">
         {/* Profile Completion */}
         <CircularProgress
           percentage={completionData.profile_completion_percentage}

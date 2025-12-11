@@ -92,7 +92,7 @@ export default function StartAPost({
             <DialogTitle className="text-[#344054]">Start a post</DialogTitle>
           </DialogHeader>
           <div className="flex-col flex gap-3">
-            <div className="flex items-center gap-[16px]">
+            <div className="flex items-center gap-[16px] mt-2">
               <CustomAvatar
                 src={user?.profile_pic}
                 name={`${user?.first_name as string} ${user?.last_name as string}`}
