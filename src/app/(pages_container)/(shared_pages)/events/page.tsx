@@ -25,6 +25,7 @@ import {
   ChevronRight,
   CalendarDays,
   AlertCircle,
+  Image as ImageIcon,
 } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -46,6 +47,19 @@ export default function Events() {
   const [viewModalVisible, setViewModalVisible] = useState(false);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const accessToken = useAccessToken();
+
+  // Helper function to validate URL
+  const isValidUrl = (url: string): boolean => {
+    if (!url || typeof url !== "string") return false;
+    try {
+      if (url.startsWith("data:image/")) return true;
+      if (url.startsWith("/")) return true;
+      const parsed = new URL(url);
+      return parsed.protocol === "http:" || parsed.protocol === "https:";
+    } catch {
+      return false;
+    }
+  };
 
   const fetchEvents = async () => {
     try {
@@ -116,8 +130,27 @@ export default function Events() {
     return dayjs(dateString).format("MMM DD, YYYY");
   };
 
+  // FIXED: Updated time format to handle both "HH:mm" and "HH:mm:ss" formats
   const formatTime = (timeString: string) => {
-    return dayjs(timeString, "HH:mm:ss").format("h:mm A");
+    // Check if time string already has seconds
+    const timePattern = /^(\d{1,2}):(\d{2})(?::(\d{2}))?$/;
+    const match = timeString.match(timePattern);
+
+    if (match) {
+      // If time has seconds (HH:mm:ss), parse with seconds
+      if (match[3] !== undefined) {
+        return dayjs(`2000-01-01 ${timeString}`, "YYYY-MM-DD HH:mm:ss").format(
+          "h:mm A"
+        );
+      }
+      // If time doesn't have seconds (HH:mm), parse without seconds
+      return dayjs(`2000-01-01 ${timeString}`, "YYYY-MM-DD HH:mm").format(
+        "h:mm A"
+      );
+    }
+
+    // Fallback: try to parse as is
+    return dayjs(`2000-01-01 ${timeString}`).format("h:mm A");
   };
 
   const getEventStatus = (event: Event) => {
@@ -220,15 +253,22 @@ export default function Events() {
                 key={event.id}
                 className="hover:shadow-lg transition-shadow duration-300 overflow-hidden group"
               >
-                {/* Event Image */}
-                {event.image_url && (
+                {/* Event Image - UPDATED: Added placeholder when no image */}
+                {event.image_url && isValidUrl(event.image_url) ? (
                   <div className="relative h-48 overflow-hidden">
                     <Image
-                    fill
+                      fill
                       src={event.image_url}
                       alt={event.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
+                  </div>
+                ) : (
+                  <div className="h-48 bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
+                    <div className="p-6 rounded-lg bg-white/50 flex items-center justify-center">
+                      <Calendar className="w-12 h-12 text-gray-400" />
+                    </div>
                   </div>
                 )}
 
@@ -270,7 +310,7 @@ export default function Events() {
                       </div>
                     </div>
 
-                    {/* Time */}
+                    {/* Time - FIXED: Now handles both HH:mm and HH:mm:ss formats */}
                     <div className="flex items-center gap-2 text-gray-700">
                       <Clock className="w-4 h-4 text-gray-500" />
                       <span className="text-sm">
@@ -341,15 +381,23 @@ export default function Events() {
           </div>
         ) : selectedEvent ? (
           <div className="mt-4 space-y-6">
-            {/* Event Image */}
-            {selectedEvent.image_url && (
+            {/* Event Image - UPDATED: Added placeholder when no image */}
+            {selectedEvent.image_url && isValidUrl(selectedEvent.image_url) ? (
               <div className="relative h-64 overflow-hidden rounded-lg">
                 <Image
                   fill
                   src={selectedEvent.image_url}
                   alt={selectedEvent.title}
-                  className="w-full h-full object-cover"
+                  className="object-cover"
+                  sizes="100vw"
                 />
+              </div>
+            ) : (
+              <div className="h-64 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg flex items-center justify-center">
+                <div className="p-12 rounded-lg bg-white/50 flex flex-col items-center justify-center">
+                  <ImageIcon className="w-16 h-16 text-gray-400 mb-4" />
+                  <p className="text-gray-600">Event image not available</p>
+                </div>
               </div>
             )}
 
