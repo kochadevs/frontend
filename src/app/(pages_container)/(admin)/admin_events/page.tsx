@@ -214,8 +214,8 @@ export default function AdminEvents() {
       if (createUploadedFile) {
         try {
           imageBase64 = await convertFileToBase64(createUploadedFile);
-        } catch (err) {
-          message.error("Failed to process image. Please try again.");
+        } catch (err: any) {
+          console.error(err, "Failed to process image. Please try again.");
           setIsCreating(false);
           return;
         }

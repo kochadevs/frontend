@@ -162,8 +162,8 @@ export default function MyTargetsView() {
       } else if (editModalVisible) {
         editForm.setFieldValue("upload_path", base64String);
       }
-    } catch (err) {
-      message.error("Failed to process image. Please try again.");
+    } catch (err:any) {
+      console.error(err,"Failed to process image. Please try again.");
       return false;
     }
 

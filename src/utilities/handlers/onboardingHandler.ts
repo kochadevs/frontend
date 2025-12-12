@@ -96,7 +96,8 @@ export const fetchMentoringFrequency =
 export const submitOnboardingInformation = async (
   onboardingData: any,
   code_of_conduct_accepted: boolean,
-  accessToken: string
+  accessToken: string,
+  userId: number
 ): Promise<{ onboardingResponse: any; userProfile: any }> => {
   try {
     const baseURL = getBaseURL();
@@ -137,8 +138,8 @@ export const submitOnboardingInformation = async (
       }
     );
 
-    // Fetch updated user profile
-    const userProfile = await fetchUserProfile(accessToken);
+    // Fetch updated user profile - pass userId if available
+    const userProfile = await fetchUserProfile(accessToken, userId);
 
     return {
       onboardingResponse: onboardingResponse.data,

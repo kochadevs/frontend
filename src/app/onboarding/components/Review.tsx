@@ -133,8 +133,9 @@ const Review: React.FC<ReviewProps> = ({ handlePrevious, handleEditStep }) => {
       setIsSubmitting(true);
       const result = await submitOnboardingInformation(
         onboardingData,
-        true, // code_of_conduct_accepted (since they checked the box)
-        accessToken
+        true,
+        accessToken,
+        user?.id as number
       );
 
       // Update the user profile in the auth store with the returned data
