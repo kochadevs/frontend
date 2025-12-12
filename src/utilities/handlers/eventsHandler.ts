@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Event } from "@/interface/events";
+import { Event, EventPayload } from "@/interface/events";
 import axios from "axios";
 
 // Helper function to get base URL
@@ -24,13 +24,13 @@ export const fetchIncomingEvents = async (
     const baseURL = getBaseURL();
     const response = await axios.get(`${baseURL}/events/upcoming`, {
       headers: getAuthHeaders(accessToken),
-      timeout: 10000,
     });
     return response.data as Event[];
   } catch (error: any) {
-    throw error
+    throw error;
   }
 };
+
 export const fetchEventDetails = async (
   accessToken: string,
   event_id: number
@@ -39,8 +39,108 @@ export const fetchEventDetails = async (
     const baseURL = getBaseURL();
     const response = await axios.get(`${baseURL}/api/v1/events/${event_id}`, {
       headers: getAuthHeaders(accessToken),
-      timeout: 10000,
     });
+    return response.data as Event;
+  } catch (error: any) {
+    throw error;
+  }
+};
+
+// admin endpoints..................
+
+export const fetchAllEventsAdmin = async (
+  accessToken: string
+): Promise<Event[]> => {
+  try {
+    const baseURL = getBaseURL();
+    const response = await axios.get(`${baseURL}/admin/events`, {
+      headers: getAuthHeaders(accessToken),
+    });
+    return response.data as Event[];
+  } catch (error: any) {
+    throw error;
+  }
+};
+
+export const CreateEvent = async (
+  accessToken: string,
+  payload: EventPayload
+): Promise<Event> => {
+  try {
+    const baseURL = getBaseURL();
+    const response = await axios.post(`${baseURL}/admin/events`, payload, {
+      headers: getAuthHeaders(accessToken),
+    });
+    return response.data as Event;
+  } catch (error: any) {
+    throw error;
+  }
+};
+
+export const fetchEventDetailsAdmin = async (
+  accessToken: string,
+  event_id: number
+): Promise<Event> => {
+  try {
+    const baseURL = getBaseURL();
+    const response = await axios.get(`${baseURL}/admin/events/${event_id}`, {
+      headers: getAuthHeaders(accessToken),
+    });
+    return response.data as Event;
+  } catch (error: any) {
+    throw error;
+  }
+};
+
+export const UpdateEventDetailsAdmin = async (
+  accessToken: string,
+  event_id: number,
+  payload: EventPayload
+): Promise<Event> => {
+  try {
+    const baseURL = getBaseURL();
+    const response = await axios.patch(
+      `${baseURL}/admin/events/${event_id}`,
+      payload,
+      {
+        headers: getAuthHeaders(accessToken),
+        timeout: 10000,
+      }
+    );
+    return response.data as Event;
+  } catch (error: any) {
+    throw error;
+  }
+};
+
+export const DeleteEventAdmin = async (
+  accessToken: string,
+  event_id: number
+): Promise<Event> => {
+  try {
+    const baseURL = getBaseURL();
+    const response = await axios.delete(`${baseURL}/admin/events/${event_id}`, {
+      headers: getAuthHeaders(accessToken),
+    });
+    return response.data as Event;
+  } catch (error: any) {
+    throw error;
+  }
+};
+
+export const DeactivateEventAdmin = async (
+  accessToken: string,
+  event_id: number
+): Promise<Event> => {
+  try {
+    const baseURL = getBaseURL();
+    const response = await axios.patch(
+      `${baseURL}/admin/events/${event_id}/deactivate`,
+      {
+        headers: getAuthHeaders(accessToken),
+        timeout: 10000,
+      }
+    );
     return response.data as Event;
   } catch (error: any) {
     throw error;

@@ -26,7 +26,7 @@ const SideNavigationBar = () => {
   // Navigation items for admin users
   const adminNavItems = [
     { icon: Users, label: "Users", href: "/users" },
-    { icon: Calendar, label: "Events", href: "/events" },
+    { icon: Calendar, label: "Events", href: "/admin_events" },
     { icon: CheckCircle, label: "Approvals", href: "/approvals" },
     { icon: User, label: "Profile", href: "/profile" },
   ];
