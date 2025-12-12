@@ -32,7 +32,16 @@ function LoginContent() {
   // Handle redirect when authenticated
   useEffect(() => {
     if (authData?.access_token && authData.user_profile) {
-      const redirectDestination = authData.user_profile.onboarding_completed
+      const { user_profile } = authData;
+
+      // Check if user is an admin
+      if (user_profile.user_type?.toLowerCase() === "admin") {
+        router.push("/users");
+        return;
+      }
+
+      // Normal flow for non-admin users
+      const redirectDestination = user_profile.onboarding_completed
         ? "/home"
         : "/onboarding";
       router.push(redirectDestination);
@@ -70,11 +79,17 @@ function LoginContent() {
       setErrors({});
       toast.success("Login successful!");
 
-      // Simple redirect logic based on onboarding status
-      const redirectDestination = loginResponse.user_profile
-        .onboarding_completed
-        ? "/home"
-        : "/onboarding";
+      // Determine redirect destination based on user type and onboarding status
+      const { user_profile } = loginResponse;
+      let redirectDestination;
+
+      if (user_profile.user_type?.toLowerCase() === "admin") {
+        redirectDestination = "/users";
+      } else {
+        redirectDestination = user_profile.onboarding_completed
+          ? "/home"
+          : "/onboarding";
+      }
 
       router.push(redirectDestination);
     } catch (error) {

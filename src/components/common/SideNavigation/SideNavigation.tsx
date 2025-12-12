@@ -6,6 +6,7 @@ import {
   User,
   MessagesSquare,
   Calendar,
+  CheckCircle,
 } from "lucide-react";
 import { clsx } from "clsx";
 import Link from "next/link";
@@ -17,21 +18,30 @@ const SideNavigationBar = () => {
   const pathname = usePathname();
   const user = useUser();
 
-  // Check if user is mentor or mentee
+  // Check user type
   const userType = user?.user_type?.toLowerCase();
   const isMentorOrMentee = userType === "mentor" || userType === "mentee";
+  const isAdmin = userType === "admin";
 
-  // Base navigation items - always shown
+  // Navigation items for admin users
+  const adminNavItems = [
+    { icon: Users, label: "Users", href: "/users" },
+    { icon: Calendar, label: "Events", href: "/events" },
+    { icon: CheckCircle, label: "Approvals", href: "/approvals" },
+    { icon: User, label: "Profile", href: "/profile" },
+  ];
+
+  // Base navigation items - for non-admin users
   const baseNavItems = [
     { icon: LayoutDashboard, label: "Home", href: "/home" },
-    // { icon: PackagePlus, label: "Mentor Packages", href: "/mentor-packages" },
     { icon: Calendar, label: "Bookings", href: "/bookings" },
     { icon: Calendar, label: "Events", href: "/events" },
     { icon: MessagesSquare, label: "Message", href: "/message" },
     { icon: User, label: "Profile", href: "/profile" },
   ];
 
-  const navItems = isMentorOrMentee
+  // Navigation items for mentor/mentee users
+  const mentorMenteeNavItems = isMentorOrMentee
     ? [
         baseNavItems[0], // Home
         { icon: Users, label: "Mentorship", href: "/mentorship" },
@@ -39,14 +49,8 @@ const SideNavigationBar = () => {
       ]
     : baseNavItems;
 
-  // Add Mentor Match only for mentees
-  // const finalNavItems =
-  //   userType === "mentee"
-  //     ? [
-  //         ...navItems.filter((item) => item.label !== "Mentor Match"), // Remove existing Mentor Match if any
-  //         { icon: Users, label: "Mentor Match", href: "/mentor_match" },
-  //       ]
-  //     : navItems;
+  // Determine which navigation items to show
+  const navItems = isAdmin ? adminNavItems : mentorMenteeNavItems;
 
   const isActive = (path: string) => {
     return pathname.startsWith(path);
