@@ -99,7 +99,7 @@ export const UpdateEventDetailsAdmin = async (
 ): Promise<Event> => {
   try {
     const baseURL = getBaseURL();
-    const response = await axios.patch(
+    const response = await axios.put(
       `${baseURL}/admin/events/${event_id}`,
       payload,
       {
